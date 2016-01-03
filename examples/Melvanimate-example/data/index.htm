@@ -10,68 +10,55 @@
   <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
   <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
 -->
-    <link rel="stylesheet" href="/espman/jqm1.4.5.css">
-    <script src="/espman/jq1.11.1.js"></script>
-    <script src="/espman/jqm1.4.5.js"></script>
-    <script type="text/javascript" src="jqColorPicker.min.js"></script>
+    <!-- <link rel="stylesheet" href="/espman/jqm1.4.5.css"> -->
+    <!--<script src="/espman/jq1.11.1.js"></script>-->
+    <!--<script src="/espman/jqm1.4.5.js"></script>-->
+    <!-- <script type="text/javascript" src="jqColorPicker.min.js"></script>-->
 
 
 
-    <STYLE type="text/css">
-        .centerwrapper {
-            margin: 0 auto;
-            margin-left: auto;
-            margin-right: auto;
-            align: center;
-            text-align: center
-        }
+    <!--
+    <STYLE type="text/css" id="mystyleelement">
+    /*    .centerwrapper {*/
+    /*        margin: 0 auto;*/
+    /*        margin-left: auto;*/
+    /*        margin-right: auto;*/
+    /*        align: center;*/
+    /*        text-align: center*/
+    /*    }*/
         
-        .ui-btn.my-tooltip-btn,
-        .ui-btn.my-tooltip-btn:hover,
-        .ui-btn.my-tooltip-btn:active {
-            background: none;
-            border: 0;
-        }
+    /*    .ui-btn.my-tooltip-btn,*/
+    /*    .ui-btn.my-tooltip-btn:hover,*/
+    /*    .ui-btn.my-tooltip-btn:active {*/
+    /*        background: none;*/
+    /*        border: 0;*/
+    /*    }*/
         
-        .center {
-            text-align: center;
-        }
+    /*    .center {*/
+    /*        text-align: center;*/
+    /*    }*/
         
-        .footerContainer {
-            width: 97%;
-            height: 38px;
-            border: none;
-            position: relative;
-        }
+    /*    .footerContainer {*/
+    /*        width: 97%;*/
+    /*        height: 38px;*/
+    /*        border: none;*/
+    /*        position: relative;*/
+    /*    }*/
         
-        .ui-btn.my-tooltip-btn,
-        .ui-btn.my-tooltip-btn:hover,
-        .ui-btn.my-tooltip-btn:active {
-            background: none;
-            border: 0;
-        }
-   
-/*        .ui-page,div[data-role ="header"]*/
-/*{*/
-/*width: 600px !important;*/
-/*margin: 0 auto !important;*/
-/*position: relative !important;*/
-/*}*/
-    </STYLE>
-    <script id="panel-init">
-        $(function() {
-
-
-            $("[data-role='header']").toolbar();
-            $("[data-role='footer']").toolbar();
-            $("body>[data-role='panel']").panel();
-
-        });
-    </script>
+    /*    .ui-btn.my-tooltip-btn,*/
+    /*    .ui-btn.my-tooltip-btn:hover,*/
+    /*    .ui-btn.my-tooltip-btn:active {*/
+    /*        background: none;*/
+    /*        border: 0;*/
+    /*    }*/
+        
+    /*</STYLE>*/
+-->
 
 </head>
 
 <body>
+
 
     <div data-role="header" data-theme="a" data-position="fixed">
         <h1 id='myheader'>WS2812-ESPWiFi</h1>
@@ -313,6 +300,64 @@
 
     </div>
 
+<script>
+// function addcss(css){
+//     var head = document.getElementsByTagName('head')[0];
+//     var s = document.createElement('style');
+//     s.setAttribute('type', 'text/css');
+//     if (s.styleSheet) {   // IE
+//         s.styleSheet.cssText = css;
+//     } else {                // the world
+//         s.appendChild(document.createTextNode(css));
+//     }
+//     head.appendChild(s);
+// }
+ 
+
+function loadcss(url, callback) {
+    var link= document.createElement("link");
+    link.setAttribute("rel", "stylesheet");
+ link.setAttribute("href", url);
+    link.addEventListener('load', function() {
+        var script = document.createElement("script");
+        script.textContent = "(" + callback.toString()  + ")();";
+        document.body.appendChild(script);
+    }, false);
+    document.body.appendChild(link);
+}
+
+  function loadjs(url, callback) {
+    var script = document.createElement("script");
+    script.setAttribute("src", url);
+    script.addEventListener('load', function() {
+        var script = document.createElement("script");
+        script.textContent = "(" + callback.toString()  + ")();";
+        document.body.appendChild(script);
+    }, false);
+    document.body.appendChild(script);
+}
+
+loadcss("/espman/jqm1.4.5.css", function() { 
+  loadjs("/espman/jq1.11.1.js", function() {
+    //window.jQ=jQuery.noConflict(true);
+    loadjs("/espman/jqm1.4.5.js", function() {
+      //window.jQ=jQuery.noConflict(true);
+      loadjs("jqColorPicker.min.js", function() {
+                $(function() {
+
+            $("[data-role='header']").toolbar();
+            $("[data-role='footer']").toolbar();
+            $("body>[data-role='panel']").panel();
+
+        });
+        RUNDOCUMENT(); 
+      });
+    });
+  });
+});
+
+</script>
+
 
     <script>
         var currentmode;
@@ -356,6 +401,9 @@
         var NEO_TILE_PROGRESSIVE = 0x00 // Same tile order across each line
         var NEO_TILE_ZIGZAG = 0x80 // Tile order reverses between lines
         var NEO_TILE_SEQUENCE = 0x80 // Bitmask for tile line order
+
+function RUNDOCUMENT() {
+  
 
         $(document).on("pageshow", "#layout", function() {
 
@@ -783,7 +831,7 @@ $( document ).on( "pagebeforechange" , function(e, data) {
 
         };
 
-f
+
 
         // function GetDataOnly() {
         //   $.getJSON("melvide.esp?plain=data", function(result) {
@@ -817,6 +865,9 @@ f
             return "Last " + result;
 
         }
+        
+} // end of rundocumentt
+
     </script>
 </body>
 
