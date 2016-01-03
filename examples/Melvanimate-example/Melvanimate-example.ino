@@ -85,6 +85,10 @@ void setup()
     Serial.setDebugOutput(debugstate);
   });
 
+  void serveStatic(const char* uri, fs::FS& fs, const char* path, const char* cache_header = NULL );
+
+  HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400"); 
+
   HTTP.begin();
 
 // -------------------------------------------------------- //
@@ -151,6 +155,8 @@ void setup()
   //   }
   //   Serial.println();
   // }
+
+lights.palette().getModeString();
 
 
 
@@ -764,6 +770,10 @@ void handle_data()
     lights.setPixels(HTTP.arg("nopixels").toInt());
   }
 
+  if (HTTP.hasArg("palette")) {
+    lights.palette().mode(HTTP.arg("palette").c_str()); 
+  }
+
   if (HTTP.hasArg("marqueetext")) {
     lights.setText(HTTP.arg("marqueetext")) ;
     lights.Refresh();
@@ -915,6 +925,8 @@ void send_data(String page)
 
     root["rotation"] = lights.matrix()->getRotation();
     root["marqueetext"] = lights.getText();
+
+    root["palette"] = String(lights.palette().getModeString());
   }
   /*
         Layout Page
