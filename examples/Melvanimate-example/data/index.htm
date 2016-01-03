@@ -306,7 +306,7 @@
                     <label for="select-palettes-randomness">Randomness:</label>
                     <select name="palette-random" id="select-palettes-randomness">
                         <option value="off" selected="selected">Off</option>
-                        <option value="total-random">Total Random</option>
+                        <option value="totalrandom">Total Random</option>
                         <option value="timebased">Time Based</option>
                         <option value="randomafterloop">Random After Loop</option>
                     </select>
@@ -456,22 +456,7 @@ function RUNDOCUMENT() {
 
         });
 
-        function sortmatrix(e) {
 
-            var mode = $(e).val();
-            console.log("Matrix mode changed:" + mode);
-
-            if (mode === "multiplematrix") {
-                $('#singlematrix-config').fadeIn();
-                $('#multimatrix-config').fadeIn();
-            }
-
-            if (mode === "singlematrix") {
-                $('#singlematrix-config').fadeIn();
-                $('#multimatrix-config').fadeOut();
-            }
-
-        }
 
 
         $(document).on("pagebeforeshow", "#layout", function() {
@@ -782,14 +767,18 @@ $( document ).on( "pagebeforechange" , function(e, data) {
             $("#status").empty().append("Waiting...").css("color", "blue");;
 
             $.getJSON("data.esp?data=" + pagevar, function(result) {
-                    globaldata = result;
+                    console.log("RESULT:")
                     console.log(result);
-                    temp = result.modes;
-
+                    if (pagevar == 'homepage' || pagevar == "all") { globaldata = result; } 
+                    console.log("GLOBALDATA:")
+                    console.log(globaldata);                    
+                    
                     // Homepage        
 
                     if ($.mobile.activePage.attr('id') == 'homepage') {
-
+                      
+                      if (result.hasOwnProperty('modes')) {
+                          temp = result.modes;
                         $("#modeslist").find('option').remove();
                         console.log("currentmode = " + result.currentmode); 
                         $.each(temp, function(key, value) {
@@ -799,43 +788,34 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                         });
 
                         $('#modeslist').selectmenu('refresh');
-
+                      }
+                      if (result.hasOwnProperty('brightness')) {
                         $("#brightness").val(result.brightness).slider("refresh");
+                      }
+                      if (result.hasOwnProperty('speed')) {
                         $("#speed").val(result.speed).slider("refresh");
+                      }
+                      if (result.hasOwnProperty('color1')) {
+                        $("#color1").val("rgb(" + result.color1.R + "," + result.color1.G + "," + result.color1.B + ")").colorPicker();
+                      }
+                      if (result.hasOwnProperty('color2')) {
+                        $("#color2").val("rgb(" + result.color2.R + "," + result.color2.G + "," + result.color2.B + ")").colorPicker();
+                      }
 
-                        $("#color1").val("rgb(" + result.color1.R + "," + result.color1.G + "," + result.color1.B + ")").colorPicker({
-    //                       renderCallback: function($elm, toggled) {
-    // if (toggled === true) { // simple, lightweight check
-    //     // ... like an open callback
-    // } else if (toggled === false) {
-    //     $elm.css({'color': 'transparent'}); 
-//     }
-// }
-                        });
-                        $("#color2").val("rgb(" + result.color2.R + "," + result.color2.G + "," + result.color2.B + ")").colorPicker({
-    //                       renderCallback: function($elm, toggled) {
-    // if (toggled === true) { // simple, lightweight check
-    //     // ... like an open callback
-    // } else if (toggled === false) {
-    //     $elm.css({'color': 'transparent'}); 
-//     }
-// }
-                        });
-
-                        if (globaldata.hasOwnProperty('serialspeed')) {
-                            $('#adalight-serialspeed').val(globaldata.serialspeed).selectmenu('refresh');
+                        if (result.hasOwnProperty('serialspeed')) {
+                            $('#adalight-serialspeed').val(result.serialspeed).selectmenu('refresh');
                         }
                         
-                        if (globaldata.hasOwnProperty('rotation')) {
-                            $('#input-rotation').val(globaldata.rotation).selectmenu('refresh');
+                        if (result.hasOwnProperty('rotation')) {
+                            $('#input-rotation').val(result.rotation).selectmenu('refresh');
                         }
                         
-                        if (globaldata.hasOwnProperty('marqueetext')) {
-                            $('#input_marqueetext').val(globaldata.marqueetext);
+                        if (result.hasOwnProperty('marqueetext')) {
+                            $('#input_marqueetext').val(result.marqueetext);
                         }              
                         
-                        if (globaldata.hasOwnProperty('palette')) {
-                          $('#select-palettes').val(globaldata.palette).selectmenu('refresh'); 
+                        if (result.hasOwnProperty('palette')) {
+                          $('#select-palettes').val(result.palette).selectmenu('refresh'); 
                         }
                         
                         $('#effectoptions').children('div').each(function(index) {
@@ -847,11 +827,12 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                         });
 
                     }
+                    
                     // Layout Page
                     if ($.mobile.activePage.attr('id') == 'layout') {
 
-                        if (globaldata.hasOwnProperty('multiplematrix')) {
-                            if (globaldata.multiplematrix === true) {
+                        if (result.hasOwnProperty('multiplematrix')) {
+                            if (result.multiplematrix === true) {
                                 $("#select-matrix-type").val('multiplematrix').selectmenu("refresh");
                             } else {
                                 $("#select-matrix-type").val('singlematrix').selectmenu("refresh");
@@ -859,37 +840,37 @@ $( document ).on( "pagebeforechange" , function(e, data) {
 
                         }
 
-                        if (globaldata.hasOwnProperty('pixels')) {
-                            $("#nopixels").val(globaldata.pixels);
+                        if (result.hasOwnProperty('pixels')) {
+                            $("#nopixels").val(result.pixels);
                         }
-                        if (globaldata.hasOwnProperty('grid_x')) {
-                            $("#gridx").val(globaldata.grid_x);
+                        if (result.hasOwnProperty('grid_x')) {
+                            $("#gridx").val(result.grid_x);
                         }
-                        if (globaldata.hasOwnProperty('grid_y')) {
-                            $("#gridy").val(globaldata.grid_y);
+                        if (result.hasOwnProperty('grid_y')) {
+                            $("#gridy").val(result.grid_y);
                         }
-                        if (globaldata.hasOwnProperty('matrixmode')) {
-                            $("#select-matrix-type").val(globaldata.matrixmode).selectmenu("refresh");
-                        }
-
-                        if (globaldata.hasOwnProperty('firstpixel')) {
-                            $("#select-singlematrix").val(globaldata.firstpixel).selectmenu("refresh");
-                        }
-                        if (globaldata.hasOwnProperty('axis')) {
-                            $("#select-singlematrix-axis").val(globaldata.axis).selectmenu("refresh");
-                        }
-                        if (globaldata.hasOwnProperty('sequence')) {
-                            $("#select-singlematrix-seq").val(globaldata.sequence).selectmenu("refresh");
+                        if (result.hasOwnProperty('matrixmode')) {
+                            $("#select-matrix-type").val(result.matrixmode).selectmenu("refresh");
                         }
 
-                        if (globaldata.hasOwnProperty('multimatrixtile')) {
-                            $("#select-multimatrix").val(globaldata.multimatrixtile).selectmenu("refresh");
+                        if (result.hasOwnProperty('firstpixel')) {
+                            $("#select-singlematrix").val(result.firstpixel).selectmenu("refresh");
                         }
-                        if (globaldata.hasOwnProperty('multimatrixaxis')) {
-                            $("#select-multimatrix-axis").val(globaldata.multimatrixaxis).selectmenu("refresh");
+                        if (result.hasOwnProperty('axis')) {
+                            $("#select-singlematrix-axis").val(result.axis).selectmenu("refresh");
                         }
-                        if (globaldata.hasOwnProperty('multimatrixseq')) {
-                            $("#select-multimatrix-seq").val(globaldata.multimatrixseq).selectmenu("refresh");
+                        if (result.hasOwnProperty('sequence')) {
+                            $("#select-singlematrix-seq").val(result.sequence).selectmenu("refresh");
+                        }
+
+                        if (result.hasOwnProperty('multimatrixtile')) {
+                            $("#select-multimatrix").val(result.multimatrixtile).selectmenu("refresh");
+                        }
+                        if (result.hasOwnProperty('multimatrixaxis')) {
+                            $("#select-multimatrix-axis").val(result.multimatrixaxis).selectmenu("refresh");
+                        }
+                        if (result.hasOwnProperty('multimatrixseq')) {
+                            $("#select-multimatrix-seq").val(result.multimatrixseq).selectmenu("refresh");
                         }
 
                         sortmatrix('#select-matrix-type');
@@ -898,18 +879,18 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                     
                 if ($.mobile.activePage.attr('id') == 'palette') {
 
-                        if (globaldata.hasOwnProperty('palette')) {
-                          $("#select-palettes2").val(globaldata.palette).selectmenu("refresh");
+                        if (result.hasOwnProperty('palette')) {
+                          $("#select-palettes2").val(result.palette).selectmenu("refresh");
                         }
                         
-                        if (globaldata.hasOwnProperty('paletterandom')) {
-                          $("#select-palettes-randomness").val(globaldata.paletterandom).selectmenu("refresh");
+                        if (result.hasOwnProperty('paletterandom')) {
+                          $("#select-palettes-randomness").val(result.paletterandom).selectmenu("refresh");
                         }
-                        if (globaldata.hasOwnProperty('palettespread')) {
-                            $("#input-palette-spread").val(globaldata.palettespread);
+                        if (result.hasOwnProperty('palettespread')) {
+                            $("#input-palette-spread").val(result.palettespread);
                         }
-                        if (globaldata.hasOwnProperty('palettedelay')) {
-                            $("#input-palette-delay").val(globaldata.palettedelay);
+                        if (result.hasOwnProperty('palettedelay')) {
+                            $("#input-palette-delay").val(result.palettedelay);
                         }
                 }
 
@@ -921,13 +902,24 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                 })
                 .complete(function() {});
 
-
-
-
-
-
-
         };
+
+        function sortmatrix(e) {
+
+            var mode = $(e).val();
+            console.log("Matrix mode changed:" + mode);
+
+            if (mode === "multiplematrix") {
+                $('#singlematrix-config').fadeIn();
+                $('#multimatrix-config').fadeIn();
+            }
+
+            if (mode === "singlematrix") {
+                $('#singlematrix-config').fadeIn();
+                $('#multimatrix-config').fadeOut();
+            }
+
+        }
         
     </script>
 </body>
