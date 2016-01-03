@@ -57,9 +57,9 @@ struct XY_t {
 } XY;
 
 
-//  This initialises everything. 
+//  This initialises everything.
 
-Melvanimate lights; 
+Melvanimate lights;
 
 
 void setup()
@@ -85,9 +85,9 @@ void setup()
     Serial.setDebugOutput(debugstate);
   });
 
-  void serveStatic(const char* uri, fs::FS& fs, const char* path, const char* cache_header = NULL );
+  void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
 
-  HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400"); 
+  HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
 
   HTTP.begin();
 
@@ -156,7 +156,7 @@ void setup()
   //   Serial.println();
   // }
 
-lights.palette().getModeString();
+  lights.palette().getModeString();
 
 
 
@@ -719,7 +719,7 @@ bool check_duplicate_req()
 }
 void handle_data()
 {
-  //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5. 
+  //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
   if (check_duplicate_req()) { HTTP.send(200); return; }
 
   print_args();
@@ -771,7 +771,7 @@ void handle_data()
   }
 
   if (HTTP.hasArg("palette")) {
-    lights.palette().mode(HTTP.arg("palette").c_str()); 
+    lights.palette().mode(HTTP.arg("palette").c_str());
   }
 
   if (HTTP.hasArg("marqueetext")) {
@@ -995,6 +995,24 @@ void send_data(String page)
 
 
   }
+
+  /*
+        palette page
+  */
+
+
+  if (page == "palette" || page == "all") {
+
+    if (page != "all") root["palette"] = String(lights.palette().getModeString()); // ignore if already sent
+    root["paletterandom"] = String(lights.palette().randommodeAsString());
+    root["palettespread"] = String(lights.palette().range());
+    root["palettedelay"] = String(lights.palette().delay());
+
+
+
+
+  }
+
 //  root.prettyPrintTo(Serial);
 //  Serial.println();
 

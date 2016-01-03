@@ -20,6 +20,9 @@ union storedColor {
 enum palette_type { OFF = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
 enum random_mode { NOT_RANDOM = 0 , TOTAL_RANDOM, TIME_BASED_RANDOM, RANDOM_AFTER_LOOP};
 
+extern const char * random_mode_strings[]; 
+extern const char * palettes_strings[]; 
+
 class Palette
 {
 
@@ -50,6 +53,7 @@ public:
 	const char * getModeString(); 
 
 	random_mode randommode() { return _random; };
+	const char * randommodeAsString() { return random_mode_strings[_random]; }
 	void randommode(random_mode random) { _random = random;}
 	uint16_t getavailable() { return _available; }
 
@@ -84,6 +88,8 @@ public:
 
 	static uint8_t available(palette_type mode, uint16_t total);
 
+	void delay(uint32_t delay) {_delay = delay; }
+	uint32_t delay() { return _delay; }
 private:
 	RgbColor _last;
 	uint16_t _position;
@@ -93,5 +99,6 @@ private:
 	//bool _random = false;
 	random_mode _random;
 	RgbColor _input;
-	float _range = 0.2f;
+	float _range = 0.2f; // spread of palettes... 
+	uint32_t _delay; 
 };

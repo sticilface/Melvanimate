@@ -316,8 +316,8 @@
                     <input type="text" name="palette-spread" id="input-palette-spread" value="">
                 </div>                
                 <div class="ui-field-contain">
-                    <label for="input_palette-delay">Time Delay:</label>
-                    <input type="text" name="palette_delay" id="input-palette-delay" value="">
+                    <label for="input-palette-delay">Time Delay:</label>
+                    <input type="text" name="palette-delay" id="input-palette-delay" value="">
                 </div>  
                 
                 <button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
@@ -326,7 +326,6 @@
         </div>
 
     </div>
-
 
 <script>
 
@@ -526,6 +525,9 @@ function RUNDOCUMENT() {
             GetData("homepage");
 
             $('#modeslist').change(function() {
+              
+              console.log("mode change");
+              
                 var mode = $(this).val();
 
                 $('#effectoptions').children('div').each(function(index) {
@@ -541,7 +543,7 @@ function RUNDOCUMENT() {
                     GetData();
                 });
 
-            })
+            }); 
 
         });
 
@@ -789,7 +791,7 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                     if ($.mobile.activePage.attr('id') == 'homepage') {
 
                         $("#modeslist").find('option').remove();
-                        console.log("currentmode = " + result.currentmode)
+                        console.log("currentmode = " + result.currentmode); 
                         $.each(temp, function(key, value) {
                             var isconnected = " ";
                             if (result.currentmode == value) isconnected = "selected=\"selected\"";
@@ -893,6 +895,23 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                         sortmatrix('#select-matrix-type');
 
                     }
+                    
+                if ($.mobile.activePage.attr('id') == 'palette') {
+
+                        if (globaldata.hasOwnProperty('palette')) {
+                          $("#select-palettes2").val(globaldata.palette).selectmenu("refresh");
+                        }
+                        
+                        if (globaldata.hasOwnProperty('paletterandom')) {
+                          $("#select-palettes-randomness").val(globaldata.paletterandom).selectmenu("refresh");
+                        }
+                        if (globaldata.hasOwnProperty('palettespread')) {
+                            $("#input-palette-spread").val(globaldata.palettespread);
+                        }
+                        if (globaldata.hasOwnProperty('palettedelay')) {
+                            $("#input-palette-delay").val(globaldata.palettedelay);
+                        }
+                }
 
                 }).success(function() {
                     $("#status").empty().append("Success").css("color", "green");;
@@ -901,6 +920,11 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                     $("#status").empty().append("Error").css("color", "red");;
                 })
                 .complete(function() {});
+
+
+
+
+
 
 
         };

@@ -2,14 +2,14 @@
 
 // ALL = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
 const char * palettes_strings[9] = { "off", "complementary", "monochromatic", "analogous", "splitcomplements", "triadic", "tetradic", "multi", "wheel"};
+const char * random_mode_strings[4] = {"off", "total_random", "time_based_random", "random_after_loop"} ; 
 
-
-Palette::Palette(): _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0))
+Palette::Palette(): _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0)
 {
 	Palette(OFF, 10);
 }
 
-Palette::Palette(palette_type mode, uint16_t total) : _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0))
+Palette::Palette(palette_type mode, uint16_t total) : _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0)
 {
 	_mode = mode;
 	_total = total;
@@ -120,7 +120,7 @@ RgbColor Palette::next()
 	// _position++;
 	if (_mode == OFF) return _input;
 	uint16_t jump_size = (_total < _available) ?  _available / _total : 1;
-	_position = _position + jump_size;
+	_position += jump_size;
 
 	if (_random == TOTAL_RANDOM) {
 		_input = wheel(random(0, 255));
@@ -144,6 +144,7 @@ RgbColor Palette::comlementary(RgbColor Value, uint16_t position)
 	return RgbColor(original);
 }
 
+// 3 colors.. 
 RgbColor Palette::splitcomplements(RgbColor Input, uint16_t position, float range)
 {
 	if (position == 0) return Input;
@@ -159,7 +160,7 @@ RgbColor Palette::splitcomplements(RgbColor Input, uint16_t position, float rang
 
 RgbColor Palette::analogous(RgbColor Value, uint16_t position, uint16_t total, float range)
 {
-
+	if (position == 0) return Value;
 	HslColor original = HslColor(Value);
 	float HUE = original.H;
 	float HUE_lower = HUE - (range / 2.0);
