@@ -61,6 +61,9 @@ struct XY_t {
 
 Melvanimate lights;
 
+uint32_t save_flag = 0; 
+bool modechange = false;
+
 
 void setup()
 {
@@ -185,6 +188,14 @@ void loop()
   }
 
   _tick = millis();
+
+if (save_flag){
+  if (millis() - save_flag > 100) {
+     save_flag = 0; 
+     //lights.save(modechange); //  will only save if actually required.
+  }
+}
+
 }
 
 void Show_pixels(bool override)
@@ -199,405 +210,11 @@ void Show_pixels(bool override)
   tick = millis();
 }
 
-void SimpleFn()
-{
-  static uint32_t tick = 0;
-  if (millis() - tick < 20000) { return; }
-  Serial.println("SimpleFn RUN");
-  tick = millis();
-}
 
 
 
 
-void ComplexFn(char *i, char *j, double k)
-{
 
-}
-
-struct XY_t FookinComplex(bool a , bool b, String c)
-{
-
-}
-
-
-
-void interesting()
-{
-
-
-  //EffectObject * blob = new EffectObject (2);
-
-  // //EffectObject blobO  (3);
-  // static EffectObject * blob;
-
-  // Serial.println("interesting called");
-  // static bool switched = false;
-
-  // const uint16_t number = 3;
-
-  // if (!switched) {
-  //   if (blob) delete blob;
-  //   blob = new EffectObject (number);
-
-  //   uint16_t offset = random(5);
-  //   for (uint16_t i = 0; i < number; i++) {
-
-  //     blob->Addpixel(i, i + offset);
-  //     blob->SetColor(i, RgbColor(255, 0, 0));
-  //   }
-  //   blob->StartBasicAnimations(500);
-
-  // }
-  // else
-  // {
-  //   for (uint16_t i = 0; i < number; i++) {
-  //     blob->SetColor(i, RgbColor(0, 0, 0));
-  //   }
-  //   blob->StartBasicAnimations(100);
-  //   delete blob;
-  //   blob = nullptr;
-  // }
-
-  // switched = !switched;
-
-
-}
-
-
-void interesting2()
-{
-
-  EffectObject blob0(2);
-  EffectObject * blob = &blob0;
-
-  //if (!blob) blob = new EffectObject(2);
-
-  blob->SetObjectUpdateCallback( [&blob]() {
-
-    for (uint8_t i = 0; i < 2; i++) {
-      uint16_t pix = random(7);
-      blob->Addpixel(i, pix);
-    }
-  });
-
-  blob->SetPixelUpdateCallback(  [] (uint16_t position, uint16_t pixel) { // called per pixel of the effect, sent to neopixelbus
-
-    RgbColor originalcolor = strip->GetPixelColor(pixel);
-
-    AnimUpdateCallback animUpdate = [pixel, originalcolor] (float progress) {
-      RgbColor updatedColor;
-
-      if (progress < 0.5) {
-        updatedColor = RgbColor::LinearBlend(originalcolor, RgbColor(255, 0, 0), progress * 2 );
-      } else {
-        updatedColor = RgbColor::LinearBlend(RgbColor(255, 0, 0), 0, (progress - 0.5) * 2 );
-      }
-      strip->SetPixelColor(pixel, updatedColor);
-    };
-
-    StartAnimation(pixel, 1000, animUpdate);
-
-  });
-
-
-
-
-
-
-  blob->UpdateObject();
-  blob->StartAnimations();
-  //delete blob;
-  //blob = nullptr;
-
-}
-
-
-void ObjectFn(effectState state)
-{
-  static uint32_t tick = 0;
-  static EffectObject * blob;
-  static Palette* palette;
-
-  tick = millis();
-
-  switch (state) {
-
-  case PRE_EFFECT: {
-    const uint8_t points = 5;
-    const uint32_t timeout = 5000;
-    Serial.println("PRE: Blob");
-    if (blob) { delete blob; }
-    blob = nullptr;
-    blob = new EffectObject(points);
-
-    if (palette) { delete palette; }
-    palette = new Palette;
-    palette->mode(WHEEL);
-
-    lights.SetTimeout(timeout);
-
-    blob->SetObjectUpdateCallback( []() {
-      uint16_t pixarray[points];
-      for (uint8_t i = 0; i < points; i++) {
-        bool found = true;
-        uint8_t pix;
-        do {
-          pix = random(7);
-          bool therealready = false;
-          for (uint8_t j = 0; j < points; j++) {
-            if (pix == pixarray[j]) {
-              found = false;
-              break;
-            }
-            found = true;
-          }
-
-        } while (found == false);
-        pixarray[i] = pix;
-      }
-      for (uint8_t i = 0; i < points; i++) {
-        blob->Addpixel(i, pixarray[i]);
-      }
-    });
-
-    blob->SetPixelUpdateCallback(  [] (uint16_t position, uint16_t pixel) { // called per pixel of the effect, sent to neopixelbus
-      RgbColor originalcolor = strip->GetPixelColor(pixel);
-      AnimUpdateCallback animUpdate = [pixel, originalcolor] (float progress) {
-        RgbColor nextcolour = palette->next();
-
-        RgbColor updatedColor;
-        if (progress < 0.5) {
-          updatedColor = RgbColor::LinearBlend(originalcolor, nextcolour, progress * 2 );
-        } else {
-          updatedColor = RgbColor::LinearBlend(nextcolour, 0, (progress - 0.5) * 2 );
-        }
-        strip->SetPixelColor(pixel, updatedColor);
-      };
-      animator->StartAnimation(pixel, timeout, animUpdate);
-    });
-
-
-  }
-
-  break;
-  case RUN_EFFECT: {
-
-    blob->UpdateObject();
-    blob->StartAnimations();
-
-  }
-  break;
-
-  case POST_EFFECT: {
-    Serial.println("End: Blob");
-    if (blob) { delete blob; }
-    blob = nullptr;
-    if (palette) { delete palette; }
-    palette = nullptr;
-  }
-  break;
-  }
-
-}
-
-
-
-struct EFFECT_s {
-
-  struct position_s {
-    uint16_t x = 0;
-    uint16_t y = 0;
-  } ;
-  position_s * pPosition;
-
-  EFFECT_s(uint8_t _count, uint8_t LEDs)//, uint8_t colorscount = 0)
-  {
-    count = _count;
-    manager = new EffectGroup; // create effect group
-    pPosition = new position_s[_count];
-    matrix = lights.matrix();
-
-    pGroup = new EffectObjectHandler* [count];
-    Serial.println("Pre-create");
-    delay(5);
-    for (uint8_t i = 0; i < count; i++) {
-      pGroup[i] =  manager->Add(i, lights.speed() , new EffectObject( LEDs ) );
-      if (!pGroup[i]) { Serial.println("nullptr returned"); }
-    }
-    Serial.println("Post-create");
-    delay(10);
-
-
-  }
-  ~EFFECT_s()
-  {
-    delete manager;
-    delete[] colors;
-    delete[] pGroup;
-    delete[] pPosition;
-  }
-  void Run()
-  {
-    static bool triggered = false;
-    if (!triggered) { Serial.println("run effect_s function hit"); triggered = true; };
-    manager->Update();
-  }
-  EffectGroup* manager;
-  RgbColor * colors;
-  EffectObjectHandler ** pGroup;
-  Melvtrix * matrix;
-  uint8_t count = 0;
-
-  position_s & position(uint16_t i) { return pPosition[i];}
-
-
-};
-//  Generates random squares, no fill...
-//  Does
-void BobblySquaresFn_create(struct EFFECT_s *&, bool, bool);
-
-void BobblySquaresFn(effectState & state)
-{
-  static EFFECT_s* EFFECT = nullptr; // dont forget to initialise pointers... ARGHHHHHHHH
-
-
-  switch (state) {
-
-  case PRE_EFFECT: {
-    Serial.println("PRE: Creating Objects");
-    lights.SetTimeout( 0);
-    lights.palette().mode(WHEEL);
-    lights.palette().total(255) ;
-
-    if (EFFECT) { delete EFFECT; EFFECT = nullptr; }
-
-    EFFECT = new EFFECT_s(5, 25);
-
-    BobblyShapeFn_create(EFFECT, true, true, random(0, 3));
-
-  }
-
-  break;
-  case RUN_EFFECT: {
-    static bool triggered = false;
-    if (!triggered) { Serial.println("run function hit"); triggered = true; };
-    EFFECT->Run();
-
-  }
-  break;
-
-  case POST_EFFECT: {
-    Serial.println("End: Blob");
-    if (EFFECT) {
-      delete EFFECT;
-      EFFECT = nullptr;
-    }
-  }
-  break;
-  case EFFECT_REFRESH: {
-    Serial.println("Refresh");
-    state = PRE_EFFECT;
-  }
-  break;
-
-  }
-
-}
-
-void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2, uint8_t shape)
-{
-
-
-  for (uint8_t obj = 0; obj < EFFECT->count; obj++) {
-
-    EffectObjectHandler * current =  EFFECT->pGroup[obj];  //    pointer to current group of pixels...
-
-    current->SetObjectUpdateCallback( [ current, EFFECT, obj, random1, random2, shape ]() {
-
-      current->reset(); // new set of pixels...
-      EFFECT->matrix->setShapeFn( [ EFFECT, obj, current, random1 ] (uint16_t pixel, int16_t x, int16_t y) {
-        current->Addpixel(pixel);
-      });
-
-      uint8_t size = random(2, 6);
-      uint16_t x = EFFECT->position(obj).x = random(0, lights.matrix()->width() - size + 1);
-      uint16_t y = EFFECT->position(obj).y = random(0, lights.matrix()->height() - size + 1);
-
-      uint16_t add_factor = (random1) ? random(5, 10) : 10;
-      current->Timeout( lights.speed() * add_factor); // update speed of current effect!
-
-      switch (shape) {
-      case 0:
-        EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
-        break;
-      case 1:
-        EFFECT->matrix->drawCircle(x, y, size, 0); //  fills shape with
-        break;
-      case 2:
-        EFFECT->matrix->drawTriangle(x, y, x + size, y, x + (size / 2), y + size, 0); //  fills shape with
-        break;
-      case 3:
-        EFFECT->matrix->fillTriangle(x, y, x + size, y, x + (size / 2), y + size , 0); //  fills shape with
-        break;
-      }
-
-      //EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
-
-    });
-
-    current->SetPixelUpdateCallback( [random2] (uint16_t n, uint16_t pixel) {
-      uint16_t add_factor = (random2) ? random(5, 10) : 10;
-      FadeToAndBack(pixel, lights.nextcolor(), lights.speed() * random(5, 10) );
-      //FadeToAndBack(pixel, RgbColor(5,0,0), lights.speed() * random(5, 10) );
-
-    });
-  }
-
-}
-
-//  Text scrolling function.  Just called every 200ms by a timer.  simple...
-// void displaytextOLD(const char * text, uint16_t timeout)
-// {
-//   static bool reset = true;
-//   static int16_t count = 0;
-
-//   if (reset) {
-//     count = lights.getX();
-//     reset = false;
-//   }
-
-//   uint16_t len = strlen(text) * 7;
-
-//   Melvtrix & matrix = *lights.matrix();
-//   matrix.setTextWrap(false);
-
-//   if (count < lights.getX()) {
-//     matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
-//       strip->SetPixelColor(pixel, 0);
-//     });
-
-//     matrix.setCursor( count + 1, lights.getY() - 8  );
-//     matrix.print(text);
-//   }
-
-//   RgbColor color = lights.dim(palette.next());
-
-//   matrix.setShapeFn( [color] (uint16_t pixel, int16_t x, int16_t y) {
-
-
-//     strip->SetPixelColor(pixel, color  );
-//   });
-
-//   matrix.setCursor( count--,  lights.getY() - 8  );
-//   matrix.print(text);
-
-//   if (count < -len) {
-//     reset = true;
-//     Serial.println("reset");
-//   }
-
-// }
 
 
 
@@ -620,19 +237,6 @@ void testshapegenerater()
   int16_t circle[20] { -1};
   int16_t line[20] { -1};
 
-
-  // matrix.setShapeFn( [&localP] (uint16_t pixel) {
-  //   FadeToAndBack(pixel, localP.next(), 1000);
-  // });
-
-  // matrix.drawCircle(3, 3, 2, 0);
-
-  //matrix.drawTriangle(1, 1, 1, 6, 6, 3, 0);
-
-
-//  drawRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color),
-
-  //animator->FadeTo(random(10000,60000), Palette::wheel(random(255)));
 
   position++;
   position %= 4;
@@ -719,11 +323,11 @@ bool check_duplicate_req()
 }
 void handle_data()
 {
+  uint32_t start_time = millis(); 
   //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
   if (check_duplicate_req()) { HTTP.send(200); return; }
 
   print_args();
-  bool modechange = false;
   if (HTTP.hasArg("plain")) {
 
     DynamicJsonBuffer jsonBuffer;
@@ -878,16 +482,36 @@ void handle_data()
 
   }
 
+  if (HTTP.hasArg("palette-random")) {
+    lights.palette().randommode(HTTP.arg("palette-random").c_str());
+
+  }
+
+
+  if (HTTP.hasArg("palette-spread")) {
+    lights.palette().range(HTTP.arg("palette-spread").toFloat());
+  }
+
+  if (HTTP.hasArg("palette-delay")) {
+    lights.palette().delay(HTTP.arg("palette-delay").toInt());
+
+
+  }
+
+
+
 
   if (HTTP.hasArg("data")) {
     send_data(HTTP.arg("data")); // sends JSON data for whatever page is currently being viewed
+    Serial.printf("[handle] time %u\n", millis() - start_time); 
     return;
   }
 
-  lights.save(modechange); //  will only save if actually required.
-
-
   HTTP.send(200); // sends OK if were just receiving data...
+
+
+  save_flag = millis(); 
+  Serial.printf("[handle] time %u\n", millis() - start_time); 
 
 }
 

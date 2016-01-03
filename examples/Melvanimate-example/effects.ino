@@ -1087,5 +1087,164 @@ void SnakesFn(effectState state)
 }
 
 
+/*-----------------------------------------------
+*
+*                      Bobbly Squares  NEW...
+*
+*------------------------------------------------*/
 
+
+
+struct EFFECT_s {
+
+  struct position_s {
+    uint16_t x = 0;
+    uint16_t y = 0;
+  } ;
+  position_s * pPosition;
+
+  EFFECT_s(uint8_t _count, uint8_t LEDs)//, uint8_t colorscount = 0)
+  {
+    count = _count;
+    manager = new EffectGroup; // create effect group
+    pPosition = new position_s[_count];
+    matrix = lights.matrix();
+
+    pGroup = new EffectObjectHandler* [count];
+    Serial.println("Pre-create");
+    delay(5);
+    for (uint8_t i = 0; i < count; i++) {
+      pGroup[i] =  manager->Add(i, lights.speed() , new EffectObject( LEDs ) );
+      if (!pGroup[i]) { Serial.println("nullptr returned"); }
+    }
+    Serial.println("Post-create");
+    delay(10);
+
+
+  }
+  ~EFFECT_s()
+  {
+    delete manager;
+    delete[] colors;
+    delete[] pGroup;
+    delete[] pPosition;
+  }
+  void Run()
+  {
+    static bool triggered = false;
+    if (!triggered) { Serial.println("run effect_s function hit"); triggered = true; };
+    manager->Update();
+  }
+  EffectGroup* manager;
+  RgbColor * colors;
+  EffectObjectHandler ** pGroup;
+  Melvtrix * matrix;
+  uint8_t count = 0;
+
+  position_s & position(uint16_t i) { return pPosition[i];}
+
+
+};
+//  Generates random squares, no fill...
+//  Does
+void BobblySquaresFn_create(struct EFFECT_s *&, bool, bool);
+
+void BobblySquaresFn(effectState & state)
+{
+  static EFFECT_s* EFFECT = nullptr; // dont forget to initialise pointers... ARGHHHHHHHH
+
+
+  switch (state) {
+
+  case PRE_EFFECT: {
+    Serial.println("PRE: Creating Objects");
+    lights.SetTimeout( 0);
+    lights.palette().mode(WHEEL);
+    lights.palette().total(255) ;
+
+    if (EFFECT) { delete EFFECT; EFFECT = nullptr; }
+
+    EFFECT = new EFFECT_s(5, 25);
+
+    BobblyShapeFn_create(EFFECT, true, true, random(0, 3));
+
+  }
+
+  break;
+  case RUN_EFFECT: {
+    static bool triggered = false;
+    if (!triggered) { Serial.println("run function hit"); triggered = true; };
+    EFFECT->Run();
+
+  }
+  break;
+
+  case POST_EFFECT: {
+    Serial.println("End: Blob");
+    if (EFFECT) {
+      delete EFFECT;
+      EFFECT = nullptr;
+    }
+  }
+  break;
+  case EFFECT_REFRESH: {
+    Serial.println("Refresh");
+    state = PRE_EFFECT;
+  }
+  break;
+
+  }
+
+}
+
+void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2, uint8_t shape)
+{
+
+
+  for (uint8_t obj = 0; obj < EFFECT->count; obj++) {
+
+    EffectObjectHandler * current =  EFFECT->pGroup[obj];  //    pointer to current group of pixels...
+
+    current->SetObjectUpdateCallback( [ current, EFFECT, obj, random1, random2, shape ]() {
+
+      current->reset(); // new set of pixels...
+      EFFECT->matrix->setShapeFn( [ EFFECT, obj, current, random1 ] (uint16_t pixel, int16_t x, int16_t y) {
+        current->Addpixel(pixel);
+      });
+
+      uint8_t size = random(2, 6);
+      uint16_t x = EFFECT->position(obj).x = random(0, lights.matrix()->width() - size + 1);
+      uint16_t y = EFFECT->position(obj).y = random(0, lights.matrix()->height() - size + 1);
+
+      uint16_t add_factor = (random1) ? random(5, 10) : 10;
+      current->Timeout( lights.speed() * add_factor); // update speed of current effect!
+
+      switch (shape) {
+      case 0:
+        EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
+        break;
+      case 1:
+        EFFECT->matrix->drawCircle(x, y, size, 0); //  fills shape with
+        break;
+      case 2:
+        EFFECT->matrix->drawTriangle(x, y, x + size, y, x + (size / 2), y + size, 0); //  fills shape with
+        break;
+      case 3:
+        EFFECT->matrix->fillTriangle(x, y, x + size, y, x + (size / 2), y + size , 0); //  fills shape with
+        break;
+      }
+
+      //EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
+
+    });
+
+    current->SetPixelUpdateCallback( [random2] (uint16_t n, uint16_t pixel) {
+      uint16_t add_factor = (random2) ? random(5, 10) : 10;
+      FadeToAndBack(pixel, lights.nextcolor(), lights.speed() * random(5, 10) );
+      //FadeToAndBack(pixel, RgbColor(5,0,0), lights.speed() * random(5, 10) );
+
+    });
+  }
+
+}
 
