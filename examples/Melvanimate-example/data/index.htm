@@ -51,14 +51,15 @@
             background: none;
             border: 0;
         }
+
         
     </STYLE>
-
+    
+<style>body{visibility:hidden}</style>
 
 </head>
 
 <body>
-
 
     <div data-role="header" data-theme="a" data-position="fixed">
         <h1 id='myheader'>WS2812-ESPWiFi</h1>
@@ -74,8 +75,8 @@
         <div>
             <a href="#homepage" data-role="button" class="ui-btn">Home</a>
             <a href="#presets" data-role="button" class="ui-btn">Presets</a>
+            <a href="#palette" data-role="button" class="ui-btn">Palette</a>
             <a href="#layout" data-role="button" class="ui-btn">Layout</a>
-            <!--<a href="#autotune" data-role="button" class="ui-btn">Autotune</a>-->
             <a href="/espman/" rel="external" data-role="button" class="ui-btn">ESPmanager</a>
             <a href="#my-header" data-rel="close" class="ui-btn">Close</a>
 
@@ -102,7 +103,16 @@
 
                 <div class="ui-field-contain complex ObjectManagerexample BobblySquares">
                     <label for="select-palettes">Palette:</label>
-                    <select name="mode" id="select-palettes">
+                    <select name="palette" id="select-palettes" class='mysubmitthis'>
+                        <option value="off" selected="selected">Off</option>
+                        <option value="complementary">Complementary</option>
+                        <option value="monochromatic">Monochromatic</option>
+                        <option value="analogous">Analogous</option>
+                        <option value="splitcomplements">Split Complements</option>
+                        <option value="triadic">Triadic</option>
+                        <option value="tetradic">Tetradic</option>
+                        <option value="multi">multi</option>
+                        <option value="wheel">Wheel</option>
                     </select>
                 </div>
 
@@ -174,6 +184,7 @@
 
             <h3>Presets</h3>
 
+                
         </div>
 
     </div>
@@ -269,36 +280,53 @@
     </div>
 
 
-    <div data-role="page" id="graphing">
+    <div data-role="page" id="palette">
 
         <div data-role="content">
-            <!--          <div data-role="collapsible" id="collapse-1">
-           <h4>Advanced</h4> -->
-            <form id="autotuneform">
-                <h3>Graph Settings</h3>
 
-
-
+          <h3> Palette </h3>
+            <form id="palette-form">
                 <div class="ui-field-contain">
-
-                    <label for="select-graph-points">Points:</label>
-                    <select name="select-graph-points" id="select-graph-points">
-                        <option value="30">30</option>
-                        <option value="60">60</option>
-                        <option value="120">120</option>
-                        <option value="180">180</option>
-                        <option value="240">240</option>
-                        <option value="300">300</option>
-                        <option value="360">360</option>
+                    <label for="select-palettes2">Palette:</label>
+                    <select name="palette" id="select-palettes2">
+                        <option value="off" selected="selected">Off</option>
+                        <option value="complementary">Complementary</option>
+                        <option value="monochromatic">Monochromatic</option>
+                        <option value="analogous">Analogous</option>
+                        <option value="splitcomplements">Split Complements</option>
+                        <option value="triadic">Triadic</option>
+                        <option value="tetradic">Tetradic</option>
+                        <option value="multi">multi</option>
+                        <option value="wheel">Wheel</option>
                     </select>
                 </div>
+                <!--enum random_mode { NOT_RANDOM = 0 , TOTAL_RANDOM, TIME_BASED_RANDOM, RANDOM_AFTER_LOOP};-->
+
+                <div class="ui-field-contain">
+                    <label for="select-palettes-randomness">Randomness:</label>
+                    <select name="palette-random" id="select-palettes-randomness">
+                        <option value="off" selected="selected">Off</option>
+                        <option value="total-random">Total Random</option>
+                        <option value="timebased">Time Based</option>
+                        <option value="randomafterloop">Random After Loop</option>
+                    </select>
+                </div>
+                <div class="ui-field-contain">
+                    <label for="input_palette-spread">Spread:</label>
+                    <input type="text" name="palette-spread" id="input-palette-spread" value="">
+                </div>                
+                <div class="ui-field-contain">
+                    <label for="input_palette-delay">Time Delay:</label>
+                    <input type="text" name="palette_delay" id="input-palette-delay" value="">
+                </div>  
+                
+                <button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
 
             </form>
-            <!--                      </div>
- -->
         </div>
 
     </div>
+
 
 <script>
 
@@ -343,6 +371,7 @@ loadcss("/espman/jqm1.4.5.css", function() {
         });
         RUNDOCUMENT(); 
         GetData("homepage");
+        $("body").css("visibility","visible");
       });
     });
   });
@@ -562,6 +591,20 @@ function RUNDOCUMENT() {
                 })
                 .complete(function() {});
         });
+        
+        $(document).on('change', '.mysubmitdropdown', function(e) {
+            $("#status").empty().append("Waiting...").css("color", "blue");;
+            $.post("data.esp", $(this).serialize(), function(data) {
+                    console.log("Data Sent");
+                }).success(function() {
+                    $("#status").empty().append("Success").css("color", "green");;
+                })
+                .error(function() {
+                    $("#status").empty().append("Error").css("color", "red");;
+                })
+                .complete(function() {});
+        });
+        
 // better way to get data for new page...         
 $( document ).on( "pagebeforechange" , function(e, data) {
   var toPage = data.toPage[0].id;
@@ -787,7 +830,11 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                         
                         if (globaldata.hasOwnProperty('marqueetext')) {
                             $('#input_marqueetext').val(globaldata.marqueetext);
-                        }                        
+                        }              
+                        
+                        if (globaldata.hasOwnProperty('palette')) {
+                          $('#select-palettes').val(globaldata.palette).selectmenu('refresh'); 
+                        }
                         
                         $('#effectoptions').children('div').each(function(index) {
                             $(this).hide();
