@@ -1,13 +1,15 @@
 #include "Palette.h"
 
 // ALL = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
+const char * palettes_strings[9] = { "off", "complementary", "monochromatic", "analogous", "splitcomplements", "triadic", "tetradic", "multi", "wheel"};
 
-Palette::Palette()
+
+Palette::Palette(): _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0))
 {
 	Palette(OFF, 10);
 }
 
-Palette::Palette(palette_type mode, uint16_t total)
+Palette::Palette(palette_type mode, uint16_t total) : _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0))
 {
 	_mode = mode;
 	_total = total;
@@ -22,7 +24,23 @@ Palette::~Palette()
 	//if (_palette) delete[] _palette;
 }
 
+void Palette::mode(palette_type mode)
+{
+	_mode = mode;
+	_available = available(_mode, _total);
+	_total = _available;
+	_position = 0 ;
+}
 
+
+void Palette::mode(const char * in)
+{
+	for (uint8_t i = 0; i < 9; i++ ) {
+		if (strcmp(in, palettes_strings[i]) == 0) {
+			mode(  (palette_type)i);
+		}
+	}
+}
 
 uint8_t Palette::available(palette_type mode, uint16_t total)
 {
@@ -87,6 +105,15 @@ RgbColor Palette::current()
 		break;
 	}
 }
+
+
+
+const char * Palette::getModeString()
+{
+	//Serial.printf("Current palette [%u] %s\n", _mode,palettes_strings[_mode] );
+	return palettes_strings[_mode];
+}
+
 
 RgbColor Palette::next()
 {

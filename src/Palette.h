@@ -44,8 +44,10 @@ public:
 	// need to think about this.. if mode is changed then _available can be rubbish....  
 	// maybe _total should not be exposed.. but wanted can be... 
 
-	bool mode(palette_type mode) { _mode = mode; _available = available(_mode, _total); _total = _available;  _position = 0 ;}
+	void mode(palette_type mode); 
+	void mode(const char *); 
 	palette_type mode() {return _mode;};
+	const char * getModeString(); 
 
 	random_mode randommode() { return _random; };
 	void randommode(random_mode random) { _random = random;}
