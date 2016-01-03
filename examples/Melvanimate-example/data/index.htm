@@ -17,43 +17,43 @@
 
 
 
-    <!--
+    
     <STYLE type="text/css" id="mystyleelement">
-    /*    .centerwrapper {*/
-    /*        margin: 0 auto;*/
-    /*        margin-left: auto;*/
-    /*        margin-right: auto;*/
-    /*        align: center;*/
-    /*        text-align: center*/
-    /*    }*/
+        .centerwrapper {
+            margin: 0 auto;
+            margin-left: auto;
+            margin-right: auto;
+            align: center;
+            text-align: center
+        }
         
-    /*    .ui-btn.my-tooltip-btn,*/
-    /*    .ui-btn.my-tooltip-btn:hover,*/
-    /*    .ui-btn.my-tooltip-btn:active {*/
-    /*        background: none;*/
-    /*        border: 0;*/
-    /*    }*/
+        .ui-btn.my-tooltip-btn,
+        .ui-btn.my-tooltip-btn:hover,
+        .ui-btn.my-tooltip-btn:active {
+            background: none;
+            border: 0;
+        }
         
-    /*    .center {*/
-    /*        text-align: center;*/
-    /*    }*/
+        .center {
+            text-align: center;
+        }
         
-    /*    .footerContainer {*/
-    /*        width: 97%;*/
-    /*        height: 38px;*/
-    /*        border: none;*/
-    /*        position: relative;*/
-    /*    }*/
+        .footerContainer {
+            width: 97%;
+            height: 38px;
+            border: none;
+            position: relative;
+        }
         
-    /*    .ui-btn.my-tooltip-btn,*/
-    /*    .ui-btn.my-tooltip-btn:hover,*/
-    /*    .ui-btn.my-tooltip-btn:active {*/
-    /*        background: none;*/
-    /*        border: 0;*/
-    /*    }*/
+        .ui-btn.my-tooltip-btn,
+        .ui-btn.my-tooltip-btn:hover,
+        .ui-btn.my-tooltip-btn:active {
+            background: none;
+            border: 0;
+        }
         
-    /*</STYLE>*/
--->
+    </STYLE>
+
 
 </head>
 
@@ -301,18 +301,9 @@
     </div>
 
 <script>
-// function addcss(css){
-//     var head = document.getElementsByTagName('head')[0];
-//     var s = document.createElement('style');
-//     s.setAttribute('type', 'text/css');
-//     if (s.styleSheet) {   // IE
-//         s.styleSheet.cssText = css;
-//     } else {                // the world
-//         s.appendChild(document.createTextNode(css));
-//     }
-//     head.appendChild(s);
-// }
+
  
+
 
 function loadcss(url, callback) {
     var link= document.createElement("link");
@@ -351,6 +342,7 @@ loadcss("/espman/jqm1.4.5.css", function() {
 
         });
         RUNDOCUMENT(); 
+        GetData("homepage");
       });
     });
   });
@@ -362,7 +354,6 @@ loadcss("/espman/jqm1.4.5.css", function() {
     <script>
         var currentmode;
         var globaldata = {};
-
 
 
         var plot1;
@@ -704,6 +695,42 @@ $( document ).on( "pagebeforechange" , function(e, data) {
 
 
 
+
+        // function GetDataOnly() {
+        //   $.getJSON("melvide.esp?plain=data", function(result) {
+
+        //         }).success(function() { $("#status").empty().append("Connected").css("color", "green");;  })
+        //     .error(function() {   $("#status").empty().append("Not Connected").css("color", "red");;  })
+        //     .complete(function() {  });
+        // }
+        //$('#homepage').live('pageshow', function() {
+        //});
+        function toHHMMSS(seconds) {
+            var h, m, s, result = '';
+            // HOURs
+            h = Math.floor(seconds / 3600);
+            seconds -= h * 3600;
+            if (h) {
+                result = h + "h ";
+            }
+            // MINUTEs
+            m = Math.floor(seconds / 60);
+            seconds -= m * 60;
+            if (m) {
+                result += m < 10 ? '0' + m + ' min' : m + ' min';
+            }
+            // SECONDs
+            //  s=seconds%60;
+            //  result += s<10 ? '0'+s : s;
+            // var min = h * 60 + m;
+
+            //return min;
+            return "Last " + result;
+
+        }
+        
+} // end of rundocumentt
+
         function GetData(pagevar) {
             if (!pagevar) pagevar = $.mobile.activePage.attr('id');
 
@@ -830,44 +857,7 @@ $( document ).on( "pagebeforechange" , function(e, data) {
 
 
         };
-
-
-
-        // function GetDataOnly() {
-        //   $.getJSON("melvide.esp?plain=data", function(result) {
-
-        //         }).success(function() { $("#status").empty().append("Connected").css("color", "green");;  })
-        //     .error(function() {   $("#status").empty().append("Not Connected").css("color", "red");;  })
-        //     .complete(function() {  });
-        // }
-        //$('#homepage').live('pageshow', function() {
-        //});
-        function toHHMMSS(seconds) {
-            var h, m, s, result = '';
-            // HOURs
-            h = Math.floor(seconds / 3600);
-            seconds -= h * 3600;
-            if (h) {
-                result = h + "h ";
-            }
-            // MINUTEs
-            m = Math.floor(seconds / 60);
-            seconds -= m * 60;
-            if (m) {
-                result += m < 10 ? '0' + m + ' min' : m + ' min';
-            }
-            // SECONDs
-            //  s=seconds%60;
-            //  result += s<10 ? '0'+s : s;
-            // var min = h * 60 + m;
-
-            //return min;
-            return "Last " + result;
-
-        }
         
-} // end of rundocumentt
-
     </script>
 </body>
 
