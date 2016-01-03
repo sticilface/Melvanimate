@@ -19,34 +19,20 @@
 #include <ESP8266HTTPUpdateServer.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
-
 #include <ArduinoOTA.h>
 #include <ArduinoJson.h>
-
 #include <SimpleTimer.h>
-
 #include <NeoPixelBus.h>
-
 #include <ESPmanager.h>
 #include <FSBrowser.h>
-#include <MD5Builder.h>
+
+#include <Adafruit_GFX.h>
+
 
 #include <Melvanimate.h>
-#include <effectobject.h>
-#include <Palette.h>
-#include <Melvtrix.h>
-#include <Adafruit_GFX.h>
-#include <_E131.h>
-#include <Melvana.h>
 
 
 
-
-
-WiFiUDP Udp;
-const IPAddress multicast_ip_addr(224, 0, 0, 0); // Multicast broadcast address
-const uint16_t UDPlightPort = 8888;
-E131* e131 = nullptr;
 
 
 
@@ -71,24 +57,10 @@ struct XY_t {
 } XY;
 
 
-Melvana lights; // pass the address of the pointers holding neopixels...
+//  This initialises everything. 
 
+Melvanimate lights; 
 
-/*
- *   Required by Arduino IDE
- */
-
-// void SnakesFn(effectState state);
-// void ObjectFn(effectState state);
-// void ObjectManagerFn(effectState state);
-// void offFn(effectState state);
-// void SimpleColorFn(effectState state);
-// void AdaLightFn(effectState state);
-// void UDPFn(effectState state);
-// void DMXfn(effectState state);
-// void MarqueeFn(effectState state);
-// void RainbowCycleFn(effectState state);
-// void TimingFn(effectState state);
 
 void setup()
 {

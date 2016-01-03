@@ -1,322 +1,373 @@
-
-//  need to add wait for init and end animations
-//
-
-#include "Arduino.h"
 #include "Melvanimate.h"
 
-/*---------------------------------------------
 
-				Effect Manager
+const uint16_t TOTALPIXELS = 64;
 
----------------------------------------------*/
-
-EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandle(nullptr), _lastHandle(nullptr),
-	_NextInLine(nullptr)
-{};
-
-// EffectManager::EffectManager(NeoPixelBus ** strip, NeoPixelAnimator ** animator) : _count(0), _firstHandle(nullptr), _currentHandle(nullptr), _lastHandle(nullptr),
-// 	timeoutvar(0), effectposition(0), _NextInLine(nullptr), _strip(strip), _animator(animator)
-// {};
+NeoPixelBus * strip = nullptr;
+NeoPixelAnimator * animator = nullptr;
+uint8_t* stripBuffer = NULL;
+WiFiUDP Udp;
+const IPAddress multicast_ip_addr(224, 0, 0, 0); // Multicast broadcast address
+const uint16_t UDPlightPort = 8888;
+E131* e131 = nullptr;
 
 
-
-
-bool EffectManager::Add(const char * name, EffectHandler* handle)
+Melvanimate::Melvanimate(): _brightness(255), _color(0, 0, 0), _color2(0, 0, 0), _speed(50), _pixels(TOTALPIXELS)
+	, _grid_x(8), _grid_y(8), _serialspeed(115200), _matrixconfig(0), _matrix(nullptr)
+	, _settings_changed(false), timeoutvar(0), effectposition(0), _palette(nullptr)
 {
-	_count++;
-
-	if (!_lastHandle) {
-		_firstHandle = handle; //  set the first handle
-		_firstHandle->name(name); // set its name in the handler... abstract it out so user doesn't have to
-		_lastHandle = handle;  // set this so we know first slot gone.
-
-	} else {
-		_lastHandle->next(handle); // give the last handler address of next
-		_lastHandle = handle;  // move on..
-		_lastHandle->name(name);  // give it name...
-	}
-	Serial.printf("ADDED EFFECT %u: %s\n", _count, _lastHandle->name());
+	_matrixconfig = ( NEO_MATRIX_TOP + NEO_MATRIX_LEFT +  NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE );
+	setWaitFn ( std::bind (&Melvanimate::returnWaiting, this)  );   //  this callback gives bool to Effectmanager... "am i waiting..."
+	_palette = new Palette;
 }
 
-bool EffectManager::Start(const char * name)
+
+bool        Melvanimate::begin()
 {
-	//  end current effect...
-	//  need to store address of next... and handle changeover in the loop...
-	// this function should signal to current to END & store
+	Debugln("Begin Melvana called");
 
-	// actually.. maybe use return values to signal... with timeouts to prevent getting stuck..
-	// manager sends... stop()....  until that returns true.. it can't --- NOPE not going to work... Start and stop should only get called once...
-	if (_currentHandle) _currentHandle->Stop();
+	_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
 
-	EffectHandler* handler;
-	bool found = false;
-	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( strcmp( handler->name(), name) == 0) {
-			found = true;
-			break;
-		}
+	if (!_settings) {
+		Debugln("ERROR File open for failed!");
+		_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
+		if (!_settings) Debugln("Failed to create empty file too");
 	}
-	if (found) {
-		// effectposition = 0;
-		// timeoutvar = 0; //  try to keep this class only to do wih
-		_NextInLine = handler;
-		//_currentHandle->Start();
-		return true;
-	} else return false;
 
-};
-
-bool EffectManager::Next()
-{
-	_currentHandle = _currentHandle->next();
-};
-
-
-bool EffectManager::Stop()
-{
-	if (_currentHandle)  _currentHandle->Stop();
-};
-
-bool EffectManager::Pause()
-{
-	if (_currentHandle)  _currentHandle->Pause();
-};
-
-void EffectManager::Refresh()
-{
-	if (_currentHandle) _currentHandle->Refresh();
+	load();
+	_init_LEDs();
+	_init_matrix();
 
 }
 
-void EffectManager::Loop()
+
+void Melvanimate::_init_matrix()
 {
-	//if (millis() - _waiting_timeout > EFFECT_WAIT_TIMEOUT && _waiting_timeout != 0) _waiting = false; // safety for stalled effects....
+	if (_matrix) { delete _matrix; _matrix = nullptr; }
+	_matrix = new Melvtrix(_grid_x, _grid_y, _matrixconfig);
 
-	bool waiting = false;
+}
 
-	if (_waitFn)  {
-		waiting = _waitFn();
-	}
+void Melvanimate::_init_LEDs()
+{
+	if (strip) { delete strip;  strip = nullptr; }
+	if (animator) { delete animator; animator = nullptr ;}
 
-	// if (_waiting == 2) {
-	// 	bool autowait = false;
-	// 	if (*_animator) autowait = (*_animator)->IsAnimating();
-	// 	if (!autowait) {
-	// 		_waiting = false;
-	// 		Serial.println("Waiting set to false by AUTOWAIT function");
-	// 	}
-	// }
-	//  This flips over to next effect asyncstyle....
-	if (!waiting && _NextInLine) {
-		Serial.println("Next effect STARTED");
-		_currentHandle = _NextInLine;
-		_NextInLine = nullptr;
-		_currentHandle->Start();
+	strip = new NeoPixelBus(_pixels, DEFAULT_WS2812_PIN);
+
+	if (_pixels <= maxLEDanimations) {
+		animator = new NeoPixelAnimator(strip);
+		_animations = true;
+	} else _animations = false;
+
+	// not sure if this bit is working...
+	if (!_pixels) {
+		Debugln("MALLOC failed for pixel bus");
 		return;
 	}
 
-	if (!waiting && _currentHandle)  _currentHandle->Run();
+	stripBuffer = (uint8_t*)strip->Pixels();
+	setmatrix(_matrixconfig);
+	strip->Begin();
+	strip->Show();
+}
+
+
+
+const RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
+{
+	if (brightness == 0) return RgbColor(0);
+	if (brightness == 255) return input;
+	if (input.R == 0 && input.G == 0 && input.B == 0 ) return input; 
+	HslColor originalHSL = HslColor(input);
+	originalHSL.L =  originalHSL.L   * ( float(brightness) / 255.0 ) ;
+	return RgbColor( HslColor(originalHSL.H, originalHSL.S, originalHSL.L )  );
+}
+
+void      Melvanimate::setBrightness(const uint8_t bright)
+{
+	if (bright == _brightness) { return; }
+	_brightness = bright; Refresh();
+	_settings_changed = true;
+}
+
+void      Melvanimate::color(const RgbColor color)
+{
+	_color = color;
+	_palette->input(color);
+	_settings_changed = true;
+	Refresh();
+}
+void      Melvanimate::color2(const RgbColor color)
+{
+	_color2 = color;
+	_settings_changed = true;
+	Refresh();
+}
+
+
+void      Melvanimate::serialspeed(const int speed)
+{
+	if (speed == _serialspeed) { return; }
+	_serialspeed = speed;
+	if (Serial) {
+		Debugln("Flushing and Ending Serial 1");
+		Serial.flush();
+		delay(500);
+		Serial.end();
+	}
+	_settings_changed = true;
+	Serial.begin(_serialspeed);
+	Debugf("New Serial started speed: %u\n", _serialspeed);
+}
+void        Melvanimate::grid(const uint16_t x, const uint16_t y)
+{
+	if ( x * y > _pixels) { return; } // bail if grid is too big for pixels.. not sure its required
+	if (_grid_x == x && _grid_y == y) { return; } // return if unchanged
+	Start("Off");
+	_grid_x = x;
+	_grid_y = y;
+	Debugf("NEW grids (%u,%u)\n", _grid_x, _grid_y);
+	_settings_changed = true;
+	if (_matrix) { delete _matrix; _matrix = nullptr; }
+	_matrix = new Melvtrix(_grid_x, _grid_y, _matrixconfig);
+}
+void        Melvanimate::setmatrix(const uint8_t i)
+{
+	if (_matrixconfig == i && _matrix) { return; } //  allow for first initialisation with params = initialised state.
+	Start("Off");
+	_matrixconfig = i;
+	Debugf("NEW matrix Settings (%u)\n", _matrixconfig);
+	_settings_changed = true;
+	_init_matrix();
+}
+
+void        Melvanimate::setPixels(const uint16_t pixels)
+{
+	if (pixels == _pixels) { return; }
+	Debugf("NEW Pixels: %u\n", _pixels);
+	strip->ClearTo(0);
+	_pixels = pixels;
+	_settings_changed = true;
+	_init_LEDs();
+	Debugf("HEAP: %u\n", ESP.getFreeHeap());
+}
+
+const char * Melvanimate::getText()
+{
+	return _marqueetext.c_str();
+}
+
+void Melvanimate::setText(String var)
+{
+	_marqueetext = var;
+	_settings_changed = true;
+	Refresh();
+}
+
+
+//  This is a callback that when set, checks to see if current animation has ended.
+// set using setWaitFn ( std::bind (&Melvana::returnWaiting, this)  ); in initialisation 
+bool Melvanimate::returnWaiting()
+{
+	if (!_waiting) return false;
+
+	if (animator && _waiting == 2) {
+
+		if (!animator->IsAnimating()) {
+			Serial.println("Autowait END");
+			_waiting = false;
+			return false;
+		}
+	}
+	// saftey, in case of faulty effect
+	if (millis() - _waiting_timeout > EFFECT_WAIT_TIMEOUT) {
+		_waiting = false;
+		_waiting_timeout = 0;
+		return false;
+	}
+	return true;
+
+}
+
+void Melvanimate::autoWait()
+{
+	Serial.println("Auto wait set");
+	_waiting_timeout = millis();
+	_waiting = 2;
+}
+
+void Melvanimate::setWaiting(bool wait)
+{
+	if (wait) {
+		Serial.println("Set wait true");
+		_waiting_timeout = millis();
+		_waiting = true;
+	} else {
+		Serial.println("Set wait false");
+		_waiting = false;
+		_waiting_timeout = 0;
+	}
+}
+
+
+bool        Melvanimate::save(bool override)
+{
+	if (!_settings_changed && !override) { Serial.println("Settings not changed"); return false; }
+	Debug("Saving Settings: ");
+	DynamicJsonBuffer jsonBuffer;
+	JsonObject& root = jsonBuffer.createObject();
+
+	JsonObject& globals = root.createNestedObject("globals");
+	{
+		globals["pixels"] = _pixels ;
+		globals["matrixconfig"] = _matrixconfig ;
+		globals["gridx"] = _grid_x ;
+		globals["gridy"] = _grid_y ;
+		globals["rotation"] = _matrix->getRotation();
+	}
+
+	JsonObject& current = root.createNestedObject("current");
+
+	current["brightness"] = _brightness ;
+	current["speed"] = _speed ;
+	current["mode"] = getName();
+
+	JsonObject& jscolor1 = current.createNestedObject("color1");
+	jscolor1["R"] = _color.R;
+	jscolor1["G"] = _color.G;
+	jscolor1["B"] = _color.B;
+
+	JsonObject& jscolor2 = current.createNestedObject("color2");
+	jscolor2["R"] = _color2.R;
+	jscolor2["G"] = _color2.G;
+	jscolor2["B"] = _color2.B;
+
+// specific effect settings
+
+	JsonObject& effectsettings = root.createNestedObject("effectsettings");
+
+// Adalight
+	JsonObject& jsAdalight = effectsettings.createNestedObject("Adalight");
+	jsAdalight["serialspeed"] = _serialspeed ;
+
+// Marquee
+	JsonObject& jsMarquee = effectsettings.createNestedObject("Marquee");
+	jsMarquee["marqueetext"] = getText() ;
+
+
+	if (!_settings) {
+		Debugln("ERROR File NOT open!");
+		_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
+		if (!_settings) {
+			_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
+			Debugln("Failed to create empty file too");
+			if (_settings) return false;
+		}
+	}
+
+	_settings.seek(0, SeekSet);
+	root.prettyPrintTo(_settings);
+	//f.close();
+	//Debugln("Done");
+	//Debugf("jsonBuffer SIZE : %u\n", jsonBuffer.size() );
+
+	_settings_changed = false;
+	return true;
+};
+bool        Melvanimate::load()
+{
+
+	DynamicJsonBuffer jsonBuffer(1000);
+	if (!_settings) {
+		Debugln("ERROR File NOT open!");
+		_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
+		if (!_settings) {
+			Debugln("No Settings File Found");
+			return false;
+		}
+	}
+
+	_settings.seek(0, SeekSet);
+
+	char data[_settings.size()];
+
+	for (int i = 0; i < _settings.size(); i++) {
+		data[i] = _settings.read();
+	}
+
+	//f.close();
+
+	JsonObject& root = jsonBuffer.parseObject(data);
+
+	if (!root.success()) {
+		Debugln(F("Parsing settings file Failed!"));
+		return false;
+	} else Debugln("Parse successfull");
+// global variables
+	if (root.containsKey("globals")) {
+
+		JsonObject& globals = root["globals"];
+
+		_pixels = globals["pixels"].as<long>() ;
+		_matrixconfig = globals["matrixconfig"].as<long>()  ;
+		_grid_x  = globals["gridx"].as<long>();
+		_grid_y  = globals["gridy"].as<long>();
+		//_matrix->setRotation(globals["rotation"]); //conundrum... egg or chicken
+
+		// Debugf("Globals:\n _pixels(%u) \n _matrixconfig(%u)\n _gridx(%u)\n _gridy(%u)\n",
+		//        _pixels, _matrixconfig, _grid_x, _grid_y);
+		// Debugf("Globals READ:\n _pixels(%u) \n _matrixconfig(%u)\n _gridx(%u)\n _gridy(%u)\n",
+		//        globals["pixels"].as<long>(), globals["matrixconfig"].as<long>(), globals["gridx"].as<long>(), globals["gridy"].as<long>());
+
+	} else Debugln("No Globals");
+// current settings
+	if (root.containsKey("current")) {
+
+		JsonObject& current = root["current"];
+
+		if (current.containsKey("brightness")) { _brightness = (uint8_t)current["brightness"].as<long>(); }
+		if (current.containsKey("speed")) { _speed = (uint8_t)current["speed"].as<long>(); }
+
+		if (current.containsKey("color1")) {
+			JsonObject& jscolor1 = current["color1"];
+			_color.R = jscolor1["R"].as<long>();
+			_color.G = jscolor1["G"].as<long>();
+			_color.B = jscolor1["B"].as<long>();
+		}
+
+		if (current.containsKey("color2")) {
+			JsonObject& jscolor2 = current["color2"];
+			_color2.R = jscolor2["R"].as<long>();
+			_color2.G = jscolor2["G"].as<long>();
+			_color2.B = jscolor2["B"].as<long>();
+		}
+
+		// Debugf("Current:\n _brightness(%u) \n _speed(%u)\n _color1(%u,%u,%u)\n _color2(%u,%u,%u)\n",
+		//        _brightness, _speed, _color.R, _color.G, _color.B, _color2.R, _color2.G, _color2.B, _color2.R);
+		// Debugf("Current READ:\n _brightness(%u) \n _speed(%u)\n _color1(%u,%u,%u)\n _color2(%u,%u,%u)\n",
+		//        current["brightness"].as<long>(), current["speed"].as<long>(), jscolor1["R"].as<long>(), jscolor1["G"].as<long>(), jscolor1["B"].as<long>(),
+		//        jscolor2["R"].as<long>(), jscolor2["G"].as<long>(), jscolor2["B"].as<long>());
+
+	} else Debugln("No Current");
+// effect settings
+	if (root.containsKey("effectsettings")) {
+		JsonObject& effectsettings = root["effectsettings"];
+
+		if (effectsettings.containsKey("Adalight")) {
+			JsonObject& jsAdalight = effectsettings["Adalight"];
+			if (jsAdalight.containsKey("serialspeed")) _serialspeed = jsAdalight["serialspeed"];
+		}
+
+		if (effectsettings.containsKey("Marquee")) {
+			JsonObject& jsAdalight = effectsettings["Marquee"];
+			if (jsAdalight.containsKey("marqueetext"))  setText( jsAdalight["marqueetext"].asString() );
+		}
+	} else Debugln("No effect settings");
+
+
+	return true;
+
 };
 
-void EffectManager::SetTimeout(uint32_t time)
-{
-	if (_currentHandle) _currentHandle->SetTimeout(time);
-}
-
-void EffectManager::SetTimeout(const char * name, uint32_t time)
-{
-
-	EffectHandler* handler;
-	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( strcmp( handler->name(), name) == 0)
-			break;
-	}
-
-	if (handler) handler->SetTimeout(time);
-
-}
-
-const char * EffectManager::getName()
-{
-	if (_NextInLine) {
-		return _NextInLine->name(); //  allows webgui to display the current selected instead of the ending one.
-	} else 	if (_currentHandle) {
-		return _currentHandle->name();
-	} else {
-		return "";
-	}
-}
-
-const char * EffectManager::getName(uint8_t i)
-{
-	if (i > _count) return "";
-
-	EffectHandler* handler;
-	uint8_t count = 0;
-	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( i == count ) break;
-		count++;
-	}
-	return handler->name();
-}
-/*---------------------------------------------
-
-				Generic Class
-
----------------------------------------------*/
-
-
-
-// Moved objec stuff to newer class..
-
-
-
-// bool EffectObject::StartBasicAnimations(uint16_t time) {
-
-// 	Serial.println("Start Andimations");
-
-// 	if (!_bus || !_animator) return false;
-
-// 	for (uint16_t i = 0; i < _total; i++) {
-
-// 		Details_s * current = &_details[i];
-
-// 		current->original = _bus->GetPixelColor(current->pixel);
-
-// 		Serial.printf(" I=> %u->%u original(%u,%u,%u) target(%u,%u,%u)\n", i, current->pixel,
-// 		              current->original.R, current->original.G, current->original.B,
-// 		              current->target.R, current->target.G, current->target.B );
-
-// 		AnimUpdateCallback  animUpdate = [this, i, &current](float progress)
-// 		{
-// 			RgbColor updatedColor = RgbColor::LinearBlend(current->original, current->target, progress );
-// 			_bus->SetPixelColor(current->pixel, updatedColor);
-// 		};
-
-// 		_animator->StartAnimation(current->pixel, time, animUpdate);
-// 	}
-// 	return true;
-// }
-
-
-
-/* ------------------------------------------------------------------------
-				My own animator class
---------------------------------------------------------------------------*/
-
-
-// NeoPixelObject::NeoPixelObject(NeoPixelBus* bus, uint16_t count) :
-//     _bus(bus),
-//     _animationLastTick(0),
-//     _activeAnimations(0),
-//     _isRunning(true)
-// {
-//     _animations = new AnimationContext[count];
-// }
-
-// NeoPixelObject::~NeoPixelObject()
-// {
-//     _bus = NULL;
-//     if (_animations)
-//     {
-//         delete[] _animations;
-//         _animations = NULL;
-//     }
-// }
-
-// void NeoPixelObject::StartAnimation(uint16_t n, uint16_t time, ObjUpdateCallback animUpdate)
-// {
-//     if (n >= _bus->PixelCount())
-//     {
-//         return;
-//     }
-
-//     if (_activeAnimations == 0)
-//     {
-//         _animationLastTick = millis();
-//     }
-
-//     StopAnimation(n);
-
-//     if (time == 0)
-//     {
-//         time = 1;
-//     }
-
-//     _animations[n].time = time;
-//     _animations[n].remaining = time;
-//     _animations[n].fnUpdate = animUpdate;
-
-//     _activeAnimations++;
-// }
-
-// void NeoPixelObject::StopAnimation(uint16_t n)
-// {
-//     if (IsAnimating(n))
-//     {
-//         _activeAnimations--;
-//         _animations[n].time = 0;
-//         _animations[n].remaining = 0;
-//         _animations[n].fnUpdate = NULL;
-//     }
-// }
-
-// void NeoPixelObject::FadeTo(uint16_t time, RgbColor color)
-// {
-//     for (uint16_t n = 0; n < _bus->PixelCount(); n++)
-//     {
-//         RgbColor original = _bus->GetPixelColor(n);
-//         ObjUpdateCallback animUpdate = [=](float progress)
-//         {
-//             RgbColor updatedColor = RgbColor::LinearBlend(original, color, progress);
-//             _bus->SetPixelColor(n, updatedColor);
-//         };
-//         StartAnimation(n, time, animUpdate);
-//     }
-// }
-
-// void NeoPixelObject::UpdateAnimations(uint32_t maxDeltaMs)
-// {
-//     if (_isRunning)
-//     {
-//         uint32_t currentTick = millis();
-//         uint32_t delta = currentTick - _animationLastTick;
-
-//         if (delta > maxDeltaMs)
-//         {
-//             delta = maxDeltaMs;
-//         }
-
-//         if (delta > 0)
-//         {
-//             uint16_t countAnimations = _activeAnimations;
-
-//             AnimationContext* pAnim;
-
-//             for (uint16_t iAnim = 0; iAnim < _bus->PixelCount() && countAnimations > 0; iAnim++)
-//             {
-//                 pAnim = &_animations[iAnim];
-
-//                 if (pAnim->remaining > delta)
-//                 {
-//                     pAnim->remaining -= delta;
-
-//                     float progress = (float)(pAnim->time - pAnim->remaining) / (float)pAnim->time;
-
-//                     pAnim->fnUpdate(progress);
-//                     countAnimations--;
-//                 }
-//                 else if (pAnim->remaining > 0)
-//                 {
-//                     pAnim->fnUpdate(1.0f);
-//                     StopAnimation(iAnim);
-//                     countAnimations--;
-//                 }
-//             }
-
-//             _animationLastTick = currentTick;
-//         }
-//     }
-// }
 

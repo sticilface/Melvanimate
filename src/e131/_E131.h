@@ -21,7 +21,7 @@
 #define _E131_h
 
 #include "Arduino.h"
-#include "util.h"
+#include "e131/util.h"
 
 /* Network interface detection.  WiFi for ESP8266 and Ethernet for AVR */
 #if defined (ARDUINO_ARCH_ESP8266) 

@@ -1,6 +1,7 @@
 /*
 
 Thanks to Adafruit for their GFX and Matrix libs.  Modified here by Sticilface, aka Andrew Melvin.
+Provides a callback method for pixel location! 
 
 This is the core graphics library for all our displays, providing a common
 set of graphics primitives (points, lines, circles, etc.).  It needs to be
@@ -39,8 +40,6 @@ POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 #include <functional>
 #include <Adafruit_GFX.h>
-
-
 
 
 #define NEO_MATRIX_TOP         0x00 // Pixel 0 is at top of matrix
