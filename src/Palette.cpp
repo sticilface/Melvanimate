@@ -2,7 +2,7 @@
 
 // ALL = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
 const char * palettes_strings[9] = { "off", "complementary", "monochromatic", "analogous", "splitcomplements", "triadic", "tetradic", "multi", "wheel"};
-const char * random_mode_strings[4] = {"off", "total_random", "time_based_random", "random_after_loop"} ; 
+const char * random_mode_strings[4] = {"off", "totalrandom", "timebased", "randomafterloop"} ; 
 
 Palette::Palette(): _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0)
 {
@@ -30,6 +30,18 @@ void Palette::mode(palette_type mode)
 	_available = available(_mode, _total);
 	_total = _available;
 	_position = 0 ;
+}
+
+void Palette::randommode(const char * mode) 
+{
+	Serial.println("Random mode called");
+	for (uint8_t i = 0; i < 4; i++) {
+		if (strcmp(mode, random_mode_strings[i]) == 0) 
+		{
+			randommode( (random_mode)i ); 
+			Serial.printf("Found: %u, %s\n",i,random_mode_strings[i]);
+		}
+	}
 }
 
 

@@ -55,6 +55,7 @@ public:
 	random_mode randommode() { return _random; };
 	const char * randommodeAsString() { return random_mode_strings[_random]; }
 	void randommode(random_mode random) { _random = random;}
+	void randommode(const char *); 
 	uint16_t getavailable() { return _available; }
 
 	void total(uint16_t total)
