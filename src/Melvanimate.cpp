@@ -213,6 +213,7 @@ void Melvanimate::setWaiting(bool wait)
 
 bool        Melvanimate::save(bool override)
 {
+
 	if (!_settings_changed && !override) { Serial.println("Settings not changed"); return false; }
 	Debug("Saving Settings: ");
 	DynamicJsonBuffer jsonBuffer;
@@ -394,6 +395,8 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 				setBrightness(option.toInt());
 			} else if (command.equalsIgnoreCase("speed")) {
 				speed(option.toInt()); 
+			} else if (command.equalsIgnoreCase("loadpreset")) {
+				Serial.println("Load preset: not done yet");
 			}
 			_timer = -1 ; //  get ride of flag to timer!  
 		});

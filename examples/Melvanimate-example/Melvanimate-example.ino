@@ -49,7 +49,6 @@ FSBrowser fsbrowser(HTTP);
 ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 
-
 Palette palette;
 
 struct XY_t {
@@ -71,6 +70,7 @@ void setup()
 
   Serial.begin(115200);
   Serial.println("");
+  //Serial.setDebugOutput(true);
 
   SPIFFS.begin();
 
@@ -169,32 +169,32 @@ void setup()
 
 void loop()
 {
-
-
+  uint32_t _tick = millis();
+  uint32_t _arrays[10] = {0};
+  uint8_t poss = 0; 
+  _arrays[0] = millis();
 
   HTTP.handleClient();
 
   settings.handle();
 
-
   lights.Loop();
+
   Show_pixels(false); // bool is show pixels override...
-  yield();
+
   timer.run();
-
-  static uint32_t _tick = 0;
-
-  if (millis() - _tick > 1000 ) {
-    Serial.printf("Loop >1S %u\n", millis() - _tick);
-  }
-
-  _tick = millis();
 
   if (save_flag) {
     if (millis() - save_flag > 100) {
       save_flag = 0;
-      //lights.save(modechange); //  will only save if actually required.
+      lights.save(modechange); //  will only save if actually required.
     }
+  }
+
+
+
+  if (millis() - _tick > 1000 ) {
+    Serial.printf("Loop >1S %u\n", millis() - _tick);
   }
 
 }
@@ -524,11 +524,12 @@ void handle_data()
 
   }
 
+  HTTP.setContentLength(0);
   HTTP.send(200); // sends OK if were just receiving data...
-
 
   save_flag = millis();
   Serial.printf("[handle] time %u\n", millis() - start_time);
+  return;
 
 }
 
