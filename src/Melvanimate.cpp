@@ -78,7 +78,7 @@ const RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
 {
 	if (brightness == 0) return RgbColor(0);
 	if (brightness == 255) return input;
-	if (input.R == 0 && input.G == 0 && input.B == 0 ) return input; 
+	if (input.R == 0 && input.G == 0 && input.B == 0 ) return input;
 	HslColor originalHSL = HslColor(input);
 	originalHSL.L =  originalHSL.L   * ( float(brightness) / 255.0 ) ;
 	return RgbColor( HslColor(originalHSL.H, originalHSL.S, originalHSL.L )  );
@@ -167,7 +167,7 @@ void Melvanimate::setText(String var)
 
 
 //  This is a callback that when set, checks to see if current animation has ended.
-// set using setWaitFn ( std::bind (&Melvana::returnWaiting, this)  ); in initialisation 
+// set using setWaitFn ( std::bind (&Melvana::returnWaiting, this)  ); in initialisation
 bool Melvanimate::returnWaiting()
 {
 	if (!_waiting) return false;
@@ -370,14 +370,36 @@ bool        Melvanimate::load()
 
 };
 
-bool Melvanimate::setTimer(int timeout, String command, String effect)
+bool Melvanimate::setTimer(int timeout, String command, String option)
 {
 	// delete current timer if set
-	if (_timer != -1) timer.deleteTimer(_timer);
+	if (_timer != -1) { 
+		timer.deleteTimer(_timer);
+		_timer = -1; 
+		Serial.println("Timer Cancelled");
+	}
 
-	timer.setTimeout(timeout, [=]() {
-		Serial.println(command);
+	timeout *= (1000 * 60); // convert timout to milliseconds from minutes... 
 
-	}); 
+	// set new timer if there is an interval
+	if (timeout) {
+
+		_timer = timer.setTimeout(timeout, [command, option, this]() {
+
+			if (command.equalsIgnoreCase("off")) {
+				Start("Off"); 
+			} else if (command.equalsIgnoreCase("start")) {
+				Start(option); 
+			} else if (command.equalsIgnoreCase("brightness")) {
+				setBrightness(option.toInt());
+			} else if (command.equalsIgnoreCase("speed")) {
+				speed(option.toInt()); 
+			}
+			_timer = -1 ; //  get ride of flag to timer!  
+		});
+
+		if (_timer > -1 ) { Serial.println("Timer Started"); }
+
+	}
 
 }

@@ -119,6 +119,8 @@ public:
 	bool returnWaiting();
 
 	bool setTimer(int timer, String command, String effect = String() ); 
+	bool isTimerRunning() { return (_timer > -1); }
+	int getTimer() { return _timer;  }
 
 	bool multiplematrix = false; //
 	uint32_t timeoutvar;  //  parameters used by some effects...

@@ -90,6 +90,9 @@ public:
     // returns the number of available timers
     int getNumAvailableTimers() { return MAX_TIMERS - numTimers; };
 
+    // returns millis left
+    int getTimeLeft(int numTimer); 
+
 private:
     // deferred call constants
     const static int DEFCALL_DONTRUN = 0;       // don't call the callback function

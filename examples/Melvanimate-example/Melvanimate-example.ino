@@ -526,6 +526,11 @@ void handle_data()
 
 }
 
+
+
+
+
+
 void send_data(String page)
 {
   DynamicJsonBuffer jsonBuffer;
@@ -642,11 +647,25 @@ void send_data(String page)
     root["paletterandom"] = String(lights.palette().randommodeAsString());
     root["palettespread"] = String(lights.palette().range());
     root["palettedelay"] = String(lights.palette().delay());
-
-
-
-
+  
   }
+
+    if (page == "timer" || page == "all") {
+
+      JsonObject& timerobj = root.createNestedObject("timer");
+      timerobj["running"] = lights.isTimerRunning(); 
+      if (lights.isTimerRunning())
+      {
+        JsonArray& remaining = timerobj.createNestedArray("remaining");
+        int minutes = timer.getTimeLeft(lights.getTimer()) / ( 1000 * 60) ;
+        int seconds = timer.getTimeLeft(lights.getTimer()) / 1000 ;
+        seconds %= 60; 
+        remaining.add(minutes);
+        remaining.add(seconds);  
+      }
+
+    }
+
 
 //  root.prettyPrintTo(Serial);
 //  Serial.println();

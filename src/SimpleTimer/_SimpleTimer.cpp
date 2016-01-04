@@ -242,3 +242,22 @@ void SimpleTimer::toggle(int numTimer) {
 int SimpleTimer::getNumTimers() {
     return numTimers;
 }
+
+int SimpleTimer::getTimeLeft(int numTimer) {
+
+    if (callbacks[numTimer]) {
+
+     return ( delays[numTimer] - ( elapsed() - prev_millis[numTimer] ) ) ;
+
+    } else {
+
+        return -1; 
+    }
+}
+
+
+
+
+
+
+
