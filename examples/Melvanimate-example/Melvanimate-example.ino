@@ -62,7 +62,7 @@ struct XY_t {
 
 Melvanimate lights;
 
-uint32_t save_flag = 0; 
+uint32_t save_flag = 0;
 bool modechange = false;
 
 
@@ -190,12 +190,12 @@ void loop()
 
   _tick = millis();
 
-if (save_flag){
-  if (millis() - save_flag > 100) {
-     save_flag = 0; 
-     //lights.save(modechange); //  will only save if actually required.
+  if (save_flag) {
+    if (millis() - save_flag > 100) {
+      save_flag = 0;
+      //lights.save(modechange); //  will only save if actually required.
+    }
   }
-}
 
 }
 
@@ -324,7 +324,7 @@ bool check_duplicate_req()
 }
 void handle_data()
 {
-  uint32_t start_time = millis(); 
+  uint32_t start_time = millis();
   //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
   if (check_duplicate_req()) { HTTP.send(200); return; }
 
@@ -502,27 +502,33 @@ void handle_data()
 
   if (HTTP.hasArg("data")) {
     send_data(HTTP.arg("data")); // sends JSON data for whatever page is currently being viewed
-    Serial.printf("[handle] time %u\n", millis() - start_time); 
+    Serial.printf("[handle] time %u\n", millis() - start_time);
     return;
   }
 
-  if (HTTP.hasArg("timer") && HTTP.hasArg("timercommand")) {
+  if (HTTP.hasArg("enabletimer")) {
 
-    String effect =  (HTTP.hasArg("timeroption"))? HTTP.arg("timeroption") : String();
+    if (HTTP.arg("enabletimer") == "on") {
 
-    if (lights.setTimer(HTTP.arg("timer").toInt(), HTTP.arg("timercommand"), effect ))
-    {
-      Serial.println("Timer command accepted"); 
+      if (HTTP.hasArg("timer") && HTTP.hasArg("timercommand")) {
+
+        String effect =  (HTTP.hasArg("timeroption")) ? HTTP.arg("timeroption") : String();
+
+        if (lights.setTimer(HTTP.arg("timer").toInt(), HTTP.arg("timercommand"), effect )) {
+          Serial.println("Timer command accepted");
+        }
+      }
+    } else if (HTTP.arg("enabletimer") == "off") {
+      lights.setTimer(0, "off");
     }
 
   }
 
-
   HTTP.send(200); // sends OK if were just receiving data...
 
 
-  save_flag = millis(); 
-  Serial.printf("[handle] time %u\n", millis() - start_time); 
+  save_flag = millis();
+  Serial.printf("[handle] time %u\n", millis() - start_time);
 
 }
 
@@ -647,24 +653,23 @@ void send_data(String page)
     root["paletterandom"] = String(lights.palette().randommodeAsString());
     root["palettespread"] = String(lights.palette().range());
     root["palettedelay"] = String(lights.palette().delay());
-  
+
   }
 
-    if (page == "timer" || page == "all") {
+  if (page == "timer" || page == "all") {
 
-      JsonObject& timerobj = root.createNestedObject("timer");
-      timerobj["running"] = lights.isTimerRunning(); 
-      if (lights.isTimerRunning())
-      {
-        JsonArray& remaining = timerobj.createNestedArray("remaining");
-        int minutes = timer.getTimeLeft(lights.getTimer()) / ( 1000 * 60) ;
-        int seconds = timer.getTimeLeft(lights.getTimer()) / 1000 ;
-        seconds %= 60; 
-        remaining.add(minutes);
-        remaining.add(seconds);  
-      }
-
+    JsonObject& timerobj = root.createNestedObject("timer");
+    timerobj["running"] = lights.isTimerRunning();
+    if (lights.isTimerRunning()) {
+      JsonArray& remaining = timerobj.createNestedArray("remaining");
+      int minutes = timer.getTimeLeft(lights.getTimer()) / ( 1000 * 60) ;
+      int seconds = timer.getTimeLeft(lights.getTimer()) / 1000 ;
+      seconds %= 60;
+      remaining.add(minutes);
+      remaining.add(seconds);
     }
+
+  }
 
 
 //  root.prettyPrintTo(Serial);

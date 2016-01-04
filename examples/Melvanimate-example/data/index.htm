@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html>
 
@@ -17,7 +18,7 @@
 
 
 
-    
+
     <STYLE type="text/css" id="mystyleelement">
         .centerwrapper {
             margin: 0 auto;
@@ -51,11 +52,13 @@
             background: none;
             border: 0;
         }
-
-        
     </STYLE>
-    
-<style>body{visibility:hidden}</style>
+
+    <style>
+        body {
+            visibility: hidden
+        }
+    </style>
 
 </head>
 
@@ -140,12 +143,12 @@
                     <label for="randomness">Randomness:</label>
                     <input class="myslider" type="range" name="randomness" id="randomness" min="0" max="8" step="1" value="0">
                 </div>
-                
+
                 <div class="ui-field-contain mysubmittext Marquee">
                     <label for="input_marqueetext">Text:</label>
                     <input type="text" name="marqueetext" id="input_marqueetext" value="">
-                </div>   
-                
+                </div>
+
                 <div class="ui-field-contain Marquee RainbowCycle Rainbow">
                     <label for="input-rotation">Rotation:</label>
                     <select name="rotation" id="input-rotation" class="mysubmitthis">
@@ -155,7 +158,7 @@
                         <option value="3">270</option>
                     </select>
                 </div>
-                
+
                 <div class="ui-field-contain Adalight">
                     <label for="adalight-serialspeed">Serial Speed:</label>
                     <select name="serialspeed" id="adalight-serialspeed" class="mysubmitthis">
@@ -185,7 +188,7 @@
 
             <h3>Presets</h3>
 
-                
+
         </div>
 
     </div>
@@ -196,7 +199,7 @@
         <div data-role="content">
 
             <h3> Layout </h3>
-            <p> See <a href="https://learn.adafruit.com/adafruit-neopixel-uberguide/neomatrix-library" target="_blank">here</a> for Matrix layout options.  Thanks to Adafruit</p>
+            <p> See <a href="https://learn.adafruit.com/adafruit-neopixel-uberguide/neomatrix-library" target="_blank">here</a> for Matrix layout options. Thanks to Adafruit</p>
             <p id="firstpixelidentify"> Click this to identify first pixel,</p>
             <p id="revealorder">Click this to show order</p>
             <form id="layoutform">
@@ -285,7 +288,7 @@
 
         <div data-role="content">
 
-          <h3> Palette </h3>
+            <h3> Palette </h3>
             <form id="palette-form">
                 <div class="ui-field-contain">
                     <label for="select-palettes2">Palette:</label>
@@ -315,12 +318,12 @@
                 <div class="ui-field-contain">
                     <label for="input-palette-spread">Spread:</label>
                     <input type="text" name="palette-spread" id="input-palette-spread" value="">
-                </div>                
+                </div>
                 <div class="ui-field-contain">
                     <label for="input-palette-delay">Time Delay:</label>
                     <input type="text" name="palette-delay" id="input-palette-delay" value="">
-                </div>  
-                
+                </div>
+
                 <button id="apply_palette_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
 
             </form>
@@ -333,104 +336,100 @@
 
         <div data-role="content">
 
-          <h3> Timer </h3>
-              <div id="timer-time-left"></div>
+            <h3> Timer </h3>
+            <div id="timer-time-left"></div>
             <form id="timer-form">
 
                 <!--enum random_mode { NOT_RANDOM = 0 , TOTAL_RANDOM, TIME_BASED_RANDOM, RANDOM_AFTER_LOOP};-->
 
-                  <div class="ui-field-contain">
-                  <label for="flip-enable-timer">Timer:</label>
-                  <select id="flip-enabletimer" name="flip-enable-timer" data-role="flipswitch">
-                     <option>off</option>
-                     <option>on</option>
-                  </select>
-                  </div>
-                  
                 <div class="ui-field-contain">
-                    <label for="input-timer-delay">Delay (min):</label>
-                    <input type="text" name="timer" id="input-timer-delay" value="">
-                </div>
-                
-                <div class="ui-field-contain">
-                    <label for="select-timer-command">Action:</label>
-                    <select name="timercommand" id="select-timer-command">
-                        <option value="off" selected="selected">Off</option>
-                        <option value="start">Start Effect</option>
-                        <option value="brightness">Set Brightness</option>
-                        <option value="speed">Set Speed</option>
+                    <label for="flip-enable-timer">Enable:</label>
+                    <select id="flip-enable-timer" name="enabletimer" data-role="flipswitch">
+                        <option>off</option>
+                        <option>on</option>
                     </select>
-                </div>                
-                <div id="timeroptionsdiv"> 
-                <div class="ui-field-contain start">
-                    <label for="select-timer-option">Effect:</label>
-                    <select name="timeroption" id="select-timer-option" class="effectslist">
-                    </select>
-                </div> 
-
-                <div class="ui-field-contain brightness speed">
-                    <label for="slider-timer-option">Value:</label>
-                    <input type="range" name="timeroption" id="slider-timer-option" min="0" max="255" step="1" value="0">
                 </div>
-                </div>
-                
-                <button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
+                <div id="maintimerdiv">
+                    <div class="ui-field-contain">
+                        <label for="input-timer-delay">Delay (min):</label>
+                        <input type="text" name="timer" id="input-timer-delay" value="">
+                    </div>
 
+                    <div class="ui-field-contain">
+                        <label for="select-timer-command">Action:</label>
+                        <select name="timercommand" id="select-timer-command">
+                            <option value="off" selected="selected">Off</option>
+                            <option value="start">Start Effect</option>
+                            <option value="brightness">Set Brightness</option>
+                            <option value="speed">Set Speed</option>
+                        </select>
+                    </div>
+                    <div id="timeroptionsdiv">
+                        <div class="ui-field-contain start">
+                            <label for="select-timer-option">Effect:</label>
+                            <select name="timeroption" id="select-timer-option" class="effectslist">
+                            </select>
+                        </div>
+
+                        <div class="ui-field-contain brightness speed">
+                            <label for="slider-timer-option">Value:</label>
+                            <input type="range" name="timeroption" id="slider-timer-option" min="0" max="255" step="1" value="0">
+                        </div>
+                    </div>
+
+                    <button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
+                </div>
+                <!-- end of maintimerdiv-->
             </form>
         </div>
 
     </div>
-    
-<script>
 
- 
+    <script>
+        function loadcss(url, callback) {
+            var link = document.createElement("link");
+            link.setAttribute("rel", "stylesheet");
+            link.setAttribute("href", url);
+            link.addEventListener('load', function() {
+                var script = document.createElement("script");
+                script.textContent = "(" + callback.toString() + ")();";
+                document.body.appendChild(script);
+            }, false);
+            document.body.appendChild(link);
+        }
 
+        function loadjs(url, callback) {
+            var script = document.createElement("script");
+            script.setAttribute("src", url);
+            script.addEventListener('load', function() {
+                var script = document.createElement("script");
+                script.textContent = "(" + callback.toString() + ")();";
+                document.body.appendChild(script);
+            }, false);
+            document.body.appendChild(script);
+        }
 
-function loadcss(url, callback) {
-    var link= document.createElement("link");
-    link.setAttribute("rel", "stylesheet");
- link.setAttribute("href", url);
-    link.addEventListener('load', function() {
-        var script = document.createElement("script");
-        script.textContent = "(" + callback.toString()  + ")();";
-        document.body.appendChild(script);
-    }, false);
-    document.body.appendChild(link);
-}
+        loadcss("/espman/jqm1.4.5.css", function() {
+            loadjs("/espman/jq1.11.1.js", function() {
+                //window.jQ=jQuery.noConflict(true);
+                loadjs("/espman/jqm1.4.5.js", function() {
+                    //window.jQ=jQuery.noConflict(true);
+                    loadjs("jqColorPicker.min.js", function() {
+                        $(function() {
 
-  function loadjs(url, callback) {
-    var script = document.createElement("script");
-    script.setAttribute("src", url);
-    script.addEventListener('load', function() {
-        var script = document.createElement("script");
-        script.textContent = "(" + callback.toString()  + ")();";
-        document.body.appendChild(script);
-    }, false);
-    document.body.appendChild(script);
-}
+                            $("[data-role='header']").toolbar();
+                            $("[data-role='footer']").toolbar();
+                            $("body>[data-role='panel']").panel();
 
-loadcss("/espman/jqm1.4.5.css", function() { 
-  loadjs("/espman/jq1.11.1.js", function() {
-    //window.jQ=jQuery.noConflict(true);
-    loadjs("/espman/jqm1.4.5.js", function() {
-      //window.jQ=jQuery.noConflict(true);
-      loadjs("jqColorPicker.min.js", function() {
-                $(function() {
-
-            $("[data-role='header']").toolbar();
-            $("[data-role='footer']").toolbar();
-            $("body>[data-role='panel']").panel();
-
+                        });
+                        RUNDOCUMENT();
+                        GetData("homepage");
+                        $("body").css("visibility", "visible");
+                    });
+                });
+            });
         });
-        RUNDOCUMENT(); 
-        GetData("homepage");
-        $("body").css("visibility","visible");
-      });
-    });
-  });
-});
-
-</script>
+    </script>
 
 
     <script>
@@ -475,99 +474,249 @@ loadcss("/espman/jqm1.4.5.css", function() {
         var NEO_TILE_ZIGZAG = 0x80 // Tile order reverses between lines
         var NEO_TILE_SEQUENCE = 0x80 // Bitmask for tile line order
 
-function RUNDOCUMENT() {
-  
-
-        $(document).on("pageshow", "#layout", function() {
+        function RUNDOCUMENT() {
 
 
+            $(document).on("pageshow", "#layout", function() {
 
 
-        });
 
 
-        //$(document).on('pageinit', '#autotune', function(){     
-
-        //      GetData(); 
-
-
-        $(document).on("pagecreate", "#layout", function() {
-
-            $('#select-matrix-type').change(function() {
-                sortmatrix($(this));
             });
-            
-            $('#firstpixelidentify').click( function() {
-              var data = $.param( { flashfirst: "yes"} ); 
-                  $.post("data.esp", data , function() {});
+
+
+            //$(document).on('pageinit', '#autotune', function(){     
+
+            //      GetData(); 
+
+
+            $(document).on("pagecreate", "#layout", function() {
+
+                $('#select-matrix-type').change(function() {
+                    sortmatrix($(this));
+                });
+
+                $('#firstpixelidentify').click(function() {
+                    var data = $.param({
+                        flashfirst: "yes"
+                    });
+                    $.post("data.esp", data, function() {});
+                });
+
+                $('#revealorder').click(function() {
+                    var data = $.param({
+                        revealorder: "yes"
+                    });
+                    $.post("data.esp", data, function() {});
+                })
+
+
             });
-            
-            $('#revealorder').click( function() {
-              var data = $.param( { revealorder: "yes"} );
-              $.post("data.esp", data , function() {});
+
+
+
+
+            $(document).on("pagebeforeshow", "#layout", function() {
+
+                GetData();
+                console.log("layoutpage data:" + globaldata)
+
+                if (globaldata) {
+
+                    if (globaldata.hasOwnProperty('pixels')) {
+                        $("#nopixels").val(globaldata.pixels);
+                    }
+                    if (globaldata.hasOwnProperty('grid_x')) {
+                        $("#gridx").val(globaldata.grid_x);
+                    }
+                    if (globaldata.hasOwnProperty('grid_y')) {
+                        $("#gridy").val(globaldata.grid_y);
+                    }
+                    if (globaldata.hasOwnProperty('matrixmode')) {
+                        $("#select-matrix-type").val(globaldata.matrixmode).selectmenu("refresh");
+                    }
+
+                    if (globaldata.hasOwnProperty('firstpixel')) {
+                        $("#select-singlematrix").val(globaldata.firstpixel).selectmenu("refresh");
+                    }
+                    if (globaldata.hasOwnProperty('axis')) {
+                        $("#select-singlematrix-axis").val(globaldata.axis).selectmenu("refresh");
+                    }
+                    if (globaldata.hasOwnProperty('sequence')) {
+                        $("#select-singlematrix-seq").val(globaldata.sequence).selectmenu("refresh");
+                    }
+
+                    if (globaldata.hasOwnProperty('multimatrixtile')) {
+                        $("#select-multimatrix").val(globaldata.multimatrixtile).selectmenu("refresh");
+                    }
+                    if (globaldata.hasOwnProperty('multimatrixaxis')) {
+                        $("#select-multimatrix-axis").val(globaldata.multimatrixaxis).selectmenu("refresh");
+                    }
+                    if (globaldata.hasOwnProperty('multimatrixseq')) {
+                        $("#select-multimatrix-seq").val(globaldata.multimatrixseq).selectmenu("refresh");
+                    }
+                }
+
+                sortmatrix('#select-matrix-type');
+
             })
 
 
-        });
+            $(document).on("pagecreate", "#homepage", function() {
+
+                GetData("all");
+
+                $('#modeslist').change(function() {
+
+                    console.log("mode change");
+
+                    var mode = $(this).val();
+
+                    $('#effectoptions').children('div').each(function(index) {
+                        $(this).hide();
+                    });
+
+                    $('#effectoptions').children('div').each(function(index) {
+                        if ($(this).hasClass(mode)) $(this).show();
+                    });
 
 
+                    $.post("data.esp", $(this).serialize(), function() {
+                        GetData();
+                    });
+
+                });
+
+            });
+
+            $(document).on('click', '#myheader', function() {
+                GetData($.mobile.activePage.attr('id'));
+            });
+
+            // $(document).on("mobileinit", function() {
+            //     GetData("all");
+            // });
+
+            $(document).on('click', '.mysubmit', function() {
+                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $.post("data.esp", $(this.form).find('input,select').filter(':visible').serialize(), function(data) {
+                        console.log("Data Sent");
+                    }).success(function() {
+                        $("#status").empty().append("Success").css("color", "green");;
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
+            });
+
+            $(document).on('change', '.mysubmitthis', function(e) {
+                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $.post("data.esp", $(this).serialize(), function(data) {
+                        console.log("Data Sent");
+                    }).success(function() {
+                        $("#status").empty().append("Success").css("color", "green");;
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
+            });
+
+            $(document).on('change', '.mysubmittext', function(e) {
+                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $.post("data.esp", $(this).find('input'), function(data) {
+                        console.log("Data Sent");
+                    }).success(function() {
+                        $("#status").empty().append("Success").css("color", "green");;
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
+            });
+
+            $(document).on('change', '.mysubmitdropdown', function(e) {
+                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $.post("data.esp", $(this).serialize(), function(data) {
+                        console.log("Data Sent");
+                    }).success(function() {
+                        $("#status").empty().append("Success").css("color", "green");;
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
+            });
+
+            // better way to get data for new page...         
+            $(document).on("pagebeforechange", function(e, data) {
+                var toPage = data.toPage[0].id;
+                GetData(toPage);
+            });
+
+            $("#timer").on("pagebeforeshow", function() {
 
 
-        $(document).on("pagebeforeshow", "#layout", function() {
+                // hide all options first 
+                $('#timeroptionsdiv').children('div').each(function(index) {
+                    $(this).closest("div").addClass("ui-state-disabled");
+                    $(this).hide();
+                });
 
-            GetData();
-            console.log("layoutpage data:" + globaldata)
 
-            if (globaldata) {
+                if (globaldata.hasOwnProperty('modes')) {
+                    temp = globaldata.modes;
+                    $("#select-timer-option").find('option').remove();
+                    $.each(temp, function(key, value) {
+                        $("#select-timer-option").append('<option value=' + value + '>' + value + '</option>');
+                    });
 
-                if (globaldata.hasOwnProperty('pixels')) {
-                    $("#nopixels").val(globaldata.pixels);
+                    $('#select-timer-option').selectmenu('refresh');
                 }
-                if (globaldata.hasOwnProperty('grid_x')) {
-                    $("#gridx").val(globaldata.grid_x);
-                }
-                if (globaldata.hasOwnProperty('grid_y')) {
-                    $("#gridy").val(globaldata.grid_y);
-                }
-                if (globaldata.hasOwnProperty('matrixmode')) {
-                    $("#select-matrix-type").val(globaldata.matrixmode).selectmenu("refresh");
-                }
 
-                if (globaldata.hasOwnProperty('firstpixel')) {
-                    $("#select-singlematrix").val(globaldata.firstpixel).selectmenu("refresh");
-                }
-                if (globaldata.hasOwnProperty('axis')) {
-                    $("#select-singlematrix-axis").val(globaldata.axis).selectmenu("refresh");
-                }
-                if (globaldata.hasOwnProperty('sequence')) {
-                    $("#select-singlematrix-seq").val(globaldata.sequence).selectmenu("refresh");
-                }
-
-                if (globaldata.hasOwnProperty('multimatrixtile')) {
-                    $("#select-multimatrix").val(globaldata.multimatrixtile).selectmenu("refresh");
-                }
-                if (globaldata.hasOwnProperty('multimatrixaxis')) {
-                    $("#select-multimatrix-axis").val(globaldata.multimatrixaxis).selectmenu("refresh");
-                }
-                if (globaldata.hasOwnProperty('multimatrixseq')) {
-                    $("#select-multimatrix-seq").val(globaldata.multimatrixseq).selectmenu("refresh");
-                }
-            }
-
-            sortmatrix('#select-matrix-type');
-
-        })
+                GetData();
 
 
-        $(document).on("pagecreate", "#homepage", function() {
+                $("#flip-enable-timer").change(function() {
+                    $("#timer-time-left").empty();
+                    console.log("Changeed to " + $(this).val());
+                    if ($(this).val() == "on") {
+                        $('#maintimerdiv').children('div').each(function(index) {
+                            $(this).show();
+                        });
+                    } else {
+                        $('#maintimerdiv').children('div').each(function(index) {
+                            $(this).hide();
+                        });
+                    }
+                });
 
-            GetData("all");
 
-            $('#modeslist').change(function() {
-              
-              console.log("mode change");
-              
-                var mode = $(this).val();
+                $('#select-timer-command').change(function() {
+
+                    var option = $(this).val();
+
+                    $('#timeroptionsdiv').children('div').each(function(index) {
+                        $(this).closest("div").addClass("ui-state-disabled");
+                        $(this).hide();
+                    });
+
+                    $('#timeroptionsdiv').children('div').each(function(index) {
+                        if ($(this).hasClass(option)) {
+                            $(this).show();
+                            $(this).closest("div").removeClass("ui-state-disabled");
+
+                        }
+                    });
+
+                });
+
+            });
+
+            $("#homepage").on("pagebeforeshow", function() {
+
+                var mode = $('#modeslist').val();
 
                 $('#effectoptions').children('div').each(function(index) {
                     $(this).hide();
@@ -577,291 +726,163 @@ function RUNDOCUMENT() {
                     if ($(this).hasClass(mode)) $(this).show();
                 });
 
+                $('.color').colorPicker({
+                    preventFocus: true,
+                    renderCallback: function($elm, toggled) {
+                        if (toggled === true) { // simple, lightweight check
+                            // ... like an open callback
+                        } else if (toggled === false) {
 
-                $.post("data.esp", $(this).serialize(), function() {
-                    GetData();
-                });
+                            // ... like a close callback
+                            //var nameof = $(this).attr("name"); 
+                            var $form = $(this).closest('input');
 
-            }); 
+                            console.log($form.attr('name'));
+                            var colors = this.color.colors,
+                                rgb = colors.RND.rgb;
+                            console.log(rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + colors.alpha);
 
-        });
+                            var $form = $elm.closest('form');
+                            var inputName = $elm.attr('name');
+                            var inputValue = $elm.attr('value');
 
-        $(document).on('click', '#myheader', function() {
-            GetData($.mobile.activePage.attr('id'));
-        });
-
-        // $(document).on("mobileinit", function() {
-        //     GetData("all");
-        // });
-
-        $(document).on('click', '.mysubmit', function() {
-            $("#status").empty().append("Waiting...").css("color", "blue");;
-            $.post("data.esp", $(this.form).find('input,select').filter(':visible').serialize(), function(data) {
-                    console.log("Data Sent");
-                }).success(function() {
-                    $("#status").empty().append("Success").css("color", "green");;
-                })
-                .error(function() {
-                    $("#status").empty().append("Error").css("color", "red");;
-                })
-                .complete(function() {});
-        });
-
-        $(document).on('change', '.mysubmitthis', function(e) {
-            $("#status").empty().append("Waiting...").css("color", "blue");;
-            $.post("data.esp", $(this).serialize(), function(data) {
-                    console.log("Data Sent");
-                }).success(function() {
-                    $("#status").empty().append("Success").css("color", "green");;
-                })
-                .error(function() {
-                    $("#status").empty().append("Error").css("color", "red");;
-                })
-                .complete(function() {});
-        });
-
-        $(document).on('change', '.mysubmittext', function(e) {
-            $("#status").empty().append("Waiting...").css("color", "blue");;
-            $.post("data.esp", $(this).find('input'), function(data) {
-                    console.log("Data Sent");
-                }).success(function() {
-                    $("#status").empty().append("Success").css("color", "green");;
-                })
-                .error(function() {
-                    $("#status").empty().append("Error").css("color", "red");;
-                })
-                .complete(function() {});
-        });
-        
-        $(document).on('change', '.mysubmitdropdown', function(e) {
-            $("#status").empty().append("Waiting...").css("color", "blue");;
-            $.post("data.esp", $(this).serialize(), function(data) {
-                    console.log("Data Sent");
-                }).success(function() {
-                    $("#status").empty().append("Success").css("color", "green");;
-                })
-                .error(function() {
-                    $("#status").empty().append("Error").css("color", "red");;
-                })
-                .complete(function() {});
-        });
-        
-// better way to get data for new page...         
-$( document ).on( "pagebeforechange" , function(e, data) {
-  var toPage = data.toPage[0].id;
- GetData(toPage);
-});
-
-      $("#timer").on("pagebeforeshow", function() {
-        
-                // hide all options first 
-                $('#timeroptionsdiv').children('div').each(function(index) {
-                    $(this).closest("div").addClass("ui-state-disabled");
-                    $(this).hide();
-                });  
-              
-        
-          if (globaldata.hasOwnProperty('modes')) {
-                          temp = globaldata.modes;
-                        $("#select-timer-option").find('option').remove();
-                        $.each(temp, function(key, value) {
-                            $("#select-timer-option").append('<option value=' + value + '>' + value + '</option>');
-                        });
-
-                        $('#select-timer-option').selectmenu('refresh');
-          }
-          
-          $('#select-timer-command').change(function() {
-              
-                var option = $(this).val();
-                
-                $('#timeroptionsdiv').children('div').each(function(index) {
-                    $(this).closest("div").addClass("ui-state-disabled");
-                    $(this).hide();
-                });          
-
-                $('#timeroptionsdiv').children('div').each(function(index) {
-                    if ($(this).hasClass(option)) { 
-                      $(this).show(); 
-                     $(this).closest("div").removeClass("ui-state-disabled");
-                      
-                    }
-                });
-                
-      });
-
-});
-
-        $("#homepage").on("pagebeforeshow", function() {
-
-            var mode = $('#modeslist').val();
-
-            $('#effectoptions').children('div').each(function(index) {
-                $(this).hide();
-            });
-
-            $('#effectoptions').children('div').each(function(index) {
-                if ($(this).hasClass(mode)) $(this).show();
-            });
-
-            $('.color').colorPicker({
-                preventFocus: true,
-                renderCallback: function($elm, toggled) {
-                    if (toggled === true) { // simple, lightweight check
-                        // ... like an open callback
-                    } else if (toggled === false) {
-                        
-                        // ... like a close callback
-                        //var nameof = $(this).attr("name"); 
-                        var $form = $(this).closest('input');
-
-                        console.log($form.attr('name'));
-                        var colors = this.color.colors,
-                            rgb = colors.RND.rgb;
-                        console.log(rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + colors.alpha);
-
-                        var $form = $elm.closest('form');
-                        var inputName = $elm.attr('name');
-                        var inputValue = $elm.attr('value');
-
-                        var data = {
-                            color: {
-                                name: inputName,
-                                R: rgb.r,
-                                G: rgb.g,
-                                B: rgb.b,
-                            }
-                        };
-                        console.log(JSON.stringify(data));
-                        $.post("data.esp", JSON.stringify(data),
-                            function(data) {
-                                console.log(data);
-                            }
-                        );
-                        $elm.css('color', "rgb(" + colors.RND.rgb.r + "," + colors.RND.rgb.g + "," + colors.RND.rgb.b + ")"  );
-                        $elm.css('text-shadow', 'none'); 
-                        //SendColor(); 
-                    }
-                },
-                buildCallback: function($elm) {
-                    var colorInstance = this.color,
-                        colorPicker = this,
-                        random = function(n) {
-                            return Math.round(Math.random() * (n || 255));
-                        };
-                    $elm.append('<div class="cp-memory">' +
-                        '<div></div><div></div><div></div><div></div>' +
-                        '<div></div><div></div><div></div><div class="cp-store">S</div>').
-                    on('click', '.cp-memory div', function(e) {
-                        var $this = $(this);
-
-                        if (this.className) {
-                            $this.parent().prepend($this.prev()).children().eq(0).
-                            css('background-color', '#' + colorInstance.colors.HEX);
-                        } else {
-                            colorInstance.setColor($this.css('background-color'));
-                            colorPicker.render();
+                            var data = {
+                                color: {
+                                    name: inputName,
+                                    R: rgb.r,
+                                    G: rgb.g,
+                                    B: rgb.b,
+                                }
+                            };
+                            console.log(JSON.stringify(data));
+                            $.post("data.esp", JSON.stringify(data),
+                                function(data) {
+                                    console.log(data);
+                                }
+                            );
+                            $elm.css('color', "rgb(" + colors.RND.rgb.r + "," + colors.RND.rgb.g + "," + colors.RND.rgb.b + ")");
+                            $elm.css('text-shadow', 'none');
+                            //SendColor(); 
                         }
-                    }).find('.cp-memory div').each(function() {
-                        !this.className && $(this).css({
-                            background: 'rgb(' + random() + ', ' + random() + ', ' + random() + ')'
+                    },
+                    buildCallback: function($elm) {
+                        var colorInstance = this.color,
+                            colorPicker = this,
+                            random = function(n) {
+                                return Math.round(Math.random() * (n || 255));
+                            };
+                        $elm.append('<div class="cp-memory">' +
+                            '<div></div><div></div><div></div><div></div>' +
+                            '<div></div><div></div><div></div><div class="cp-store">S</div>').
+                        on('click', '.cp-memory div', function(e) {
+                            var $this = $(this);
+
+                            if (this.className) {
+                                $this.parent().prepend($this.prev()).children().eq(0).
+                                css('background-color', '#' + colorInstance.colors.HEX);
+                            } else {
+                                colorInstance.setColor($this.css('background-color'));
+                                colorPicker.render();
+                            }
+                        }).find('.cp-memory div').each(function() {
+                            !this.className && $(this).css({
+                                background: 'rgb(' + random() + ', ' + random() + ', ' + random() + ')'
+                            });
                         });
-                    });
-                },
-                opacity: false,
-                cssAddon: // could also be in a css file instead
-                    '.cp-memory {margin-bottom:6px; clear:both;}' +
-                    '.cp-xy-slider:active {cursor:none;}' +
-                    '.cp-memory div {float:left; width:17px; height:17px; margin-right:2px;' +
-                    'background:rgba(0,0,0,1); text-align:center; line-height:17px;}' +
-                    '.cp-memory .cp-store {width:21px; margin:0; background:none; font-weight:bold;' +
-                    'box-sizing:border-box; border: 1px solid; border-color: #666 #222 #222 #666;}' +
-                    '.cp-color-picker{z-index:16777271}'
+                    },
+                    opacity: false,
+                    cssAddon: // could also be in a css file instead
+                        '.cp-memory {margin-bottom:6px; clear:both;}' +
+                        '.cp-xy-slider:active {cursor:none;}' +
+                        '.cp-memory div {float:left; width:17px; height:17px; margin-right:2px;' +
+                        'background:rgba(0,0,0,1); text-align:center; line-height:17px;}' +
+                        '.cp-memory .cp-store {width:21px; margin:0; background:none; font-weight:bold;' +
+                        'box-sizing:border-box; border: 1px solid; border-color: #666 #222 #222 #666;}' +
+                        '.cp-color-picker{z-index:16777271}'
+                });
+
+                $("#brightness").on('slidestop', function() {
+                    $.post("data.esp", $(this).serialize())
+                        .success(function() {
+                            $("#status").empty().append("Success").css("color", "green");;
+                        })
+                        .error(function() {
+                            $("#status").empty().append("Error").css("color", "red");;
+                        })
+                        .complete(function() {});
+                });
+
+                $("#speed").on('slidestop', function() {
+                    $.post("data.esp", $(this).serialize())
+                        .success(function() {
+                            $("#status").empty().append("Success").css("color", "green");;
+                        })
+                        .error(function() {
+                            $("#status").empty().append("Error").css("color", "red");;
+                        })
+                        .complete(function() {});
+                });
             });
 
-            $("#brightness").on('slidestop', function() {
-                $.post("data.esp", $(this).serialize())
-                .success(function() {
-                    $("#status").empty().append("Success").css("color", "green");;
-                })
-                .error(function() {
-                    $("#status").empty().append("Error").css("color", "red");;
-                })
-                .complete(function() {});
-            }); 
-
-            $("#speed").on('slidestop', function() {
-                $.post("data.esp", $(this).serialize())
-            .success(function() {
-                    $("#status").empty().append("Success").css("color", "green");;
-                })
-                .error(function() {
-                    $("#status").empty().append("Error").css("color", "red");;
-                })
-                .complete(function() {});
-            }); 
-        });
-
-        function SendColor() {
-            $.post("data.esp", $(this).serialize()).success(function() {
-                    $("#status").empty().append("Success").css("color", "green");;
-                })
-                .error(function() {
-                    $("#status").empty().append("Error").css("color", "red");;
-                })
-                .complete(function() {});
-        }
-
-        function GetDynamicData() {
-
-        }
-
-
-
-
-
-        // function GetDataOnly() {
-        //   $.getJSON("melvide.esp?plain=data", function(result) {
-
-        //         }).success(function() { $("#status").empty().append("Connected").css("color", "green");;  })
-        //     .error(function() {   $("#status").empty().append("Not Connected").css("color", "red");;  })
-        //     .complete(function() {  });
-        // }
-        //$('#homepage').live('pageshow', function() {
-        //});
-        function toHHMMSS(seconds) {
-            var h, m, s, result = '';
-            // HOURs
-            h = Math.floor(seconds / 3600);
-            seconds -= h * 3600;
-            if (h) {
-                result = h + "h ";
+            function SendColor() {
+                $.post("data.esp", $(this).serialize()).success(function() {
+                        $("#status").empty().append("Success").css("color", "green");;
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
             }
-            // MINUTEs
-            m = Math.floor(seconds / 60);
-            seconds -= m * 60;
-            if (m) {
-                result += m < 10 ? '0' + m + ' min' : m + ' min';
+
+            function GetDynamicData() {
+
             }
-            // SECONDs
-            //  s=seconds%60;
-            //  result += s<10 ? '0'+s : s;
-            // var min = h * 60 + m;
 
-            //return min;
-            return "Last " + result;
 
-        }
-        
-} // end of rundocumentt
+
+
+            // function GetDataOnly() {
+            //   $.getJSON("melvide.esp?plain=data", function(result) {
+
+            //         }).success(function() { $("#status").empty().append("Connected").css("color", "green");;  })
+            //     .error(function() {   $("#status").empty().append("Not Connected").css("color", "red");;  })
+            //     .complete(function() {  });
+            // }
+            //$('#homepage').live('pageshow', function() {
+            //});
+            function toHHMMSS(seconds) {
+                var h, m, s, result = '';
+                // HOURs
+                h = Math.floor(seconds / 3600);
+                seconds -= h * 3600;
+                if (h) {
+                    result = h + "h ";
+                }
+                // MINUTEs
+                m = Math.floor(seconds / 60);
+                seconds -= m * 60;
+                if (m) {
+                    result += m < 10 ? '0' + m + ' min' : m + ' min';
+                }
+                // SECONDs
+                //  s=seconds%60;
+                //  result += s<10 ? '0'+s : s;
+                // var min = h * 60 + m;
+
+                //return min;
+                return "Last " + result;
+
+            }
+
+        } // end of rundocumentt
 
         function GetData(pagevar) {
             console.log("pagevar = " + pagevar);
-            if (!pagevar) { 
-              pagevar = $.mobile.activePage.attr('id');
-              console.log("Pagevar empty");
+            if (!pagevar) {
+                pagevar = $.mobile.activePage.attr('id');
+                console.log("Pagevar empty");
             } else {
-              console.log("Pagevar NOT empty"); 
+                console.log("Pagevar NOT empty");
             }
 
             $("#status").empty().append("Waiting...").css("color", "blue");;
@@ -869,70 +890,76 @@ $( document ).on( "pagebeforechange" , function(e, data) {
             $.getJSON("data.esp?data=" + pagevar, function(result) {
                     console.log("RESULT:")
                     console.log(result);
-                    if (pagevar === "all") { 
-                      globaldata = result; 
-                      console.log("GLOBALDATA:");
-                      console.log(globaldata);    
+                    if (pagevar === "all") {
+                        globaldata = result;
+                        console.log("GLOBALDATA:");
+                        console.log(globaldata);
                     }
-                    
-    if ($.mobile.activePage.attr('id') == 'timer') {
 
-                      // if (globaldata.hasOwnProperty('modes')) {
-                      //     temp = globaldata.modes;
-                      //   $("#select-timer-option").find('option').remove();
-                      //   $.each(temp, function(key, value) {
-                      //       $("#select-timer-option").append('<option value=' + value + '>' + value + '</option>');
-                      //   });
+                    if ($.mobile.activePage.attr('id') == 'timer') {
 
-                      //   $('#select-timer-option').selectmenu('refresh');
-                      // }                   
-    }
-                    
+                        $("#timer-time-left").empty();
+
+                        if (result.hasOwnProperty("timer")) {
+                            values = result.timer;
+                            if (values.hasOwnProperty('running')) {
+
+                                $("#flip-enable-timer").val((values.running) ? "on" : "off").flipswitch('refresh').trigger("change");
+                            }
+
+                            // add time remaining in here
+                            if (values.hasOwnProperty('remaining')) {
+                                $("#timer-time-left").empty().append(" " + values.remaining[0] + "min " + values.remaining[1] + "sec remaining");
+                            }
+
+                        }
+                    }
+
                     // Homepage        
 
                     if ($.mobile.activePage.attr('id') == 'homepage') {
-                      
-                      if (result.hasOwnProperty('modes')) {
-                          temp = result.modes;
-                        $("#modeslist").find('option').remove();
-                        console.log("currentmode = " + result.currentmode); 
-                        $.each(temp, function(key, value) {
-                            var isconnected = " ";
-                            if (result.currentmode == value) isconnected = "selected=\"selected\"";
-                            $("#modeslist").append('<option value=' + value + " " + isconnected + '>' + value + '</option>');
-                        });
 
-                        $('#modeslist').selectmenu('refresh');
-                      }
-                      if (result.hasOwnProperty('brightness')) {
-                        $("#brightness").val(result.brightness).slider("refresh");
-                      }
-                      if (result.hasOwnProperty('speed')) {
-                        $("#speed").val(result.speed).slider("refresh");
-                      }
-                      if (result.hasOwnProperty('color1')) {
-                        $("#color1").val("rgb(" + result.color1.R + "," + result.color1.G + "," + result.color1.B + ")").colorPicker();
-                      }
-                      if (result.hasOwnProperty('color2')) {
-                        $("#color2").val("rgb(" + result.color2.R + "," + result.color2.G + "," + result.color2.B + ")").colorPicker();
-                      }
+                        if (result.hasOwnProperty('modes')) {
+                            temp = result.modes;
+                            $("#modeslist").find('option').remove();
+                            console.log("currentmode = " + result.currentmode);
+                            $.each(temp, function(key, value) {
+                                var isconnected = " ";
+                                if (result.currentmode == value) isconnected = "selected=\"selected\"";
+                                $("#modeslist").append('<option value=' + value + " " + isconnected + '>' + value + '</option>');
+                            });
+
+                            $('#modeslist').selectmenu('refresh');
+                        }
+                        if (result.hasOwnProperty('brightness')) {
+                            $("#brightness").val(result.brightness).slider("refresh");
+                        }
+                        if (result.hasOwnProperty('speed')) {
+                            $("#speed").val(result.speed).slider("refresh");
+                        }
+                        if (result.hasOwnProperty('color1')) {
+                            $("#color1").val("rgb(" + result.color1.R + "," + result.color1.G + "," + result.color1.B + ")").colorPicker();
+                        }
+                        if (result.hasOwnProperty('color2')) {
+                            $("#color2").val("rgb(" + result.color2.R + "," + result.color2.G + "," + result.color2.B + ")").colorPicker();
+                        }
 
                         if (result.hasOwnProperty('serialspeed')) {
                             $('#adalight-serialspeed').val(result.serialspeed).selectmenu('refresh');
                         }
-                        
+
                         if (result.hasOwnProperty('rotation')) {
                             $('#input-rotation').val(result.rotation).selectmenu('refresh');
                         }
-                        
+
                         if (result.hasOwnProperty('marqueetext')) {
                             $('#input_marqueetext').val(result.marqueetext);
-                        }              
-                        
-                        if (result.hasOwnProperty('palette')) {
-                          $('#select-palettes').val(result.palette).selectmenu('refresh'); 
                         }
-                        
+
+                        if (result.hasOwnProperty('palette')) {
+                            $('#select-palettes').val(result.palette).selectmenu('refresh');
+                        }
+
                         $('#effectoptions').children('div').each(function(index) {
                             $(this).hide();
                         });
@@ -942,7 +969,7 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                         });
 
                     }
-                    
+
                     // Layout Page
                     if ($.mobile.activePage.attr('id') == 'layout') {
 
@@ -991,15 +1018,15 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                         sortmatrix('#select-matrix-type');
 
                     }
-                    
-                if ($.mobile.activePage.attr('id') == 'palette') {
+
+                    if ($.mobile.activePage.attr('id') == 'palette') {
 
                         if (result.hasOwnProperty('palette')) {
-                          $("#select-palettes2").val(result.palette).selectmenu("refresh");
+                            $("#select-palettes2").val(result.palette).selectmenu("refresh");
                         }
-                        
+
                         if (result.hasOwnProperty('paletterandom')) {
-                          $("#select-palettes-randomness").val(result.paletterandom).selectmenu("refresh");
+                            $("#select-palettes-randomness").val(result.paletterandom).selectmenu("refresh");
                         }
                         if (result.hasOwnProperty('palettespread')) {
                             $("#input-palette-spread").val(result.palettespread);
@@ -1007,7 +1034,7 @@ $( document ).on( "pagebeforechange" , function(e, data) {
                         if (result.hasOwnProperty('palettedelay')) {
                             $("#input-palette-delay").val(result.palettedelay);
                         }
-                }
+                    }
 
                 }).success(function() {
                     $("#status").empty().append("Success").css("color", "green");;
@@ -1035,7 +1062,6 @@ $( document ).on( "pagebeforechange" , function(e, data) {
             }
 
         }
-        
     </script>
 </body>
 

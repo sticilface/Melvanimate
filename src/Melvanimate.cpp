@@ -398,8 +398,10 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 			_timer = -1 ; //  get ride of flag to timer!  
 		});
 
-		if (_timer > -1 ) { Serial.println("Timer Started"); }
+		if (_timer > -1 ) { Serial.printf("Timer Started (%s,%s)\n", command.c_str(), option.c_str()); }
 
+	} else {
+		Serial.println("No Timeout, so timer cancelled");
 	}
 
 }
