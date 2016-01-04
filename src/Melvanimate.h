@@ -6,6 +6,7 @@
 #include <FS.h>
 #include <ArduinoJson.h>
 #include <MD5Builder.h>
+#include <functional>
 
 
 #include "EffectManager.h"
@@ -13,6 +14,7 @@
 #include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function 
 #include "Palette.h"
 #include "e131/_E131.h"
+#include "SimpleTimer/_SimpleTimer.h"
 
 
 
@@ -46,6 +48,7 @@ extern WiFiUDP Udp;
 extern const IPAddress multicast_ip_addr; // Multicast broadcast address
 extern const uint16_t UDPlightPort;
 extern E131* e131;
+extern SimpleTimer timer;
 
 
 /*
@@ -115,6 +118,8 @@ public:
 	void autoWait();
 	bool returnWaiting();
 
+	bool setTimer(int timer, String command, String effect = String() ); 
+
 	bool multiplematrix = false; //
 	uint32_t timeoutvar;  //  parameters used by some effects...
 	int32_t effectposition; //  just keep one copy of them.. save having loads of statics!
@@ -139,5 +144,7 @@ private:
 	uint32_t _waiting_timeout = 0;
 
 	Palette * _palette;
+	int _timer = -1; 
+
 
 };

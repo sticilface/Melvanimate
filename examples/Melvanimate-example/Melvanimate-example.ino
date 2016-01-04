@@ -21,7 +21,6 @@
 #include <ESP8266HTTPClient.h>
 #include <ArduinoOTA.h>
 #include <ArduinoJson.h>
-#include <SimpleTimer.h>
 #include <NeoPixelBus.h>
 #include <ESPmanager.h>
 #include <FSBrowser.h>
@@ -29,9 +28,12 @@
 #include <Adafruit_GFX.h>
 
 
+
 #include <Melvanimate.h>
+#include "SimpleTimer/_SimpleTimer.h"
 
 
+//SimpleTimer timer;
 
 
 
@@ -47,7 +49,6 @@ FSBrowser fsbrowser(HTTP);
 ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 
-SimpleTimer timer;
 
 Palette palette;
 
@@ -499,13 +500,23 @@ void handle_data()
   }
 
 
-
-
   if (HTTP.hasArg("data")) {
     send_data(HTTP.arg("data")); // sends JSON data for whatever page is currently being viewed
     Serial.printf("[handle] time %u\n", millis() - start_time); 
     return;
   }
+
+  if (HTTP.hasArg("timer") && HTTP.hasArg("timercommand")) {
+
+    String effect =  (HTTP.hasArg("timeroption"))? HTTP.arg("timeroption") : String();
+
+    if (lights.setTimer(HTTP.arg("timer").toInt(), HTTP.arg("timercommand"), effect ))
+    {
+      Serial.println("Timer command accepted"); 
+    }
+
+  }
+
 
   HTTP.send(200); // sends OK if were just receiving data...
 

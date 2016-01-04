@@ -10,7 +10,7 @@ WiFiUDP Udp;
 const IPAddress multicast_ip_addr(224, 0, 0, 0); // Multicast broadcast address
 const uint16_t UDPlightPort = 8888;
 E131* e131 = nullptr;
-
+SimpleTimer timer;
 
 Melvanimate::Melvanimate(): _brightness(255), _color(0, 0, 0), _color2(0, 0, 0), _speed(50), _pixels(TOTALPIXELS)
 	, _grid_x(8), _grid_y(8), _serialspeed(115200), _matrixconfig(0), _matrix(nullptr)
@@ -370,4 +370,14 @@ bool        Melvanimate::load()
 
 };
 
+bool Melvanimate::setTimer(int timeout, String command, String effect)
+{
+	// delete current timer if set
+	if (_timer != -1) timer.deleteTimer(_timer);
 
+	timer.setTimeout(timeout, [=]() {
+		Serial.println(command);
+
+	}); 
+
+}
