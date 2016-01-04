@@ -76,6 +76,7 @@
             <a href="#homepage" data-role="button" class="ui-btn">Home</a>
             <a href="#presets" data-role="button" class="ui-btn">Presets</a>
             <a href="#palette" data-role="button" class="ui-btn">Palette</a>
+            <a href="#timer" data-role="button" class="ui-btn">Timer</a>
             <a href="#layout" data-role="button" class="ui-btn">Layout</a>
             <a href="/espman/" rel="external" data-role="button" class="ui-btn">ESPmanager</a>
             <a href="#my-header" data-rel="close" class="ui-btn">Close</a>
@@ -95,7 +96,7 @@
 
             <div class="ui-field-contain">
                 <label for="modeslist">Mode:</label>
-                <select name="mode" id="modeslist">
+                <select name="mode" id="modeslist" class="effectslist">
                 </select>
             </div>
 
@@ -312,7 +313,7 @@
                     </select>
                 </div>
                 <div class="ui-field-contain">
-                    <label for="input_palette-spread">Spread:</label>
+                    <label for="input-palette-spread">Spread:</label>
                     <input type="text" name="palette-spread" id="input-palette-spread" value="">
                 </div>                
                 <div class="ui-field-contain">
@@ -320,13 +321,66 @@
                     <input type="text" name="palette-delay" id="input-palette-delay" value="">
                 </div>  
                 
-                <button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
+                <button id="apply_palette_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
 
             </form>
         </div>
 
     </div>
 
+
+    <div data-role="page" id="timer">
+
+        <div data-role="content">
+
+          <h3> Timer </h3>
+              <div id="timer-time-left"></div>
+            <form id="timer-form">
+
+                <!--enum random_mode { NOT_RANDOM = 0 , TOTAL_RANDOM, TIME_BASED_RANDOM, RANDOM_AFTER_LOOP};-->
+
+                  <div class="ui-field-contain">
+                  <label for="flip-enable-timer">Timer:</label>
+                  <select id="flip-enabletimer" name="flip-enable-timer" data-role="flipswitch">
+                     <option>off</option>
+                     <option>on</option>
+                  </select>
+                  </div>
+                  
+                <div class="ui-field-contain">
+                    <label for="input-timer-delay">Delay (min):</label>
+                    <input type="text" name="timer" id="input-timer-delay" value="">
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="select-timer-command">Action:</label>
+                    <select name="timercommand" id="select-timer-command">
+                        <option value="off" selected="selected">Off</option>
+                        <option value="start">Start Effect</option>
+                        <option value="brightness">Set Brightness</option>
+                        <option value="speed">Set Speed</option>
+                    </select>
+                </div>                
+                <div id="timeroptionsdiv"> 
+                <div class="ui-field-contain start">
+                    <label for="select-timer-option">Effect:</label>
+                    <select name="timeroption" id="select-timer-option" class="effectslist">
+                    </select>
+                </div> 
+
+                <div class="ui-field-contain brightness speed">
+                    <label for="slider-timer-option">Value:</label>
+                    <input type="range" name="timeroption" id="slider-timer-option" min="0" max="255" step="1" value="0">
+                </div>
+                </div>
+                
+                <button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
+
+            </form>
+        </div>
+
+    </div>
+    
 <script>
 
  
@@ -507,7 +561,7 @@ function RUNDOCUMENT() {
 
         $(document).on("pagecreate", "#homepage", function() {
 
-            GetData("homepage");
+            GetData("all");
 
             $('#modeslist').change(function() {
               
@@ -542,7 +596,7 @@ function RUNDOCUMENT() {
 
         $(document).on('click', '.mysubmit', function() {
             $("#status").empty().append("Waiting...").css("color", "blue");;
-            $.post("data.esp", $(this.form).serialize(), function(data) {
+            $.post("data.esp", $(this.form).find('input,select').filter(':visible').serialize(), function(data) {
                     console.log("Data Sent");
                 }).success(function() {
                     $("#status").empty().append("Success").css("color", "green");;
@@ -596,6 +650,46 @@ function RUNDOCUMENT() {
 $( document ).on( "pagebeforechange" , function(e, data) {
   var toPage = data.toPage[0].id;
  GetData(toPage);
+});
+
+      $("#timer").on("pagebeforeshow", function() {
+        
+                // hide all options first 
+                $('#timeroptionsdiv').children('div').each(function(index) {
+                    $(this).closest("div").addClass("ui-state-disabled");
+                    $(this).hide();
+                });  
+              
+        
+          if (globaldata.hasOwnProperty('modes')) {
+                          temp = globaldata.modes;
+                        $("#select-timer-option").find('option').remove();
+                        $.each(temp, function(key, value) {
+                            $("#select-timer-option").append('<option value=' + value + '>' + value + '</option>');
+                        });
+
+                        $('#select-timer-option').selectmenu('refresh');
+          }
+          
+          $('#select-timer-command').change(function() {
+              
+                var option = $(this).val();
+                
+                $('#timeroptionsdiv').children('div').each(function(index) {
+                    $(this).closest("div").addClass("ui-state-disabled");
+                    $(this).hide();
+                });          
+
+                $('#timeroptionsdiv').children('div').each(function(index) {
+                    if ($(this).hasClass(option)) { 
+                      $(this).show(); 
+                     $(this).closest("div").removeClass("ui-state-disabled");
+                      
+                    }
+                });
+                
+      });
+
 });
 
         $("#homepage").on("pagebeforeshow", function() {
@@ -762,16 +856,37 @@ $( document ).on( "pagebeforechange" , function(e, data) {
 } // end of rundocumentt
 
         function GetData(pagevar) {
-            if (!pagevar) pagevar = $.mobile.activePage.attr('id');
+            console.log("pagevar = " + pagevar);
+            if (!pagevar) { 
+              pagevar = $.mobile.activePage.attr('id');
+              console.log("Pagevar empty");
+            } else {
+              console.log("Pagevar NOT empty"); 
+            }
 
             $("#status").empty().append("Waiting...").css("color", "blue");;
 
             $.getJSON("data.esp?data=" + pagevar, function(result) {
                     console.log("RESULT:")
                     console.log(result);
-                    if (pagevar == 'homepage' || pagevar == "all") { globaldata = result; } 
-                    console.log("GLOBALDATA:")
-                    console.log(globaldata);                    
+                    if (pagevar === "all") { 
+                      globaldata = result; 
+                      console.log("GLOBALDATA:");
+                      console.log(globaldata);    
+                    }
+                    
+    if ($.mobile.activePage.attr('id') == 'timer') {
+
+                      // if (globaldata.hasOwnProperty('modes')) {
+                      //     temp = globaldata.modes;
+                      //   $("#select-timer-option").find('option').remove();
+                      //   $.each(temp, function(key, value) {
+                      //       $("#select-timer-option").append('<option value=' + value + '>' + value + '</option>');
+                      //   });
+
+                      //   $('#select-timer-option').selectmenu('refresh');
+                      // }                   
+    }
                     
                     // Homepage        
 
