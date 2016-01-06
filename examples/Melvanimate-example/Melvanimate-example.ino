@@ -20,20 +20,18 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoOTA.h>
+
 #include <ArduinoJson.h>
 #include <NeoPixelBus.h>
-#include <ESPmanager.h>
-#include <FSBrowser.h>
-
+#include <pubsubclient.h>
 #include <Adafruit_GFX.h>
 
-
-
+#include <ESPmanager.h>
+#include <FSBrowser.h>
 #include <Melvanimate.h>
 #include "SimpleTimer/_SimpleTimer.h"
 
 
-//SimpleTimer timer;
 
 
 
@@ -49,13 +47,18 @@ FSBrowser fsbrowser(HTTP);
 ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 
-Palette palette;
 
 struct XY_t {
   int x;
   int y;
 } XY;
 
+//  MQTT
+
+IPAddress mqtt_server_ip(192,168,1,1);
+
+WiFiClient mqtt_wclient;
+PubSubClient mqtt(mqtt_wclient, mqtt_server_ip);
 
 //  This initialises everything.
 
@@ -352,6 +355,15 @@ void handle_data()
       }
     }
   }
+
+  if (HTTP.hasArg("enable")) {
+    if (HTTP.arg("enable").equalsIgnoreCase("on")) {
+      lights.Start();
+    } else if (HTTP.arg("enable").equalsIgnoreCase("off")) {
+      lights.Start("off"); 
+    } 
+  }
+
   if (HTTP.hasArg("mode")) {
     modechange = lights.Start(HTTP.arg("mode"));
   }

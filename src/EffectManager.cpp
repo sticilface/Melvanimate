@@ -11,7 +11,7 @@
 
 ---------------------------------------------*/
 
-EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandle(nullptr), _lastHandle(nullptr),
+EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandle(nullptr), _lastHandle(nullptr), _toggleHandle(nullptr),
 	_NextInLine(nullptr)
 {};
 
@@ -39,6 +39,10 @@ bool EffectManager::Add(const char * name, EffectHandler* handle)
 	Serial.printf("ADDED EFFECT %u: %s\n", _count, _lastHandle->name());
 }
 
+bool EffectManager::Start() {
+	if (_toggleHandle) Start(_toggleHandle->name()); 
+}
+
 bool EffectManager::Start(const char * name)
 {
 	//  end current effect...
@@ -59,6 +63,7 @@ bool EffectManager::Start(const char * name)
 	}
 	if (found) {
 		_NextInLine = handler;
+		if( strcmp(handler->name(), "Off") != 0) { _toggleHandle = handler; } 
 		return true;
 	} else return false;
 

@@ -591,14 +591,14 @@ void MarqueeFn(effectState state)
 
   case PRE_EFFECT: {
     strip->ClearTo(0);
-    palette.mode(WHEEL);
-    palette.total(255);
+    lights.palette().mode(WHEEL);
+    lights.palette().total(255);
   }
 
   break;
   case RUN_EFFECT: {
     lights.SetTimeout( lights.speed() * 10);
-    displaytext(lights.getText(), lights.speed() * 10, lights.dim(palette.next()) );
+    displaytext(lights.getText(), lights.speed() * 10, lights.dim(lights.palette().next()) );
 
   }
   break;

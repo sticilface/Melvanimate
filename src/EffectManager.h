@@ -4,6 +4,8 @@
 #include <NeoPixelBus.h>
 #include "palette.h"
 
+#define PRESETS_FILE "/Presets.json"
+
 /* ------------------------------------------------------------------------
 					Effect Mangager
 					This is the base class for managing effects
@@ -22,6 +24,7 @@ public:
 	void SetTimeout(uint32_t time);
 	void SetTimeout(const char * name, uint32_t time);
 
+	bool Start();
 	bool Start(const char * name);
 	bool Start(const String name) { Start(name.c_str()); };
 	void Refresh() ;
@@ -47,7 +50,9 @@ protected:
 	EffectHandler*  _firstHandle;
 	EffectHandler*  _lastHandle;
 	EffectHandler*  _NextInLine;
+	EffectHandler*  _toggleHandle; 
 	uint16_t _count;
+	const char * PresetsFile = PRESETS_FILE; 
 private:
 
 	std::function<bool()>  _waitFn = nullptr;
@@ -67,6 +72,9 @@ public:
 	virtual void Refresh() {}
 	virtual void SetTimeout(uint32_t) {}
 
+	// experimental 
+	virtual bool load() {};
+	virtual bool save() {}; 
 
 	//colours
 
