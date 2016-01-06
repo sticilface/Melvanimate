@@ -39,7 +39,7 @@
 class EffectManager;
 class Palette;
 
-// globals for various things, including neopixels... 
+// globals for various things, including neopixels...
 extern const uint16_t TOTALPIXELS;
 extern NeoPixelBus * strip;
 extern NeoPixelAnimator * animator;
@@ -52,13 +52,13 @@ extern SimpleTimer timer;
 
 
 /*
- * uses effectmanager as base class to manage effects... 
- * need to tidy.. 
+ * uses effectmanager as base class to manage effects...
+ * need to tidy..
  *
  * // ToDo
  *	1. Palletes...  including sending and choosing paletes
  *	2. Saving currnet mode / effect  ...  big ask..
- *	3. Create Entoopy variable...  Randomness selection... 
+ *	3. Create Entoopy variable...  Randomness selection...
  *
  *
  *
@@ -76,13 +76,37 @@ public:
 	const RgbColor  dim( RgbColor input) { return dim(input, _brightness); }
 	static const RgbColor 	dim( RgbColor input, const uint8_t brightness);
 
-	const uint8_t   getBrightness() { return _brightness;}
+	const uint8_t   getBrightness()
+	{
+		if (_currentHandle) {
+			uint8_t bri = 0;
+			if (_currentHandle->getBrightness(bri)) {
+				return bri;
+			}
+		}
+
+		// return default
+		return _brightness;
+
+
+	}
 	void      		setBrightness(const uint8_t bright);
 
 	void      color(const RgbColor color);
-	const RgbColor  color() { return _color; }
-	RgbColor nextcolor() { 
-		if(_palette) { return dim(_palette->next()); } else { return RgbColor(0); }
+	const RgbColor  color()
+	{
+		if (_currentHandle) {
+			RgbColor temp = 0;
+			if (_currentHandle->getColor(temp)) {
+				return temp;
+			}
+		}
+		return _color; 
+	}
+
+	RgbColor nextcolor()
+	{
+		if (_palette) { return dim(_palette->next()); } else { return RgbColor(0); }
 	}
 	void      color2(const RgbColor color);
 
@@ -118,7 +142,7 @@ public:
 	void autoWait();
 	bool returnWaiting();
 
-	bool setTimer(int timer, String command, String effect = String() ); 
+	bool setTimer(int timer, String command, String effect = String() );
 	bool isTimerRunning() { return (_timer > -1); }
 	int getTimer() { return _timer;  }
 
@@ -146,7 +170,7 @@ private:
 	uint32_t _waiting_timeout = 0;
 
 	Palette * _palette;
-	int _timer = -1; 
+	int _timer = -1;
 
 
 };

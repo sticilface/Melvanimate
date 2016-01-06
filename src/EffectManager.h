@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <NeoPixelBus.h>
+#include <ArduinoJson.h>
 #include "palette.h"
 
 #define PRESETS_FILE "/Presets.json"
@@ -43,6 +44,8 @@ public:
 	const char* getName(uint8_t i);
 	const char* getName();
 
+	bool newSave(uint8_t ID); 
+	bool newLoad(uint8_t ID); 
 
 protected:
 
@@ -52,7 +55,7 @@ protected:
 	EffectHandler*  _NextInLine;
 	EffectHandler*  _toggleHandle; 
 	uint16_t _count;
-	const char * PresetsFile = PRESETS_FILE; 
+	//const char * PresetsFile = PRESETS_FILE; 
 private:
 
 	std::function<bool()>  _waitFn = nullptr;
@@ -73,13 +76,23 @@ public:
 	virtual void SetTimeout(uint32_t) {}
 
 	// experimental 
-	virtual bool load() {};
-	virtual bool save() {}; 
+	virtual bool load(JsonObject& root, uint8_t nID) {};
+	virtual bool save(JsonObject& root, uint8_t nID) {};
+
+
+	// specific virtual functions for ALL effects... 
+	// If they are not handlesd by subclass, they return false. 
+
+	virtual bool setBrightness(uint8_t) { return false; }
+	virtual bool getBrightness(uint8_t&) { return false;};
+
+	virtual bool setColor(RgbColor ) { return false;}
+	virtual bool getColor(RgbColor&) { return false;}
 
 	//colours
 
-	virtual void Color(RgbColor color) {} // not in use...
-	virtual void Random() {}
+	// virtual void Color(RgbColor color) {} // not in use...
+	// virtual void Random() {}
 	//virtual palette* Palette() {};
 
 	EffectHandler* next() { return _next; } //  ASK what is next
@@ -145,6 +158,8 @@ public:
 		_Fn(_state) ;
 		if ( _state == EFFECT_REFRESH ) _state = RUN_EFFECT;
 	}
+
+
 private:
 	EffectHandlerFunction _Fn;
 	effectState _state;
@@ -173,13 +188,47 @@ private:
 };
 
 /* ------------------------------------------------------------------------
-								Attempt at Template
+								Attempt at SUB Template for settings... 
 --------------------------------------------------------------------------*/
 
+class GeneralEffect : public SwitchEffect
+{
+
+public:
+	GeneralEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn) {};
+
+	bool load(JsonObject& root, uint8_t nID) override;
+	bool save(JsonObject& root, uint8_t nID) override;
+
+	bool setBrightness(uint8_t bri) override { Serial.println("[sB]"); _brightness = bri; return true; }
+	bool getBrightness(uint8_t& bri) override { Serial.println("[gB]"); bri = _brightness; return true; }
+
+	bool setColor(RgbColor color) override  { Serial.println("[sC]"); _color = color; return true; }
+	bool getColor(RgbColor& color) override { Serial.println("[gC]"); color = _color; return true; }
+	
+private:
+	uint32_t _speed; 
+	uint8_t _brightness;
+	RgbColor _color; 
+	
+}; 
 
 
+// class MarqueeEffect : public SwitchEffect
+// {
 
+// public:
 
+// 	bool load() override {};
+// 	bool save() override {};
+
+// private:
+// 	const char * MarqueeText; 
+// 	uint32_t _speed; 
+// 	uint32_t _timeout;
+// 	uint8_t _brightness;
+
+// }; 
 
 
 

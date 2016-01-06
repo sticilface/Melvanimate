@@ -86,8 +86,19 @@ const RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
 
 void      Melvanimate::setBrightness(const uint8_t bright)
 {
-	if (bright == _brightness) { return; }
-	_brightness = bright; Refresh();
+	if (bright == _brightness) {
+		return;
+	}
+	_brightness = bright;
+
+
+	//  new methods
+
+	if (_currentHandle) {
+		_currentHandle->setBrightness(bright); 
+	}
+
+	Refresh();
 	_settings_changed = true;
 }
 
@@ -95,6 +106,12 @@ void      Melvanimate::color(const RgbColor color)
 {
 	_color = color;
 	_palette->input(color);
+
+	if (_currentHandle) {
+		_currentHandle->setColor(color);
+	}
+
+
 	_settings_changed = true;
 	Refresh();
 }
@@ -374,13 +391,13 @@ bool        Melvanimate::load()
 bool Melvanimate::setTimer(int timeout, String command, String option)
 {
 	// delete current timer if set
-	if (_timer != -1) { 
+	if (_timer != -1) {
 		timer.deleteTimer(_timer);
-		_timer = -1; 
+		_timer = -1;
 		Serial.println("Timer Cancelled");
 	}
 
-	timeout *= (1000 * 60); // convert timout to milliseconds from minutes... 
+	timeout *= (1000 * 60); // convert timout to milliseconds from minutes...
 
 	// set new timer if there is an interval
 	if (timeout) {
@@ -388,17 +405,17 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 		_timer = timer.setTimeout(timeout, [command, option, this]() {
 
 			if (command.equalsIgnoreCase("off")) {
-				Start("Off"); 
+				Start("Off");
 			} else if (command.equalsIgnoreCase("start")) {
-				Start(option); 
+				Start(option);
 			} else if (command.equalsIgnoreCase("brightness")) {
 				setBrightness(option.toInt());
 			} else if (command.equalsIgnoreCase("speed")) {
-				speed(option.toInt()); 
+				speed(option.toInt());
 			} else if (command.equalsIgnoreCase("loadpreset")) {
 				Serial.println("Load preset: not done yet");
 			}
-			_timer = -1 ; //  get ride of flag to timer!  
+			_timer = -1 ; //  get ride of flag to timer!
 		});
 
 		if (_timer > -1 ) { Serial.printf("Timer Started (%s,%s)\n", command.c_str(), option.c_str()); }

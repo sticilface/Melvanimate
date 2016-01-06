@@ -4,6 +4,7 @@
 
 #include "Arduino.h"
 #include "EffectManager.h"
+#include "FS.h"
 
 /*---------------------------------------------
 
@@ -39,8 +40,9 @@ bool EffectManager::Add(const char * name, EffectHandler* handle)
 	Serial.printf("ADDED EFFECT %u: %s\n", _count, _lastHandle->name());
 }
 
-bool EffectManager::Start() {
-	if (_toggleHandle) Start(_toggleHandle->name()); 
+bool EffectManager::Start()
+{
+	if (_toggleHandle) Start(_toggleHandle->name());
 }
 
 bool EffectManager::Start(const char * name)
@@ -63,7 +65,7 @@ bool EffectManager::Start(const char * name)
 	}
 	if (found) {
 		_NextInLine = handler;
-		if( strcmp(handler->name(), "Off") != 0) { _toggleHandle = handler; } 
+		if ( strcmp(handler->name(), "Off") != 0) { _toggleHandle = handler; }
 		return true;
 	} else return false;
 
@@ -152,6 +154,57 @@ const char * EffectManager::getName(uint8_t i)
 		count++;
 	}
 	return handler->name();
+}
+
+
+bool EffectManager::newSave(uint8_t ID)
+{
+	if (_currentHandle) {
+
+		DynamicJsonBuffer jsonBuffer;
+		JsonObject * root;
+
+		File f = SPIFFS.open(PRESETS_FILE, "r+");
+		if (!f) {
+			Serial.println("No Presets File Found");
+			f = SPIFFS.open(PRESETS_FILE, "w+");
+			if (!f) {
+				Serial.println("Unable to create presets File");
+				return false;
+			}
+
+		}
+
+		if (f.size()) {
+			f.seek(0, SeekSet);
+			char data[f.size()];
+
+			for (int i = 0; i < f.size(); i++) {
+				data[i] = f.read();
+			}
+
+			root = &jsonBuffer.parseObject(data);
+
+			if (!root->success()) {
+				root = &jsonBuffer.createObject();
+			}
+		} else {
+			root = &jsonBuffer.createObject();
+		}
+
+			if (_currentHandle->save(*root, ID)) {
+				root->prettyPrintTo(f);
+				f.close();
+				Serial.println("[nS] done YES"); 
+				return true;
+				
+			} else {
+				Serial.println("[nS] done NO"); 
+				return false;
+			}
+		} else {
+		return false;
+	}
 }
 /*---------------------------------------------
 
@@ -312,4 +365,69 @@ const char * EffectManager::getName(uint8_t i)
 //         }
 //     }
 // }
+
+
+/*
+
+		General Effect... TEST for SAVING presets...
+
+*/
+
+
+
+// GeneralEffect::GeneralEffect() {
+
+
+// }
+
+
+
+
+bool GeneralEffect::load(JsonObject& root, uint8_t nID)
+{
+
+
+}
+
+bool GeneralEffect::save(JsonObject& root, uint8_t nID)
+{
+	const char * ID = String(nID).c_str();
+	/*
+	ID
+	effectname
+	brightness
+	speed
+	color
+	*/
+
+	if (root.containsKey(ID)) {
+		Serial.printf("[save] [%s]previous setting identified", ID);
+		root.remove(ID ) ;
+	}
+
+
+	JsonObject& current = root.createNestedObject(ID);
+	current["name"] = name();
+	current["brightness"] = _brightness ;
+	current["speed"] = _speed ;
+	JsonObject& jscolor1 = current.createNestedObject("color1");
+	jscolor1["R"] = _color.R;
+	jscolor1["G"] = _color.G;
+	jscolor1["B"] = _color.B;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

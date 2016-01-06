@@ -92,6 +92,13 @@ void setup()
     Serial.setDebugOutput(debugstate);
   });
 
+  HTTP.on("/command", HTTP_ANY, []() {
+    if(HTTP.hasArg("save")) {
+      lights.newSave(HTTP.arg("save").toInt());
+      Serial.println("[newsave] done");
+    }
+  });
+
   void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
 
   HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
@@ -101,7 +108,7 @@ void setup()
 // -------------------------------------------------------- //
 
   lights.Add("Off", new SwitchEffect(offFn));                              // working
-  lights.Add("SimpleColor", new SwitchEffect(SimpleColorFn));              // working
+  lights.Add("SimpleColor", new GeneralEffect(SimpleColorFn));              // working
   lights.Add("Adalight", new SwitchEffect(AdaLightFn));                    // working - need to test
   lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
   lights.Add("DMX", new SwitchEffect(DMXfn));                              // need to test - requires custom libs included
