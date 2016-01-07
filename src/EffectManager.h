@@ -1,12 +1,13 @@
 #pragma once
 
 #include <functional>
+#include <memory>
+
 #include <NeoPixelBus.h>
 #include <ArduinoJson.h>
 #include "palette.h"
 
-#define PRESETS_FILE "/Presets.json"
-
+extern const char * PRESETS_FILE; 
 /* ------------------------------------------------------------------------
 					Effect Mangager
 					This is the base class for managing effects
@@ -44,8 +45,10 @@ public:
 	const char* getName(uint8_t i);
 	const char* getName();
 
-	bool newSave(uint8_t ID); 
-	bool newLoad(uint8_t ID); 
+	bool newSave(int ID);
+	bool newLoad(uint8_t ID);
+	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets);
+
 
 protected:
 
@@ -53,13 +56,16 @@ protected:
 	EffectHandler*  _firstHandle;
 	EffectHandler*  _lastHandle;
 	EffectHandler*  _NextInLine;
-	EffectHandler*  _toggleHandle; 
+	EffectHandler*  _toggleHandle;
 	uint16_t _count;
-	//const char * PresetsFile = PRESETS_FILE; 
+	//const char * PresetsFile = PRESETS_FILE;
 private:
 
 	std::function<bool()>  _waitFn = nullptr;
-
+	// hold a 'new' array of elegible presets for _currenthandler
+	uint8_t _numberofpresets = 0;
+	uint8_t * _presets = nullptr;
+	bool _parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
 
 };
 
@@ -75,13 +81,13 @@ public:
 	virtual void Refresh() {}
 	virtual void SetTimeout(uint32_t) {}
 
-	// experimental 
+	// experimental
 	virtual bool load(JsonObject& root, uint8_t nID) {};
-	virtual bool save(JsonObject& root, uint8_t nID) {};
+	virtual bool save(JsonObject& root, const char *& ID) {};
 
 
-	// specific virtual functions for ALL effects... 
-	// If they are not handlesd by subclass, they return false. 
+	// specific virtual functions for ALL effects...
+	// If they are not handlesd by subclass, they return false.
 
 	virtual bool setBrightness(uint8_t) { return false; }
 	virtual bool getBrightness(uint8_t&) { return false;};
@@ -102,6 +108,7 @@ public:
 private:
 	EffectHandler* _next = nullptr;
 	const char * _name;
+
 
 };
 
@@ -188,7 +195,7 @@ private:
 };
 
 /* ------------------------------------------------------------------------
-								Attempt at SUB Template for settings... 
+								Attempt at SUB Template for settings...
 --------------------------------------------------------------------------*/
 
 class GeneralEffect : public SwitchEffect
@@ -197,21 +204,22 @@ class GeneralEffect : public SwitchEffect
 public:
 	GeneralEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn) {};
 
+	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, uint8_t nID) override;
-	bool save(JsonObject& root, uint8_t nID) override;
+	bool save(JsonObject& root, const char *& ID) override;
 
 	bool setBrightness(uint8_t bri) override { Serial.println("[sB]"); _brightness = bri; return true; }
 	bool getBrightness(uint8_t& bri) override { Serial.println("[gB]"); bri = _brightness; return true; }
 
 	bool setColor(RgbColor color) override  { Serial.println("[sC]"); _color = color; return true; }
 	bool getColor(RgbColor& color) override { Serial.println("[gC]"); color = _color; return true; }
-	
+
 private:
-	uint32_t _speed; 
+	uint32_t _speed;
 	uint8_t _brightness;
-	RgbColor _color; 
-	
-}; 
+	RgbColor _color;
+
+};
 
 
 // class MarqueeEffect : public SwitchEffect
@@ -223,12 +231,12 @@ private:
 // 	bool save() override {};
 
 // private:
-// 	const char * MarqueeText; 
-// 	uint32_t _speed; 
+// 	const char * MarqueeText;
+// 	uint32_t _speed;
 // 	uint32_t _timeout;
 // 	uint8_t _brightness;
 
-// }; 
+// };
 
 
 

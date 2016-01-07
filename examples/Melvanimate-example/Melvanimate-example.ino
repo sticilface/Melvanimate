@@ -55,7 +55,7 @@ struct XY_t {
 
 //  MQTT
 
-IPAddress mqtt_server_ip(192,168,1,1);
+IPAddress mqtt_server_ip(192, 168, 1, 1);
 
 WiFiClient mqtt_wclient;
 PubSubClient mqtt(mqtt_wclient, mqtt_server_ip);
@@ -90,13 +90,27 @@ void setup()
     static bool debugstate = false;
     debugstate = !debugstate;
     Serial.setDebugOutput(debugstate);
+    HTTP.setContentLength(0);
+    HTTP.send(200); // sends OK if were just receiving data...
   });
 
   HTTP.on("/command", HTTP_ANY, []() {
-    if(HTTP.hasArg("save")) {
+    if (HTTP.hasArg("save")) {
       lights.newSave(HTTP.arg("save").toInt());
-      Serial.println("[newsave] done");
+      Serial.printf("[newsave] done, heap: %u\n", ESP.getFreeHeap());
+      HTTP.setContentLength(0);
+      HTTP.send(200); // sends OK if were just receiving data...
     }
+
+    if (HTTP.hasArg("print")) {
+      File f = SPIFFS.open(PRESETS_FILE, "r+");
+      Serial.println("SETTINGS_FILE");
+      Serial.println(f);
+      Serial.println("---");
+      HTTP.setContentLength(0);
+      HTTP.send(200); // sends OK if were just receiving data...
+    }
+
   });
 
   void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
@@ -181,7 +195,7 @@ void loop()
 {
   uint32_t _tick = millis();
   uint32_t _arrays[10] = {0};
-  uint8_t poss = 0; 
+  uint8_t poss = 0;
   _arrays[0] = millis();
 
   HTTP.handleClient();
@@ -367,8 +381,8 @@ void handle_data()
     if (HTTP.arg("enable").equalsIgnoreCase("on")) {
       lights.Start();
     } else if (HTTP.arg("enable").equalsIgnoreCase("off")) {
-      lights.Start("off"); 
-    } 
+      lights.Start("off");
+    }
   }
 
   if (HTTP.hasArg("mode")) {
