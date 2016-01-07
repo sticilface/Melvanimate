@@ -70,7 +70,17 @@ class Melvanimate : public EffectManager
 {
 public:
 	Melvanimate();
-	const RgbColor  getColor() { return dim(_color); }
+	const RgbColor  getColor() { 
+		if (_currentHandle) {
+			RgbColor color = RgbColor(0);
+			if (_currentHandle->getColor(color)) {
+				return dim(color);
+			}
+		}
+
+		return dim(_color); 
+
+	}
 	const RgbColor  getColor2() { return dim(_color2); }
 
 	const RgbColor  dim( RgbColor input) { return dim(input, _brightness); }

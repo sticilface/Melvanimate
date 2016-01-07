@@ -197,6 +197,7 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer& jsonBuffer, J
 	return true;
 }
 
+
 bool EffectManager::getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets)
 {
 	bool success = false;
@@ -255,7 +256,7 @@ bool EffectManager::getPresets(EffectHandler* handle, uint8_t& numberofpresets, 
 				}
 				return true;
 
-			} 
+			}
 
 		}
 
@@ -268,13 +269,12 @@ bool EffectManager::getPresets(EffectHandler* handle, uint8_t& numberofpresets, 
 
 }
 
-bool EffectManager::newSave(int ID)
+bool EffectManager::newSave(uint8_t ID)
 {
 	if (_currentHandle) {
 
 		DynamicJsonBuffer jsonBuffer;
 		const char * cID = jsonBuffer.strdup(String(ID).c_str());
-		Serial.printf("[newSave] %s\n", cID);
 		JsonObject * root;
 		char * data = nullptr;
 		bool success = false;
@@ -312,6 +312,37 @@ bool EffectManager::newSave(int ID)
 		return false;
 	}
 }
+
+
+bool EffectManager::newLoad(uint8_t ID)
+{
+	if (_currentHandle) {
+		DynamicJsonBuffer jsonBuffer;
+		const char * cID = jsonBuffer.strdup(String(ID).c_str());
+		JsonObject * root;
+		char * data = nullptr;
+		bool success = false;
+
+		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+
+			if (_currentHandle->load(*root, cID)) {
+				Refresh(); 
+				if (data) { delete[] data; }
+				return true;
+
+			} else {
+				if (data) { delete[] data; }
+				return false;
+			}
+		}
+
+	} else {
+
+		return false;
+	}
+}
+
+
 /*---------------------------------------------
 
 				Generic Class
@@ -489,9 +520,31 @@ bool EffectManager::newSave(int ID)
 
 
 
-bool GeneralEffect::load(JsonObject& root, uint8_t nID)
+bool GeneralEffect::load(JsonObject& root, const char *& ID)
 {
+	if (!root.containsKey(ID)) {
+		return false;
+	}
 
+	JsonObject& current = root[ID];
+	const char * effect = current["effect"];
+
+	if (effect) {
+		if ( strcmp( effect , name() ) != 0) { return false; }
+	}
+
+	_brightness = current["brightness"];
+	_speed = current["speed"];
+	JsonObject& jscolor1 = current["color1"];
+
+	_color.R = jscolor1["R"];
+	_color.G = jscolor1["G"];
+	_color.B = jscolor1["B"];
+
+	Serial.printf("RGB (%u,%u,%u)\n", _color.R, _color.G, _color.B);
+
+	//current["name"] = "TO BE IMPLEMENTED";
+	return true;
 
 }
 

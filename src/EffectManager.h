@@ -45,8 +45,9 @@ public:
 	const char* getName(uint8_t i);
 	const char* getName();
 
-	bool newSave(int ID);
+	bool newSave(uint8_t ID);
 	bool newLoad(uint8_t ID);
+	// fetches info from SPIFFS about which presest applies to current
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets);
 
 
@@ -82,7 +83,7 @@ public:
 	virtual void SetTimeout(uint32_t) {}
 
 	// experimental
-	virtual bool load(JsonObject& root, uint8_t nID) {};
+	virtual bool load(JsonObject& root, const char *& ID) {};
 	virtual bool save(JsonObject& root, const char *& ID) {};
 
 
@@ -202,17 +203,17 @@ class GeneralEffect : public SwitchEffect
 {
 
 public:
-	GeneralEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn) {};
+	GeneralEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _speed(50), _brightness(255), _color(0) {};
 
 	//  These functions just need to add and retrieve preset values from the json.
-	bool load(JsonObject& root, uint8_t nID) override;
+	bool load(JsonObject& root, const char *& ID) override;
 	bool save(JsonObject& root, const char *& ID) override;
 
-	bool setBrightness(uint8_t bri) override { Serial.println("[sB]"); _brightness = bri; return true; }
-	bool getBrightness(uint8_t& bri) override { Serial.println("[gB]"); bri = _brightness; return true; }
+	bool setBrightness(uint8_t bri) override {  _brightness = bri; return true; }
+	bool getBrightness(uint8_t& bri) override {  bri = _brightness; return true; }
 
-	bool setColor(RgbColor color) override  { Serial.println("[sC]"); _color = color; return true; }
-	bool getColor(RgbColor& color) override { Serial.println("[gC]"); color = _color; return true; }
+	bool setColor(RgbColor color) override  { _color = color; return true; }
+	bool getColor(RgbColor& color) override {  color = _color; return true; }
 
 private:
 	uint32_t _speed;

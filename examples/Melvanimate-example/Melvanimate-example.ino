@@ -102,6 +102,13 @@ void setup()
       HTTP.send(200); // sends OK if were just receiving data...
     }
 
+    if (HTTP.hasArg("load")) {
+      lights.newLoad(HTTP.arg("load").toInt());
+      Serial.printf("[newload] done, heap: %u\n", ESP.getFreeHeap());
+      HTTP.setContentLength(0);
+      HTTP.send(200); // sends OK if were just receiving data...
+    }
+
     if (HTTP.hasArg("print")) {
       File f = SPIFFS.open(PRESETS_FILE, "r+");
       Serial.println("SETTINGS_FILE");
