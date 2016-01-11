@@ -43,7 +43,7 @@ void TimingFn(effectState& state)
 {
 
   switch (state) {
-  static uint32_t tock = 0;
+    static uint32_t tock = 0;
   case PRE_EFFECT: {
     Serial.println("PRE_EFFECT - START");
     tock = millis();
@@ -64,12 +64,12 @@ void TimingFn(effectState& state)
       tick = millis();
     }
 
-    
+
     if (millis() - tock > 10000) {
       Serial.println("RESET");
-      state = PRE_EFFECT; 
-      tock = millis(); 
-    }    
+      state = PRE_EFFECT;
+      tock = millis();
+    }
 
   }
   break;
@@ -92,6 +92,9 @@ void TimingFn(effectState& state)
 *                 AdaLight
 *
 *------------------------------------------------*/
+// forward declaration
+
+
 void Adalight_function();
 
 void AdaLightFn(effectState state)
@@ -101,6 +104,18 @@ void AdaLightFn(effectState state)
   case PRE_EFFECT: {
     Serial.println("Init: Adalight");
     lights.SetTimeout(0);
+
+    if (Serial) {
+      Serial.flush();
+      delay(500);
+      Serial.end();
+    }
+    uint32_t speed = 11520;
+
+    if (lights.Current() && lights.Current()->getSerialspeed(speed) )
+
+      Serial.begin(speed);
+
     if (millis() > 30000) Adalight_Flash();
   }
 
@@ -591,15 +606,21 @@ void MarqueeFn(effectState state)
 
   case PRE_EFFECT: {
     strip->ClearTo(0);
-    lights.palette().mode(WHEEL);
+    palette_type pal;
+    lights.Current()->getPalette(pal);
+    lights.palette().mode(pal);
     lights.palette().total(255);
   }
 
   break;
   case RUN_EFFECT: {
-    lights.SetTimeout( lights.speed() * 10);
-    displaytext(lights.getText(), lights.speed() * 10, lights.dim(lights.palette().next()) );
-
+    uint8_t speed;
+    lights.Current()->getSpeed(speed);
+    lights.SetTimeout( speed * 10);
+    char * text ;
+    if (lights.Current()->getText(text)) {
+      displaytext(text, speed * 10, lights.dim(lights.palette().next()) );
+    }
   }
   break;
 

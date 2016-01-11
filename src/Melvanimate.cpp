@@ -40,6 +40,45 @@ bool        Melvanimate::begin()
 
 }
 
+const RgbColor  Melvanimate::getColor()
+{
+	if (_currentHandle) {
+		RgbColor color = RgbColor(0);
+		if (_currentHandle->getColor(color)) {
+			return dim(color);
+		}
+	}
+
+	return dim(_color);
+
+}
+
+const uint8_t  Melvanimate::getBrightness()
+{
+	if (_currentHandle) {
+		uint8_t bri = 0;
+		if (_currentHandle->getBrightness(bri)) {
+			return bri;
+		}
+	}
+	Serial.printf("[getBri:default] %u\n", _brightness);
+
+	// return default
+	return _brightness;
+
+}
+
+const RgbColor  Melvanimate::color()
+{
+	if (_currentHandle) {
+		RgbColor temp = 0;
+		if (_currentHandle->getColor(temp)) {
+			return temp;
+		}
+	}
+	return _color;
+}
+
 
 void Melvanimate::_init_matrix()
 {
@@ -86,16 +125,19 @@ const RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
 
 void      Melvanimate::setBrightness(const uint8_t bright)
 {
-	if (bright == _brightness) {
-		return;
-	}
+	// if (bright == _brightness ) {
+	// 	return;
+	// }
+
 	_brightness = bright;
 
 
 	//  new methods
 
 	if (_currentHandle) {
-		_currentHandle->setBrightness(bright); 
+		if(_currentHandle->setBrightness(bright)) {
+			//Serial.printf("[setBri]\n", );
+		}
 	}
 
 	Refresh();
@@ -123,20 +165,20 @@ void      Melvanimate::color2(const RgbColor color)
 }
 
 
-void      Melvanimate::serialspeed(const int speed)
-{
-	if (speed == _serialspeed) { return; }
-	_serialspeed = speed;
-	if (Serial) {
-		Debugln("Flushing and Ending Serial 1");
-		Serial.flush();
-		delay(500);
-		Serial.end();
-	}
-	_settings_changed = true;
-	Serial.begin(_serialspeed);
-	Debugf("New Serial started speed: %u\n", _serialspeed);
-}
+// void      Melvanimate::serialspeed(const int speed)
+// {
+// 	if (speed == _serialspeed) { return; }
+// 	_serialspeed = speed;
+// 	if (Serial) {
+// 		Debugln("Flushing and Ending Serial 1");
+// 		Serial.flush();
+// 		delay(500);
+// 		Serial.end();
+// 	}
+// 	_settings_changed = true;
+// 	Serial.begin(_serialspeed);
+// 	Debugf("New Serial started speed: %u\n", _serialspeed);
+// }
 void        Melvanimate::grid(const uint16_t x, const uint16_t y)
 {
 	if ( x * y > _pixels) { return; } // bail if grid is too big for pixels.. not sure its required
@@ -169,6 +211,12 @@ void        Melvanimate::setPixels(const uint16_t pixels)
 	_init_LEDs();
 	Debugf("HEAP: %u\n", ESP.getFreeHeap());
 }
+
+RgbColor Melvanimate::nextcolor()
+{
+	if (_palette) { return dim(_palette->next()); } else { return RgbColor(0); }
+}
+
 
 const char * Melvanimate::getText()
 {
@@ -231,8 +279,8 @@ void Melvanimate::setWaiting(bool wait)
 bool        Melvanimate::save(bool override)
 {
 
-	if (!_settings_changed && !override) { Serial.println("Settings not changed"); return false; }
-	Debug("Saving Settings: ");
+	if (!_settings_changed && !override) { return false; }
+	//Debug("Saving Settings: ");
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.createObject();
 
@@ -321,7 +369,7 @@ bool        Melvanimate::load()
 	if (!root.success()) {
 		Debugln(F("Parsing settings file Failed!"));
 		return false;
-	} else Debugln("Parse successfull");
+	} else { Debugln("Parse successfull"); }
 // global variables
 	if (root.containsKey("globals")) {
 
@@ -360,6 +408,8 @@ bool        Melvanimate::load()
 			_color2.G = jscolor2["G"].as<long>();
 			_color2.B = jscolor2["B"].as<long>();
 		}
+
+
 
 		// Debugf("Current:\n _brightness(%u) \n _speed(%u)\n _color1(%u,%u,%u)\n _color2(%u,%u,%u)\n",
 		//        _brightness, _speed, _color.R, _color.G, _color.B, _color2.R, _color2.G, _color2.B, _color2.R);

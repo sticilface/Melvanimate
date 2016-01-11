@@ -35,7 +35,6 @@
 
 
 
-
 ESP8266WebServer HTTP(80);
 FSBrowser fsbrowser(HTTP);
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
@@ -45,7 +44,6 @@ FSBrowser fsbrowser(HTTP);
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
 
 ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
-
 
 
 struct XY_t {
@@ -130,10 +128,10 @@ void setup()
 
   lights.Add("Off", new SwitchEffect(offFn));                              // working
   lights.Add("SimpleColor", new GeneralEffect(SimpleColorFn));              // working
-  lights.Add("Adalight", new SwitchEffect(AdaLightFn));                    // working - need to test
+  lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
   lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
   lights.Add("DMX", new SwitchEffect(DMXfn));                              // need to test - requires custom libs included
-  lights.Add("Marquee", new SwitchEffect(MarqueeFn));                      // works. need to add direction....
+  lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
   lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
   lights.Add("Rainbow", new SwitchEffect(RainbowFn));
   lights.Add("BobblySquares", new SwitchEffect(BobblySquaresFn));
@@ -172,7 +170,12 @@ void setup()
 
   Serial.println(F("Melvanimate"));
 
+  // lights.Current()->GeneralEffect::*pmf()
 
+  //bool (GeneralEffect::*fptr) (uint8_t) = &GeneralEffect::setBrightness;
+
+
+//  (*fptr)(100);
 
   // Melvtrix & matrix =  *lights.matrix();
 
@@ -191,9 +194,7 @@ void setup()
   //   Serial.println();
   // }
 
-  lights.palette().getModeString();
-
-
+  // lights.palette().getModeString();
 
 
 }
@@ -388,12 +389,13 @@ void handle_data()
     if (HTTP.arg("enable").equalsIgnoreCase("on")) {
       lights.Start();
     } else if (HTTP.arg("enable").equalsIgnoreCase("off")) {
-      lights.Start("off");
+      lights.Start("Off");
     }
   }
 
   if (HTTP.hasArg("mode")) {
     modechange = lights.Start(HTTP.arg("mode"));
+    if (HTTP.arg("mode") != "Off") { lights.SetToggle(HTTP.arg("mode").c_str()); }
   }
 
   if (HTTP.hasArg("brightness")) {
@@ -401,7 +403,8 @@ void handle_data()
   }
 
   if (HTTP.hasArg("speed")) {
-    lights.speed(HTTP.arg("speed").toInt());
+    lights.Current()->setSpeed(HTTP.arg("speed").toInt());
+    //lights.speed(HTTP.arg("speed").toInt());
   }
 
   if (HTTP.hasArg("rotation")) {
@@ -417,10 +420,11 @@ void handle_data()
 
   if (HTTP.hasArg("palette")) {
     lights.palette().mode(HTTP.arg("palette").c_str());
+    lights.Current()->setPalette( Palette::stringToEnum(HTTP.arg("palette").c_str()));
   }
 
   if (HTTP.hasArg("marqueetext")) {
-    lights.setText(HTTP.arg("marqueetext")) ;
+    lights.Current()->setText(HTTP.arg("marqueetext").c_str()) ;
     lights.Refresh();
   }
 // matrixmode stuff
@@ -484,7 +488,9 @@ void handle_data()
 
 
   if (HTTP.hasArg("serialspeed")) {
-    lights.serialspeed(HTTP.arg("serialspeed").toInt());
+    if (lights.Current()) {
+      lights.Current()->setSerialspeed(HTTP.arg("serialspeed").toInt()); 
+    }
   }
 
   if (HTTP.hasArg("flashfirst")) {
@@ -594,26 +600,31 @@ void send_data(String page)
       modes.add(lights.getName(i));
     }
 
+  JsonObject& settings = root.createNestedObject("settings");
+
+    if (lights.Current()) {
+      if (!lights.Current()->addJson(settings)) {
+          settings["effect"] = lights.getName();
+      }
+    }
+
+    //  this keeps compatability whilst i test.. 
     root["currentmode"] = lights.getName();
     root["brightness"] = lights.getBrightness();
     root["speed"] = lights.speed();
-
     JsonObject& color = root.createNestedObject("color1");
     color["R"] = lights.color().R;
     color["G"] = lights.color().G;
     color["B"] = lights.color().B;
-
     JsonObject& color2 = root.createNestedObject("color2");
     color2["R"] = lights.color2().R;
     color2["G"] = lights.color2().G;
     color2["B"] = lights.color2().B;
-
     root["serialspeed"] = lights.serialspeed();
-
     root["rotation"] = lights.matrix()->getRotation();
     root["marqueetext"] = lights.getText();
-
     root["palette"] = String(lights.palette().getModeString());
+    
   }
   /*
         Layout Page

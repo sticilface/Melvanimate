@@ -2,7 +2,7 @@
 
 // ALL = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
 const char * palettes_strings[9] = { "off", "complementary", "monochromatic", "analogous", "splitcomplements", "triadic", "tetradic", "multi", "wheel"};
-const char * random_mode_strings[4] = {"off", "totalrandom", "timebased", "randomafterloop"} ; 
+const char * random_mode_strings[4] = {"off", "totalrandom", "timebased", "randomafterloop"} ;
 
 Palette::Palette(): _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0)
 {
@@ -32,14 +32,13 @@ void Palette::mode(palette_type mode)
 	_position = 0 ;
 }
 
-void Palette::randommode(const char * mode) 
+void Palette::randommode(const char * mode)
 {
 	Serial.println("Random mode called");
 	for (uint8_t i = 0; i < 4; i++) {
-		if (strcmp(mode, random_mode_strings[i]) == 0) 
-		{
-			randommode( (random_mode)i ); 
-			Serial.printf("Found: %u, %s\n",i,random_mode_strings[i]);
+		if (strcmp(mode, random_mode_strings[i]) == 0) {
+			randommode( (random_mode)i );
+			Serial.printf("Found: %u, %s\n", i, random_mode_strings[i]);
 		}
 	}
 }
@@ -53,6 +52,20 @@ void Palette::mode(const char * in)
 		}
 	}
 }
+
+palette_type Palette::stringToEnum(const char * in)
+{
+
+	for (uint8_t i = 0; i < 9; i++ ) {
+		if (strcmp(in, palettes_strings[i]) == 0) {
+			return (palette_type)i;
+		}
+	}
+
+	return OFF; 
+
+}
+
 
 uint8_t Palette::available(palette_type mode, uint16_t total)
 {
@@ -156,7 +169,7 @@ RgbColor Palette::comlementary(RgbColor Value, uint16_t position)
 	return RgbColor(original);
 }
 
-// 3 colors.. 
+// 3 colors..
 RgbColor Palette::splitcomplements(RgbColor Input, uint16_t position, float range)
 {
 	if (position == 0) return Input;

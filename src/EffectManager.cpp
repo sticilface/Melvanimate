@@ -44,7 +44,40 @@ bool EffectManager::Add(const char * name, EffectHandler* handle)
 
 bool EffectManager::Start()
 {
-	if (_toggleHandle) Start(_toggleHandle->name());
+	if (_toggleHandle) { return Start(_toggleHandle->name()); }
+	return false;
+}
+
+bool EffectManager::SetToggle(const char * name)
+{
+	EffectHandler* handler = _findhandle(name);
+
+	if (handler) {
+		_toggleHandle = handler;
+		return true;
+	}
+	return false;
+}
+
+
+
+
+EffectHandler* EffectManager::_findhandle(const char * handle)
+{
+	EffectHandler* handler;
+	bool found = false;
+	for (handler = _firstHandle; handler; handler = handler->next()) {
+		if ( strcmp( handler->name(), handle) == 0) {
+			found = true;
+			break;
+		}
+	}
+
+	if (found) {
+		return handler;
+	} else {
+		return nullptr;
+	}
 }
 
 bool EffectManager::Start(const char * name)
@@ -57,22 +90,18 @@ bool EffectManager::Start(const char * name)
 	// manager sends... stop()....  until that returns true.. it can't --- NOPE not going to work... Start and stop should only get called once...
 	if (_currentHandle) _currentHandle->Stop();
 
-	EffectHandler* handler;
-	bool found = false;
-	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( strcmp( handler->name(), name) == 0) {
-			found = true;
-			break;
-		}
-	}
+	EffectHandler* handler = _findhandle(name);
 
-	if (found) {
+
+	if (handler) {
 		_NextInLine = handler;
-		if ( strcmp(handler->name(), "Off") != 0) { _toggleHandle = handler; }
+		//if ( strcmp(handler->name(), "Off") != 0) { _toggleHandle = handler; }
 		getPresets(_NextInLine, _numberofpresets, _presets);
 		Serial.printf("[Start] %u presets found for %s\n", _numberofpresets, _NextInLine->name());
 		return true;
-	} else return false;
+	} else {
+		return false;
+	}
 
 };
 
@@ -163,7 +192,7 @@ const char * EffectManager::getName(uint8_t i)
 
 
 
-bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file_name)
+bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, JsonObject *& root, const char * file_name)
 {
 
 	File f = SPIFFS.open(file_name, "r+");
@@ -198,7 +227,7 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer& jsonBuffer, J
 }
 
 
-bool EffectManager::getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets)
+bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets, uint8_t *& presets)
 {
 	bool success = false;
 
@@ -211,8 +240,6 @@ bool EffectManager::getPresets(EffectHandler* handle, uint8_t& numberofpresets, 
 
 		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
-
-
 			for (JsonObject::iterator it = root->begin(); it != root->end(); ++it) {
 				// get id of preset
 				const char * key = it->key;
@@ -224,7 +251,7 @@ bool EffectManager::getPresets(EffectHandler* handle, uint8_t& numberofpresets, 
 				if (current.containsKey("effect")) {
 					if ( strcmp( current["effect"], handle->name() ) == 0) {
 						// if matched then this preset is a valid effect for the current one.
-						Serial.printf("[getPresets] found preset for %s (%s)\n", handle->name(), key);
+						// Serial.printf("[getPresets] found preset for %s (%s)\n", handle->name(), key);
 						count++;
 					}
 				}
@@ -266,6 +293,7 @@ bool EffectManager::getPresets(EffectHandler* handle, uint8_t& numberofpresets, 
 
 	numberofpresets = 0;
 	if (presets) { delete[] presets; presets = nullptr; }
+	return false;
 
 }
 
@@ -295,14 +323,12 @@ bool EffectManager::newSave(uint8_t ID)
 
 				}
 				root->prettyPrintTo(f);
-				root->prettyPrintTo(Serial);
+				Serial.printf("[newSave] Heap %u\n", ESP.getFreeHeap() );
 				f.close();
-				//Serial.println("[nS] done YES");
 				if (data) { delete[] data; }
 				return true;
 
 			} else {
-				//Serial.println("[nS] done NO");
 				if (data) { delete[] data; }
 				return false;
 			}
@@ -326,7 +352,7 @@ bool EffectManager::newLoad(uint8_t ID)
 		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
 			if (_currentHandle->load(*root, cID)) {
-				Refresh(); 
+				Refresh();
 				if (data) { delete[] data; }
 				return true;
 
@@ -341,6 +367,25 @@ bool EffectManager::newLoad(uint8_t ID)
 		return false;
 	}
 }
+
+
+bool EffectHandler::save(JsonObject& root, const char *& ID)
+{
+	Serial.printf("[save] ID = %s\n", ID);
+	if (root.containsKey(ID)) {
+		Serial.printf("[save] [%s]previous setting identified", ID);
+		root.remove(ID ) ;
+	}
+
+	JsonObject& current = root.createNestedObject(ID);
+
+	if (addJson(current)) {
+		return true; 
+	} else {
+		return false; 
+	}
+};
+
 
 
 /*---------------------------------------------
@@ -520,7 +565,7 @@ bool EffectManager::newLoad(uint8_t ID)
 
 
 
-bool GeneralEffect::load(JsonObject& root, const char *& ID)
+bool GeneralEffect::load(JsonObject & root, const char *& ID)
 {
 	if (!root.containsKey(ID)) {
 		return false;
@@ -534,7 +579,6 @@ bool GeneralEffect::load(JsonObject& root, const char *& ID)
 	}
 
 	_brightness = current["brightness"];
-	_speed = current["speed"];
 	JsonObject& jscolor1 = current["color1"];
 
 	_color.R = jscolor1["R"];
@@ -548,32 +592,100 @@ bool GeneralEffect::load(JsonObject& root, const char *& ID)
 
 }
 
-bool GeneralEffect::save(JsonObject& root, const char *& ID)
+// bool GeneralEffect::save(JsonObject & root, const char *& ID)
+// {
+
+// 	Serial.printf("[save] ID = %s\n", ID);
+// 	if (root.containsKey(ID)) {
+// 		Serial.printf("[save] [%s]previous setting identified", ID);
+// 		root.remove(ID ) ;
+// 	}
+
+
+// 	JsonObject& current = root.createNestedObject(ID);
+
+// 	addJson(current);
+// 	// current["effect"] = name();
+// 	// current["name"] = "TO BE IMPLEMENTED";
+// 	// current["brightness"] = _brightness ;
+// 	// JsonObject& jscolor1 = current.createNestedObject("color1");
+// 	// jscolor1["R"] = _color.R;
+// 	// jscolor1["G"] = _color.G;
+// 	// jscolor1["B"] = _color.B;
+// }
+
+bool GeneralEffect::addJson(JsonObject & settings)
 {
-	/*
-	ID
-	effectname
-	brightness
-	speed
-	color
-	*/
-	Serial.printf("[save] ID = %s\n", ID);
-	if (root.containsKey(ID)) {
-		Serial.printf("[save] [%s]previous setting identified", ID);
-		root.remove(ID ) ;
-	}
 
-
-	JsonObject& current = root.createNestedObject(ID);
-	current["effect"] = name();
-	current["name"] = "TO BE IMPLEMENTED";
-	current["brightness"] = _brightness ;
-	current["speed"] = _speed ;
-	JsonObject& jscolor1 = current.createNestedObject("color1");
+	settings["effect"] = name();
+	settings["brightness"] = _brightness ;
+	JsonObject& jscolor1 = settings.createNestedObject("color1");
 	jscolor1["R"] = _color.R;
 	jscolor1["G"] = _color.G;
 	jscolor1["B"] = _color.B;
+	//include return true to override the default no handler...
+	return true;
 }
+
+
+
+/*
+
+
+	Marquee effect
+	const char * _marqueeText;
+	uint32_t _speed;
+	uint8_t _brightness;
+	Palette* _palette;
+	uint8_t _rotation;
+	RgbColor _color;
+*/
+
+
+bool MarqueeEffect::load(JsonObject& root, const char *& ID)  {};
+// bool MarqueeEffect::save(JsonObject& root, const char *& ID)
+// {
+// 	Serial.printf("[save] ID = %s\n", ID);
+// 	if (root.containsKey(ID)) {
+// 		Serial.printf("[save] [%s]previous setting identified", ID);
+// 		root.remove(ID ) ;
+// 	}
+
+// 	JsonObject& current = root.createNestedObject(ID);
+
+// 	addJson(current);
+// };
+
+bool MarqueeEffect::addJson(JsonObject& settings)
+{
+	settings["effect"] = name();
+	settings["brightness"] = _brightness ;
+	settings["speed"] = _speed;
+	settings["palette"] = String(Palette::enumToString(_palette));
+
+	JsonObject& jscolor1 = settings.createNestedObject("color1");
+	jscolor1["R"] = _color.R;
+	jscolor1["G"] = _color.G;
+	jscolor1["B"] = _color.B;
+
+	settings["rotation"] = _rotation;
+	settings["marqueetext"] = _marqueeText;
+
+	//include return true to override the default no handler...
+	return true;
+} ;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

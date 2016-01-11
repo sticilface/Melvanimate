@@ -51,6 +51,8 @@ public:
 	void mode(const char *); 
 	palette_type mode() {return _mode;};
 	const char * getModeString(); 
+	static inline const char * enumToString(palette_type mode) { return palettes_strings[mode] ;  }
+	static palette_type stringToEnum(const char *); 
 
 	random_mode randommode() { return _random; };
 	const char * randommodeAsString() { return random_mode_strings[_random]; }

@@ -6,8 +6,9 @@
 #include <NeoPixelBus.h>
 #include <ArduinoJson.h>
 #include "palette.h"
+#include <FS.h>
 
-extern const char * PRESETS_FILE; 
+extern const char * PRESETS_FILE;
 /* ------------------------------------------------------------------------
 					Effect Mangager
 					This is the base class for managing effects
@@ -50,6 +51,9 @@ public:
 	// fetches info from SPIFFS about which presest applies to current
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets);
 
+	bool SetToggle(const char * name);
+
+
 
 protected:
 
@@ -67,6 +71,7 @@ private:
 	uint8_t _numberofpresets = 0;
 	uint8_t * _presets = nullptr;
 	bool _parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
+	EffectHandler* _findhandle(const char * handle);
 
 };
 
@@ -83,9 +88,13 @@ public:
 	virtual void SetTimeout(uint32_t) {}
 
 	// experimental
-	virtual bool load(JsonObject& root, const char *& ID) {};
-	virtual bool save(JsonObject& root, const char *& ID) {};
+	virtual bool load(JsonObject& root, const char *& ID) { return false ; };
+	virtual bool addJson(JsonObject& settings) { return false; };
 
+	// save does not have to be overridden.  calls addJson instead. 
+	virtual bool save(JsonObject& root, const char *& ID);
+
+	virtual void* getp() { return nullptr; }
 
 	// specific virtual functions for ALL effects...
 	// If they are not handlesd by subclass, they return false.
@@ -95,6 +104,21 @@ public:
 
 	virtual bool setColor(RgbColor ) { return false;}
 	virtual bool getColor(RgbColor&) { return false;}
+
+	virtual bool setSerialspeed(uint32_t speed) { return false;}
+	virtual bool getSerialspeed(uint32_t& speed) { return false;}
+
+	virtual bool setSpeed(uint8_t speed)   {   return false; }
+	virtual bool getSpeed(uint8_t& speed)  {   return false; }
+
+	virtual bool setRotation(uint8_t rotation)   {   return false; }
+	virtual bool getRotation(uint8_t& rotation)  {   return false; }
+
+	virtual bool setText(const char * text)   {   return false; }
+	virtual bool getText( char *& text)   {   return false; }
+
+	virtual bool setPalette(palette_type palette)   {   return false;  }
+	virtual bool getPalette(palette_type& palette)  {   return false;  }
 
 	//colours
 
@@ -203,42 +227,132 @@ class GeneralEffect : public SwitchEffect
 {
 
 public:
-	GeneralEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _speed(50), _brightness(255), _color(0) {};
+	GeneralEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _brightness(255), _color(0) {};
 
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override;
-	bool save(JsonObject& root, const char *& ID) override;
+	//bool save(JsonObject& root, const char *& ID) override;
+	bool addJson(JsonObject& settings) override;
 
-	bool setBrightness(uint8_t bri) override {  _brightness = bri; return true; }
-	bool getBrightness(uint8_t& bri) override {  bri = _brightness; return true; }
+	//void* getp() override {return this;}
+
+	bool setBrightness(uint8_t bri) override  {   _brightness = bri; return true; }
+	bool getBrightness(uint8_t& bri) override {   bri = _brightness; return true; }
 
 	bool setColor(RgbColor color) override  { _color = color; return true; }
 	bool getColor(RgbColor& color) override {  color = _color; return true; }
 
 private:
-	uint32_t _speed;
 	uint8_t _brightness;
 	RgbColor _color;
 
 };
 
 
-// class MarqueeEffect : public SwitchEffect
-// {
+class MarqueeEffect : public SwitchEffect
+{
 
-// public:
+public:
+	MarqueeEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _brightness(255), _color(0), _speed(5), _palette(OFF), _rotation(0)
+	{
+		_color = RgbColor(0, 0, 0);
+		_marqueeText = strdup("MELVANIMATE");
+	};
+	~MarqueeEffect(){
+		free(_marqueeText);
+	}
 
-// 	bool load() override {};
-// 	bool save() override {};
+	//  These functions just need to add and retrieve preset values from the json.
+	bool load(JsonObject& root, const char *& ID) override ;
+	//bool save(JsonObject& root, const char *& ID) override ;
+	bool addJson(JsonObject& settings) override  ;
 
-// private:
-// 	const char * MarqueeText;
-// 	uint32_t _speed;
-// 	uint32_t _timeout;
-// 	uint8_t _brightness;
+	//  Specific Variables
+	bool setBrightness(uint8_t bri) override  {   _brightness = bri; return true; }
+	bool getBrightness(uint8_t& bri) override {   bri = _brightness; return true; }
 
-// };
+	bool setColor(RgbColor color) override  { _color = color; return true; }
+	bool getColor(RgbColor& color) override {  color = _color; return true; }
 
+	bool setSpeed(uint8_t speed) override  {   _speed = speed; return true; }
+	bool getSpeed(uint8_t& speed) override {   speed = _speed; return true; }
+
+	bool setRotation(uint8_t rotation) override  {   _rotation = rotation; return true; }
+	bool getRotation(uint8_t& rotation) override {   rotation = _rotation; return true; }
+
+	bool setText(const char * text) override  {   free(_marqueeText); _marqueeText = strdup(text); return true; }
+	bool getText(char *& text) override {   text = _marqueeText; return true; }
+
+	bool setPalette(palette_type palette) override  {   _palette = palette; return true; }
+	bool getPalette(palette_type& palette) override {   palette = _palette; return true; }
+
+private:
+	char * _marqueeText;
+	uint32_t _speed;
+	uint8_t _brightness;
+	palette_type _palette;
+	uint8_t _rotation;
+	RgbColor _color;
+
+};
+
+class AdalightEffect : public SwitchEffect
+{
+
+public:
+	AdalightEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _serialspeed(115200) {};
+
+	//  These functions just need to add and retrieve preset values from the json.
+	bool load(JsonObject& root, const char *& ID) override
+	{
+		if (!root.containsKey(ID)) {
+			return false;
+		}
+
+		JsonObject& current = root[ID];
+		const char * effect = current["effect"];
+
+		if (effect) {
+			if ( strcmp( effect , name() ) != 0) { return false; }
+		}
+
+		_serialspeed = current["serialspeed"];
+
+		return true;
+	}
+	// bool save(JsonObject& root, const char *& ID) override
+	// {
+	// 	Serial.printf("[save] ID = %s\n", ID);
+	// 	if (root.containsKey(ID)) {
+	// 		Serial.printf("[save] [%s]previous setting identified", ID);
+	// 		root.remove(ID ) ;
+	// 	}
+
+
+
+	// 	JsonObject& current = root.createNestedObject(ID);
+
+	// 	addJson(current);
+
+
+	// 	// current["effect"] = name();
+	// 	// current["name"] = "TO BE IMPLEMENTED";
+	// 	// current["serialspeed"] = _serialspeed ;
+	// }
+
+	bool addJson(JsonObject& settings) override
+	{
+		settings["effect"] = name();
+		settings["serialspeed"] = _serialspeed;
+	}
+
+	bool setSerialspeed(uint32_t speed) override {  _serialspeed = speed; return true; }
+	bool getSerialspeed(uint32_t& speed) override {  speed = _serialspeed; return true; }
+
+private:
+	uint32_t _serialspeed;
+
+};
 
 
 
