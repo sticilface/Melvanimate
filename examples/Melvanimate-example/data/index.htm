@@ -96,6 +96,15 @@
     <div data-role="page" id="homepage">
 
         <div data-role="content">
+                <div class="ui-field-contain">
+                    <label for="flip-enable">Enable:</label>
+                    <select id="flip-enable" name="enable" data-role="flipswitch" class="">
+                        <option>off</option>
+                        <option>on</option>
+                    </select>
+                </div>
+              
+
 
             <div class="ui-field-contain">
                 <label for="modeslist">Mode:</label>
@@ -105,7 +114,7 @@
 
             <div id="effectoptions">
 
-                <div class="ui-field-contain complex ObjectManagerexample BobblySquares">
+                <div class="ui-field-contain complex ObjectManagerexample BobblySquares Marquee">
                     <label for="select-palettes">Palette:</label>
                     <select name="palette" id="select-palettes" class='mysubmitthis'>
                         <option value="off" selected="selected">Off</option>
@@ -360,6 +369,7 @@
                         <select name="timercommand" id="select-timer-command">
                             <option value="off" selected="selected">Off</option>
                             <option value="start">Start Effect</option>
+                            <option value="loadpreset">Load Preset</option>
                             <option value="brightness">Set Brightness</option>
                             <option value="speed">Set Speed</option>
                         </select>
@@ -370,11 +380,21 @@
                             <select name="timeroption" id="select-timer-option" class="effectslist">
                             </select>
                         </div>
-
                         <div class="ui-field-contain brightness speed">
                             <label for="slider-timer-option">Value:</label>
                             <input type="range" name="timeroption" id="slider-timer-option" min="0" max="255" step="1" value="0">
                         </div>
+                        <div class="ui-field-contain loadpreset">
+                            <label for="select-timer-preset">Preset:</label>
+                            <select name="timeroption" id="select-timer-preset" class="presetlist">
+                            <option value="1" selected="selected">1</option>
+                            <option value="2">2</option>
+                            <option value="3">3</option>
+                            <option value="4">4</option>
+                            <option value="5">5</option>                              
+                            </select>
+                        </div>                        
+                        
                     </div>
 
                     <button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
@@ -620,7 +640,9 @@
                     .error(function() {
                         $("#status").empty().append("Error").css("color", "red");;
                     })
-                    .complete(function() {});
+                    .complete(function() {
+                      //GetData(); 
+                    });
             });
 
             $(document).on('change', '.mysubmittext', function(e) {
@@ -650,10 +672,10 @@
             });
 
             // better way to get data for new page...         
-            $(document).on("pagebeforechange", function(e, data) {
-                var toPage = data.toPage[0].id;
-                GetData(toPage);
-            });
+            // $(document).on("pagebeforechange", function(e, data) {
+            //     var toPage = data.toPage[0].id;
+            //     GetData(toPage);
+            // });
 
             $("#timer").on("pagebeforeshow", function() {
 
@@ -715,6 +737,23 @@
             });
 
             $("#homepage").on("pagebeforeshow", function() {
+              
+                $("#flip-enable").change( function() {
+                
+                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $.post("data.esp", $(this).serialize(), function(data) {
+                        console.log("Data Sent");
+                    }).success(function() {
+                        $("#status").empty().append("Success").css("color", "green");;
+                        GetData(); 
+
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
+                    
+                })
 
                 var mode = $('#modeslist').val();
 
@@ -922,42 +961,59 @@
                         if (result.hasOwnProperty('modes')) {
                             temp = result.modes;
                             $("#modeslist").find('option').remove();
-                            console.log("currentmode = " + result.currentmode);
+                            //console.log("currentmode = " + result.currentmode);
                             $.each(temp, function(key, value) {
                                 var isconnected = " ";
-                                if (result.currentmode == value) isconnected = "selected=\"selected\"";
+                                if (result.hasOwnProperty('settings')) {
+                                if (result.settings.effect == value) isconnected = "selected=\"selected\"";
+                                }
+                                  
                                 $("#modeslist").append('<option value=' + value + " " + isconnected + '>' + value + '</option>');
                             });
 
                             $('#modeslist').selectmenu('refresh');
+                            
+                            if (result.currentmode != "Off") { 
+                              $("#flip-enable").val("on").flipswitch('refresh'); //.trigger("change"); 
+                              
+                            } else {
+                              $("#flip-enable").val("off").flipswitch('refresh'); //.trigger("change");
+                            }
+                            
                         }
-                        if (result.hasOwnProperty('brightness')) {
-                            $("#brightness").val(result.brightness).slider("refresh");
+                        
+                        if (result.hasOwnProperty('settings')) {
+                          
+                          settings = result.settings; 
+                        
+                        
+                        if (settings.hasOwnProperty('brightness')) {
+                            $("#brightness").val(settings.brightness).slider("refresh");
                         }
-                        if (result.hasOwnProperty('speed')) {
-                            $("#speed").val(result.speed).slider("refresh");
+                        if (settings.hasOwnProperty('speed')) {
+                            $("#speed").val(settings.speed).slider("refresh");
                         }
-                        if (result.hasOwnProperty('color1')) {
-                            $("#color1").val("rgb(" + result.color1.R + "," + result.color1.G + "," + result.color1.B + ")").colorPicker();
+                        if (settings.hasOwnProperty('color1')) {
+                            $("#color1").val("rgb(" + settings.color1.R + "," + settings.color1.G + "," + settings.color1.B + ")").colorPicker();
                         }
-                        if (result.hasOwnProperty('color2')) {
-                            $("#color2").val("rgb(" + result.color2.R + "," + result.color2.G + "," + result.color2.B + ")").colorPicker();
+                        if (settings.hasOwnProperty('color2')) {
+                            $("#color2").val("rgb(" + settings.color2.R + "," + settings.color2.G + "," + settings.color2.B + ")").colorPicker();
                         }
 
-                        if (result.hasOwnProperty('serialspeed')) {
+                        if (settings.hasOwnProperty('serialspeed')) {
                             $('#adalight-serialspeed').val(result.serialspeed).selectmenu('refresh');
                         }
 
-                        if (result.hasOwnProperty('rotation')) {
-                            $('#input-rotation').val(result.rotation).selectmenu('refresh');
+                        if (settings.hasOwnProperty('rotation')) {
+                            $('#input-rotation').val(settings.rotation).selectmenu('refresh');
                         }
 
-                        if (result.hasOwnProperty('marqueetext')) {
-                            $('#input_marqueetext').val(result.marqueetext);
+                        if (settings.hasOwnProperty('marqueetext')) {
+                            $('#input_marqueetext').val(settings.marqueetext);
                         }
 
-                        if (result.hasOwnProperty('palette')) {
-                            $('#select-palettes').val(result.palette).selectmenu('refresh');
+                        if (settings.hasOwnProperty('palette')) {
+                            $('#select-palettes').val(settings.palette).selectmenu('refresh');
                         }
 
                         $('#effectoptions').children('div').each(function(index) {
@@ -965,8 +1021,10 @@
                         });
 
                         $('#effectoptions').children('div').each(function(index) {
-                            if ($(this).hasClass(result.currentmode)) $(this).show();
+                            if ($(this).hasClass(settings.effect)) $(this).show();
                         });
+                        
+                      }
 
                     }
 
