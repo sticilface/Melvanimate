@@ -48,6 +48,8 @@ public:
 
 	bool newSave(uint8_t ID);
 	bool newLoad(uint8_t ID);
+	bool removePreset(uint8_t ID); 
+
 	// fetches info from SPIFFS about which presest applies to current
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets);
 

@@ -118,10 +118,24 @@ void setup()
     }
 
     if (HTTP.hasArg("print")) {
-      File f = SPIFFS.open(PRESETS_FILE, "r+");
+      File f = SPIFFS.open(PRESETS_FILE, "r");
       Serial.println("SETTINGS_FILE");
-      Serial.println(f);
+
+      do {
+      char buf[250];
+      uint8_t number = (f.size() - f.position() > 250)? 250 : f.size() - f.position(); 
+      f.readBytes(buf, number);
+      Serial.write(buf, number);
+      } while (f.position() < f.size());
+
       Serial.println("---");
+
+      HTTP.setContentLength(0);
+      HTTP.send(200); // sends OK if were just receiving data...
+    }
+
+    if (HTTP.hasArg("remove")) {
+      lights.removePreset(HTTP.arg("remove").toInt()); 
       HTTP.setContentLength(0);
       HTTP.send(200); // sends OK if were just receiving data...
     }
@@ -207,10 +221,13 @@ void setup()
   // lights.palette().getModeString();
 
 
+  // do {
+  //   Serial.println("remove presets");
+  // } while (SPIFFS.remove(PRESETS_FILE) );
+
   do {
     Serial.println("remove presets");
-  } while (SPIFFS.remove(PRESETS_FILE) );
-
+  } while (SPIFFS.remove("/MelvanaSettings.txt") );
 
 }
 
@@ -504,7 +521,7 @@ void handle_data()
 
   if (HTTP.hasArg("serialspeed")) {
     if (lights.Current()) {
-      lights.Current()->setSerialspeed(HTTP.arg("serialspeed").toInt()); 
+      lights.Current()->setSerialspeed(HTTP.arg("serialspeed").toInt());
     }
   }
 
@@ -615,15 +632,15 @@ void send_data(String page)
       modes.add(lights.getName(i));
     }
 
-  JsonObject& settings = root.createNestedObject("settings");
+    JsonObject& settings = root.createNestedObject("settings");
 
     if (lights.Current()) {
       if (!lights.Current()->addJson(settings)) {
-          settings["effect"] = lights.getName();
+        settings["effect"] = lights.getName();
       }
     }
 
-    //  this keeps compatability whilst i test.. 
+    //  this keeps compatability whilst i test..
     root["currentmode"] = lights.getName();
     root["brightness"] = lights.getBrightness();
     root["speed"] = lights.speed();
@@ -639,7 +656,7 @@ void send_data(String page)
     root["rotation"] = lights.matrix()->getRotation();
     root["marqueetext"] = lights.getText();
     root["palette"] = String(lights.palette().getModeString());
-    
+
   }
   /*
         Layout Page
