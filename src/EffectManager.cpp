@@ -195,36 +195,41 @@ const char * EffectManager::getName(uint8_t i)
 bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, JsonObject *& root, const char * file_name)
 {
 
-	File f = SPIFFS.open(file_name, "r+");
+	File f = SPIFFS.open(file_name, "r");
+
 	if (!f) {
-		Serial.println("No File Found");
-		f = SPIFFS.open(file_name, "w+");
-		if (!f) {
-			Serial.println("Unable to create  file");
+		Serial.println("[_parsespiffs] No File Found");
+		// f = SPIFFS.open(file_name, "w+");
+		// if (!f) {
+		// 	Serial.println("Unable to create  file");
 			return false;
-		}
+//		}
 
 	}
 
 	if (f.size()) {
-		f.seek(0, SeekSet);
+		//f.seek(0, SeekSet);
 		data = new char[f.size()];
 
-		// prevent nullptr exception if can't allocate 
-		if (!data) return false; 
+		// prevent nullptr exception if can't allocate
+		if (!data) return false;
 
 		for (int i = 0; i < f.size(); i++) {
 			data[i] = f.read();
 		}
+		
+		delay(0);
 
 		root = &jsonBuffer.parseObject(data);
 
 		if (!root->success()) {
-			root = &jsonBuffer.createObject();
+			f.close(); 
+			return false; 
+			//root = &jsonBuffer.createObject();
 		}
-	} else {
-		root = &jsonBuffer.createObject();
-	}
+	} //else {
+	//	root = &jsonBuffer.createObject();
+	//}
 	f.close();
 	return true;
 }
@@ -232,16 +237,22 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 
 bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets, uint8_t *& presets)
 {
-	bool success = false;
+	char * data = nullptr;
+
+	// delete any existing preset information .
+	if (presets) {
+		delete[] presets;
+		presets = nullptr;
+	}
 
 	if (handle) {
-//		Serial.println("1");
 		DynamicJsonBuffer jsonBuffer;
 		JsonObject * root;
 		uint8_t count = 0;
-		char * data = nullptr;
 
 		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+			
+			delay(0);
 
 			for (JsonObject::iterator it = root->begin(); it != root->end(); ++it) {
 				// get id of preset
@@ -262,11 +273,6 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 
 			// once number of presets identified, create array and fill it..
 
-			if (presets) {
-				delete[] presets;
-				presets = nullptr;
-			}
-
 			if (count) {
 				presets = new uint8_t[count];
 				numberofpresets = count;
@@ -284,62 +290,80 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 					}
 
 				}
-				return true;
+
 
 			}
 
 		}
 
-		if (data) { delete[] data; }
 
 	}
 
-	numberofpresets = 0;
-	if (presets) { delete[] presets; presets = nullptr; }
-	return false;
+	if (data) { delete[] data; }
+
+	if (numberofpresets) {
+		return true;
+	} else {
+		return false;
+	}
+
+
+
 
 }
 
 bool EffectManager::newSave(uint8_t ID)
 {
+	bool success = false;
+	char * data = nullptr;
+
+	Serial.println("[newSave] Called"); 
+
 	if (_currentHandle) {
 
 		DynamicJsonBuffer jsonBuffer;
 		const char * cID = jsonBuffer.strdup(String(ID).c_str());
 		JsonObject * root;
-		char * data = nullptr;
-		bool success = false;
 
 		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
-
-			if (_currentHandle->save(*root, cID)) {
-
-				File f = SPIFFS.open(PRESETS_FILE, "r+");
-				if (!f) {
-					Serial.println("No File Found");
-					f = SPIFFS.open(PRESETS_FILE, "w+");
-					if (!f) {
-						Serial.println("Unable to create  file");
-						if (data) { delete[] data; }
-						return false;
-					}
-
-				}
-				root->prettyPrintTo(f);
-				Serial.printf("[newSave] Heap %u\n", ESP.getFreeHeap() );
-				f.close();
-				if (data) { delete[] data; }
-				return true;
-
-			} else {
-				if (data) { delete[] data; }
-				return false;
-			}
+			Serial.println("[newSave] Existing Settings Loaded"); 
+		} else {
+			// if no file exists, or parse fails create new json object... 
+			root = &jsonBuffer.createObject();
 		}
-	} else {
 
+			if (root && _currentHandle->save(*root, cID)) {
+
+				Serial.println("[newSave] New Settings Added"); 
+
+				File f = SPIFFS.open(PRESETS_FILE, "w");
+
+				if (f) {
+
+					root->prettyPrintTo(f);
+					root->prettyPrintTo(Serial);
+
+					Serial.printf("[newSave] DONE Heap %u\n", ESP.getFreeHeap() );
+					f.close();
+					success = true;
+				} else {
+					Serial.println("FILE OPEN error:  NOT saved"); 
+				}
+
+			}
+		
+	}
+
+	if (data) {
+		delete[] data;
+	}
+
+	if (success) {
+		return true;
+	} else {
 		return false;
 	}
+
 }
 
 
@@ -375,17 +399,18 @@ bool EffectManager::newLoad(uint8_t ID)
 bool EffectHandler::save(JsonObject& root, const char *& ID)
 {
 	Serial.printf("[save] ID = %s\n", ID);
+
 	if (root.containsKey(ID)) {
 		Serial.printf("[save] [%s]previous setting identified", ID);
-		root.remove(ID ) ;
+		root.remove(ID) ;
 	}
 
 	JsonObject& current = root.createNestedObject(ID);
 
 	if (addJson(current)) {
-		return true; 
+		return true;
 	} else {
-		return false; 
+		return false;
 	}
 };
 

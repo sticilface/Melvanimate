@@ -9,7 +9,7 @@
   Sticilface - Beerware licence
 --------------------------------------------------------------------------------------------------------*/
 
-//#include <GDBStub.h>
+#include <GDBStub.h>
 
 
 #include <FS.h>
@@ -31,7 +31,9 @@
 #include <Melvanimate.h>
 #include "SimpleTimer/_SimpleTimer.h"
 
-
+// #include <cont.h>
+// #include <stddef.h>
+// #include <ets_sys.h>
 
 
 
@@ -83,6 +85,14 @@ void setup()
 
   HTTP.on("/crash", HTTP_ANY, crashfunc);
 
+  // HTTP.on("/stack", HTTP_ANY, []() {
+  //   cont_ stackvars;
+  //   if (cont_get_free_stack(&stackvars)){
+
+  //   }
+
+  // });
+
   HTTP.on("/data.esp", HTTP_ANY, handle_data);
   HTTP.on("/debug", HTTP_GET, []() {
     static bool debugstate = false;
@@ -95,7 +105,7 @@ void setup()
   HTTP.on("/command", HTTP_ANY, []() {
     if (HTTP.hasArg("save")) {
       lights.newSave(HTTP.arg("save").toInt());
-      Serial.printf("[newsave] done, heap: %u\n", ESP.getFreeHeap());
+      Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
       HTTP.setContentLength(0);
       HTTP.send(200); // sends OK if were just receiving data...
     }
@@ -195,6 +205,11 @@ void setup()
   // }
 
   // lights.palette().getModeString();
+
+
+  do {
+    Serial.println("remove presets");
+  } while (SPIFFS.remove(PRESETS_FILE) );
 
 
 }
@@ -574,7 +589,7 @@ void handle_data()
   HTTP.send(200); // sends OK if were just receiving data...
 
   save_flag = millis();
-  //Serial.printf("[handle] time %u\n", millis() - start_time);
+  Serial.printf("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());
   return;
 
 }
