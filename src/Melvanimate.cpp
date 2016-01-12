@@ -61,7 +61,7 @@ const uint8_t  Melvanimate::getBrightness()
 			return bri;
 		}
 	}
-	Serial.printf("[getBri:default] %u\n", _brightness);
+	//Serial.printf("[getBri:default] %u\n", _brightness);
 
 	// return default
 	return _brightness;

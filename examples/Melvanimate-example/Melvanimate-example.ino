@@ -168,7 +168,7 @@ void setup()
   Serial.print("HEAP: ");
   Serial.println(ESP.getFreeHeap());
 
-  Serial.println(F("Melvanimate"));
+  Serial.println(F("Melvanimate Ready"));
 
   // lights.Current()->GeneralEffect::*pmf()
 
@@ -225,9 +225,9 @@ void loop()
 
 
 
-  if (millis() - _tick > 1000 ) {
-    Serial.printf("Loop >1S %u\n", millis() - _tick);
-  }
+  // if (millis() - _tick > 1000 ) {
+  //   Serial.printf("Loop >1S %u\n", millis() - _tick);
+  // }
 
 }
 
@@ -548,7 +548,7 @@ void handle_data()
 
   if (HTTP.hasArg("data")) {
     send_data(HTTP.arg("data")); // sends JSON data for whatever page is currently being viewed
-    Serial.printf("[handle] time %u\n", millis() - start_time);
+    //Serial.printf("[handle] time %u\n", millis() - start_time);
     return;
   }
 
@@ -574,7 +574,7 @@ void handle_data()
   HTTP.send(200); // sends OK if were just receiving data...
 
   save_flag = millis();
-  Serial.printf("[handle] time %u\n", millis() - start_time);
+  //Serial.printf("[handle] time %u\n", millis() - start_time);
   return;
 
 }

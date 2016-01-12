@@ -138,7 +138,7 @@ void EffectManager::Loop()
 
 	//  This flips over to next effect asyncstyle....
 	if (!waiting && _NextInLine) {
-		Serial.println("Next effect STARTED");
+		//Serial.println("Next effect STARTED");
 		_currentHandle = _NextInLine;
 		_NextInLine = nullptr;
 		_currentHandle->Start();
@@ -209,6 +209,9 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 	if (f.size()) {
 		f.seek(0, SeekSet);
 		data = new char[f.size()];
+
+		// prevent nullptr exception if can't allocate 
+		if (!data) return false; 
 
 		for (int i = 0; i < f.size(); i++) {
 			data[i] = f.read();
