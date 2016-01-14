@@ -5,13 +5,17 @@
 EffectGroup::~EffectGroup()
 {
 	//  iterate through all objects and delete them properly...
-	EffectObjectHandler * holding = _firstHandle->next() , *todelete;
-
+	EffectObjectHandler * holding = _firstHandle, *todelete;
+	uint16_t count = 0; 
 	do {
 		todelete = holding;
 		holding = holding->next();
-		if (todelete) delete todelete;
+		if (todelete) { 
+			delete todelete;
+			count++;
+		}
 	} while (holding);
+	Serial.printf("[~EffectGroup] %u effects deleted\n", count); 
 
 }
 

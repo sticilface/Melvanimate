@@ -1130,7 +1130,6 @@ struct EFFECT_s {
     manager = new EffectGroup; // create effect group
     pPosition = new position_s[_count];
     matrix = lights.matrix();
-
     pGroup = new EffectObjectHandler* [count];
     Serial.println("Pre-create");
     delay(5);
@@ -1145,8 +1144,9 @@ struct EFFECT_s {
   }
   ~EFFECT_s()
   {
+    Serial.println("Deconstructor called"); 
     delete manager;
-    delete[] colors;
+    //delete[] colors;
     delete[] pGroup;
     delete[] pPosition;
   }
@@ -1157,7 +1157,7 @@ struct EFFECT_s {
     manager->Update();
   }
   EffectGroup* manager;
-  RgbColor * colors;
+  //RgbColor * colors;
   EffectObjectHandler ** pGroup;
   Melvtrix * matrix;
   uint8_t count = 0;
@@ -1178,14 +1178,22 @@ void BobblySquaresFn(effectState & state)
   switch (state) {
 
   case PRE_EFFECT: {
-    Serial.println("PRE: Creating Objects");
+    Serial.printf("PRE: Creating Objects (%u)\n", ESP.getFreeHeap());
     lights.SetTimeout( 0);
     lights.palette().mode(WHEEL);
     lights.palette().total(255) ;
 
-    if (EFFECT) { delete EFFECT; EFFECT = nullptr; }
+    if (EFFECT) { 
+      Serial.printf("[BobblySquaresFn] before delete EFFECT (%u)\n", ESP.getFreeHeap()); 
+      delete EFFECT; 
+      EFFECT = nullptr; 
+      Serial.printf("[BobblySquaresFn] after delete EFFECT (%u)\n", ESP.getFreeHeap()); 
+
+    }
 
     EFFECT = new EFFECT_s(5, 25);
+    
+    Serial.printf("[BobblySquaresFn] after new EFFECT (%u)\n", ESP.getFreeHeap()); 
 
     BobblyShapeFn_create(EFFECT, true, true, random(0, 3));
 
@@ -1193,9 +1201,8 @@ void BobblySquaresFn(effectState & state)
 
   break;
   case RUN_EFFECT: {
-    static bool triggered = false;
-    if (!triggered) { Serial.println("run function hit"); triggered = true; };
-    EFFECT->Run();
+
+    if (EFFECT) { EFFECT->Run(); } 
 
   }
   break;

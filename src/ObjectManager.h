@@ -45,6 +45,8 @@ class EffectObjectHandler
 {
 public:
 	EffectObjectHandler() : _next(nullptr) {}
+	virtual ~EffectObjectHandler() {}; 
+
 	virtual void SetObjectUpdateCallback(ObjectUpdateCallback Fn) {}
 	virtual void SetPixelUpdateCallback(AnimationUpdateCallback Fn) {}
 	virtual void Addpixel(uint16_t n, uint16_t p) {}
@@ -96,8 +98,9 @@ public:
 
 		Serial.printf("Created Object size %u \n", _total);
 	};
-	~EffectObject()
+	~EffectObject() override 
 	{
+		Serial.println("[EffectObject] Deconstructor");
 		delete[] _details;
 	}
 

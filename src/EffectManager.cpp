@@ -194,6 +194,7 @@ const char * EffectManager::getName(uint8_t i)
 
 bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, JsonObject *& root, const char * file_name)
 {
+	uint32_t starttime = millis();
 
 	File f = SPIFFS.open(file_name, "r");
 	bool success = false;
@@ -204,26 +205,55 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 
 	if (f && f.size()) {
 
+		Serial.println("[_parsespiffs] pre-malloc");
+
 		data = new char[f.size()];
 		// prevent nullptr exception if can't allocate
 		if (data) {
+		Serial.printf("[_parsespiffs] buffer size %u\n",f.size());
 
-			for (int i = 0; i < f.size(); i++) {
-				data[i] = f.read();
+			//  This method give a massive improvement in file reading speed for SPIFFS files.. 
+		
+			int bytesleft = f.size();
+			int position = 0; 
+			while ((f.available() > -1) && (bytesleft > 0)) {
+
+				// get available data size
+				int sizeAvailable = f.available();
+				if (sizeAvailable) {
+					int readBytes = sizeAvailable;
+
+					// read only the asked bytes
+					if (readBytes > bytesleft) {
+						readBytes = bytesleft ;
+					}
+
+					// get new position in buffer
+					char * buf = &data[position]; 
+					// read data
+					int bytesread = f.readBytes(buf, readBytes);
+					bytesleft -= bytesread;
+					position += bytesread;
+
+				}
+				// time for network streams
+				delay(0);
 			}
 
-			delay(0);
 
 			root = &jsonBuffer.parseObject(data);
 
 			if (root->success()) {
 				success = true;
 			}
+		} else {
+			Serial.println("[_parsespiffs] malloc failed"); 
 		}
 	}
 
 	f.close();
 
+	Serial.printf("[_parsespiffs] time: %u\n", millis() - starttime); 
 	if (success) {
 		return true;
 	} else {

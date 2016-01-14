@@ -225,9 +225,9 @@ void setup()
   //   Serial.println("remove presets");
   // } while (SPIFFS.remove(PRESETS_FILE) );
 
-  do {
-    Serial.println("remove presets");
-  } while (SPIFFS.remove("/MelvanaSettings.txt") );
+  // do {
+  //   Serial.println("remove presets");
+  // } while (SPIFFS.remove("/MelvanaSettings.txt") );
 
 }
 

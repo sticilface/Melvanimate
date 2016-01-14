@@ -82,6 +82,7 @@ class EffectHandler
 {
 
 public:
+	virtual ~EffectHandler() {};
 	virtual bool Run() {return false; }
 	virtual bool Start() {return false; }
 	virtual bool Stop() {return false; }
