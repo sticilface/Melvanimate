@@ -59,7 +59,7 @@ extern SimpleTimer timer;
  *	1. Palletes...  including sending and choosing paletes
  *	2. Saving currnet mode / effect  ...  big ask..
  *	3. Create Entoopy variable...  Randomness selection...
- *
+ *  4. REMOVE VARS... colours, brightness etc... should be managed by effect itself...
  *
  *
  *
@@ -71,9 +71,10 @@ class Melvanimate : public EffectManager
 public:
 	Melvanimate();
 	const RgbColor  getColor();
-	const RgbColor  getColor2() { return dim(_color2); }
 
-	const RgbColor  dim( RgbColor input) { return dim(input, _brightness); }
+	//const RgbColor  getColor2() { return dim(_color2); }
+
+	const RgbColor  dim( RgbColor input) { return dim(input, getBrightness()); }
 	static const RgbColor 	dim( RgbColor input, const uint8_t brightness);
 
 	const uint8_t   getBrightness();
@@ -88,7 +89,7 @@ public:
 	void      speed(const uint8_t speed) { _settings_changed = true;  _speed = speed ; Refresh(); }
 	const uint8_t   speed() { return _speed; }
 
-	const int       serialspeed() { return _serialspeed; }
+	//const int       serialspeed() { return _serialspeed; }
 	//void      serialspeed(const int speed);
 	void        grid(const uint16_t x, const uint16_t y);
 	void        setmatrix(const uint8_t i);
@@ -109,8 +110,8 @@ public:
 	bool        load();
 	bool        begin();
 	bool		animations() {return _animations; }
-	void 		setText(String var);
-	const char * getText();
+	//void 		setText(String var);
+	//const char * getText();
 
 	void setWaiting(bool wait = true);
 	void autoWait();

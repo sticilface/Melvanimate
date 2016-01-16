@@ -7,6 +7,8 @@
 #include <ArduinoJson.h>
 #include "palette.h"
 #include <FS.h>
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
 
 extern const char * PRESETS_FILE;
 /* ------------------------------------------------------------------------
@@ -40,7 +42,16 @@ public:
 
 	void setWaitFn(std::function<bool()> Fn ) { _waitFn = Fn; } //  allow effects to wait until triggering next...
 
-	EffectHandler* Current() const { return _currentHandle; };
+	EffectHandler* Current() const { 
+		if (_NextInLine) { 
+			return _NextInLine; 
+		} else {
+			return _currentHandle;
+		}
+
+		 
+
+	};
 
 	const uint16_t total() const { return _count;}
 	const char* getName(uint8_t i);
@@ -48,7 +59,7 @@ public:
 
 	bool newSave(uint8_t ID);
 	bool newLoad(uint8_t ID);
-	bool removePreset(uint8_t ID); 
+	bool removePreset(uint8_t ID);
 
 	// fetches info from SPIFFS about which presest applies to current
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets);
@@ -89,14 +100,16 @@ public:
 	virtual bool Pause() {return false; }
 	virtual void Refresh() {}
 	virtual void SetTimeout(uint32_t) {}
+	virtual bool args(ESP8266WebServer& HTTP) {return false;}
 
 	// experimental
 	virtual bool load(JsonObject& root, const char *& ID) { return false ; };
 	virtual bool addJson(JsonObject& settings) { return false; };
 
-	// save does not have to be overridden.  calls addJson instead. 
+	// save does NOT have to be overridden.  it calls addJson instead.
 	virtual bool save(JsonObject& root, const char *& ID);
 
+	// not being used... 
 	virtual void* getp() { return nullptr; }
 
 	// specific virtual functions for ALL effects...
@@ -107,6 +120,9 @@ public:
 
 	virtual bool setColor(RgbColor ) { return false;}
 	virtual bool getColor(RgbColor&) { return false;}
+
+	virtual bool setColor2(RgbColor ) { return false;}
+	virtual bool getColor2(RgbColor&) { return false;}
 
 	virtual bool setSerialspeed(uint32_t speed) { return false;}
 	virtual bool getSerialspeed(uint32_t& speed) { return false;}
@@ -234,15 +250,13 @@ public:
 
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override;
-	//bool save(JsonObject& root, const char *& ID) override;
 	bool addJson(JsonObject& settings) override;
+	bool args(ESP8266WebServer& HTTP) override; 
 
-	//void* getp() override {return this;}
-
-	bool setBrightness(uint8_t bri) override  {   _brightness = bri; return true; }
+	bool setBrightness(uint8_t bri) override  {   _brightness = bri; Refresh(); return true; }
 	bool getBrightness(uint8_t& bri) override {   bri = _brightness; return true; }
 
-	bool setColor(RgbColor color) override  { _color = color; return true; }
+	bool setColor(RgbColor color) override  { _color = color; Refresh(); return true; }
 	bool getColor(RgbColor& color) override {  color = _color; return true; }
 
 private:
@@ -261,14 +275,16 @@ public:
 		_color = RgbColor(0, 0, 0);
 		_marqueeText = strdup("MELVANIMATE");
 	};
-	~MarqueeEffect(){
+	~MarqueeEffect()
+	{
 		free(_marqueeText);
+		Serial.println("[~MarqueeEffect] marquee txt freed");
 	}
 
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override ;
-	//bool save(JsonObject& root, const char *& ID) override ;
 	bool addJson(JsonObject& settings) override  ;
+	bool args(ESP8266WebServer& HTTP) override; 
 
 	//  Specific Variables
 	bool setBrightness(uint8_t bri) override  {   _brightness = bri; return true; }
@@ -303,53 +319,14 @@ class AdalightEffect : public SwitchEffect
 {
 
 public:
-	AdalightEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _serialspeed(115200) {};
+	AdalightEffect(EffectHandlerFunction Fn);
 
 	//  These functions just need to add and retrieve preset values from the json.
-	bool load(JsonObject& root, const char *& ID) override
-	{
-		if (!root.containsKey(ID)) {
-			return false;
-		}
+	bool load(JsonObject& root, const char *& ID) override; 
+	bool addJson(JsonObject& settings) override; 
+	bool args(ESP8266WebServer & HTTP); 
 
-		JsonObject& current = root[ID];
-		const char * effect = current["effect"];
-
-		if (effect) {
-			if ( strcmp( effect , name() ) != 0) { return false; }
-		}
-
-		_serialspeed = current["serialspeed"];
-
-		return true;
-	}
-	// bool save(JsonObject& root, const char *& ID) override
-	// {
-	// 	Serial.printf("[save] ID = %s\n", ID);
-	// 	if (root.containsKey(ID)) {
-	// 		Serial.printf("[save] [%s]previous setting identified", ID);
-	// 		root.remove(ID ) ;
-	// 	}
-
-
-
-	// 	JsonObject& current = root.createNestedObject(ID);
-
-	// 	addJson(current);
-
-
-	// 	// current["effect"] = name();
-	// 	// current["name"] = "TO BE IMPLEMENTED";
-	// 	// current["serialspeed"] = _serialspeed ;
-	// }
-
-	bool addJson(JsonObject& settings) override
-	{
-		settings["effect"] = name();
-		settings["serialspeed"] = _serialspeed;
-	}
-
-	bool setSerialspeed(uint32_t speed) override {  _serialspeed = speed; return true; }
+	bool setSerialspeed(uint32_t speed) override {  _serialspeed = speed; Refresh(); return true; }
 	bool getSerialspeed(uint32_t& speed) override {  speed = _serialspeed; return true; }
 
 private:

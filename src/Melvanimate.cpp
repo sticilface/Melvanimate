@@ -1,6 +1,7 @@
 #include "Melvanimate.h"
 
 
+
 const uint16_t TOTALPIXELS = 64;
 
 NeoPixelBus * strip = nullptr;
@@ -68,6 +69,8 @@ const uint8_t  Melvanimate::getBrightness()
 
 }
 
+
+
 const RgbColor  Melvanimate::color()
 {
 	if (_currentHandle) {
@@ -131,11 +134,8 @@ void      Melvanimate::setBrightness(const uint8_t bright)
 
 	_brightness = bright;
 
-
-	//  new methods
-
 	if (_currentHandle) {
-		if(_currentHandle->setBrightness(bright)) {
+		if (_currentHandle->setBrightness(bright)) {
 			//Serial.printf("[setBri]\n", );
 		}
 	}
@@ -157,6 +157,7 @@ void      Melvanimate::color(const RgbColor color)
 	_settings_changed = true;
 	Refresh();
 }
+
 void      Melvanimate::color2(const RgbColor color)
 {
 	_color2 = color;
@@ -218,17 +219,17 @@ RgbColor Melvanimate::nextcolor()
 }
 
 
-const char * Melvanimate::getText()
-{
-	return _marqueetext.c_str();
-}
+// const char * Melvanimate::getText()
+// {
+// 	return _marqueetext.c_str();
+// }
 
-void Melvanimate::setText(String var)
-{
-	_marqueetext = var;
-	_settings_changed = true;
-	Refresh();
-}
+// void Melvanimate::setText(String var)
+// {
+// 	_marqueetext = var;
+// 	_settings_changed = true;
+// 	Refresh();
+// }
 
 
 //  This is a callback that when set, checks to see if current animation has ended.
@@ -240,7 +241,7 @@ bool Melvanimate::returnWaiting()
 	if (animator && _waiting == 2) {
 
 		if (!animator->IsAnimating()) {
-			Serial.println("Autowait END");
+			Serial.printf("[Melvanimate::returnWaiting] Autowait END (%u)\n",millis());
 			_waiting = false;
 			return false;
 		}
@@ -257,7 +258,7 @@ bool Melvanimate::returnWaiting()
 
 void Melvanimate::autoWait()
 {
-	Serial.println("Auto wait set");
+	Serial.printf("[Melvanimate::autoWait] Auto wait set (%u)\n",millis());
 	_waiting_timeout = millis();
 	_waiting = 2;
 }
@@ -265,11 +266,11 @@ void Melvanimate::autoWait()
 void Melvanimate::setWaiting(bool wait)
 {
 	if (wait) {
-		Serial.println("Set wait true");
+		Serial.printf("[Melvanimate::setWaiting] Set wait true (%u)\n",millis());
 		_waiting_timeout = millis();
 		_waiting = true;
 	} else {
-		Serial.println("Set wait false");
+		Serial.printf("[Melvanimate::setWaiting] Set wait false (%u)\n",millis());
 		_waiting = false;
 		_waiting_timeout = 0;
 	}
@@ -311,15 +312,15 @@ bool        Melvanimate::save(bool override)
 
 // specific effect settings
 
-	JsonObject& effectsettings = root.createNestedObject("effectsettings");
+//	JsonObject& effectsettings = root.createNestedObject("effectsettings");
 
 // Adalight
-	JsonObject& jsAdalight = effectsettings.createNestedObject("Adalight");
-	jsAdalight["serialspeed"] = _serialspeed ;
+	// JsonObject& jsAdalight = effectsettings.createNestedObject("Adalight");
+	// jsAdalight["serialspeed"] = _serialspeed ;
 
 // Marquee
-	JsonObject& jsMarquee = effectsettings.createNestedObject("Marquee");
-	jsMarquee["marqueetext"] = getText() ;
+	// JsonObject& jsMarquee = effectsettings.createNestedObject("Marquee");
+	// jsMarquee["marqueetext"] = getText() ;
 
 
 	if (!_settings) {
@@ -392,22 +393,22 @@ bool        Melvanimate::load()
 
 		JsonObject& current = root["current"];
 
-		if (current.containsKey("brightness")) { _brightness = (uint8_t)current["brightness"].as<long>(); }
-		if (current.containsKey("speed")) { _speed = (uint8_t)current["speed"].as<long>(); }
+	//	if (current.containsKey("brightness")) { _brightness = (uint8_t)current["brightness"].as<long>(); }
+	//	if (current.containsKey("speed")) { _speed = (uint8_t)current["speed"].as<long>(); }
 
-		if (current.containsKey("color1")) {
-			JsonObject& jscolor1 = current["color1"];
-			_color.R = jscolor1["R"].as<long>();
-			_color.G = jscolor1["G"].as<long>();
-			_color.B = jscolor1["B"].as<long>();
-		}
+		// if (current.containsKey("color1")) {
+		// 	JsonObject& jscolor1 = current["color1"];
+		// 	_color.R = jscolor1["R"].as<long>();
+		// 	_color.G = jscolor1["G"].as<long>();
+		// 	_color.B = jscolor1["B"].as<long>();
+		// }
 
-		if (current.containsKey("color2")) {
-			JsonObject& jscolor2 = current["color2"];
-			_color2.R = jscolor2["R"].as<long>();
-			_color2.G = jscolor2["G"].as<long>();
-			_color2.B = jscolor2["B"].as<long>();
-		}
+		// if (current.containsKey("color2")) {
+		// 	JsonObject& jscolor2 = current["color2"];
+		// 	_color2.R = jscolor2["R"].as<long>();
+		// 	_color2.G = jscolor2["G"].as<long>();
+		// 	_color2.B = jscolor2["B"].as<long>();
+		// }
 
 
 
@@ -422,15 +423,16 @@ bool        Melvanimate::load()
 	if (root.containsKey("effectsettings")) {
 		JsonObject& effectsettings = root["effectsettings"];
 
-		if (effectsettings.containsKey("Adalight")) {
-			JsonObject& jsAdalight = effectsettings["Adalight"];
-			if (jsAdalight.containsKey("serialspeed")) _serialspeed = jsAdalight["serialspeed"];
-		}
+		// if (effectsettings.containsKey("Adalight")) {
+		// 	JsonObject& jsAdalight = effectsettings["Adalight"];
+		// 	if (jsAdalight.containsKey("serialspeed")) _serialspeed = jsAdalight["serialspeed"];
+		// }
 
-		if (effectsettings.containsKey("Marquee")) {
-			JsonObject& jsAdalight = effectsettings["Marquee"];
-			if (jsAdalight.containsKey("marqueetext"))  setText( jsAdalight["marqueetext"].asString() );
-		}
+		// if (effectsettings.containsKey("Marquee")) {
+		// 	JsonObject& jsAdalight = effectsettings["Marquee"];
+		// 	if (jsAdalight.containsKey("marqueetext"))  setText( jsAdalight["marqueetext"].asString() );
+		// }
+
 	} else Debugln("No effect settings");
 
 
@@ -475,3 +477,9 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 	}
 
 }
+
+
+
+
+
+

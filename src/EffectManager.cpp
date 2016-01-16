@@ -44,7 +44,9 @@ bool EffectManager::Add(const char * name, EffectHandler* handle)
 
 bool EffectManager::Start()
 {
-	if (_toggleHandle) { return Start(_toggleHandle->name()); }
+	if (_toggleHandle) {
+		return Start(_toggleHandle->name());
+	}
 	return false;
 }
 
@@ -95,9 +97,11 @@ bool EffectManager::Start(const char * name)
 
 	if (handler) {
 		_NextInLine = handler;
-		//if ( strcmp(handler->name(), "Off") != 0) { _toggleHandle = handler; }
+		//if ( strcmp(handler->name(), "Off") != 0) {
+		//_toggleHandle = handler; // don't think i need this...
 		getPresets(_NextInLine, _numberofpresets, _presets);
 		Serial.printf("[Start] %u presets found for %s\n", _numberofpresets, _NextInLine->name());
+		//}
 		return true;
 	} else {
 		return false;
@@ -138,7 +142,7 @@ void EffectManager::Loop()
 
 	//  This flips over to next effect asyncstyle....
 	if (!waiting && _NextInLine) {
-		//Serial.println("Next effect STARTED");
+		Serial.println("[Loop] Next effect STARTED");
 		_currentHandle = _NextInLine;
 		_NextInLine = nullptr;
 		_currentHandle->Start();
@@ -210,12 +214,12 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 		data = new char[f.size()];
 		// prevent nullptr exception if can't allocate
 		if (data) {
-		Serial.printf("[_parsespiffs] buffer size %u\n",f.size());
+			Serial.printf("[_parsespiffs] buffer size %u\n", f.size());
 
-			//  This method give a massive improvement in file reading speed for SPIFFS files.. 
-		
+			//  This method give a massive improvement in file reading speed for SPIFFS files..
+
 			int bytesleft = f.size();
-			int position = 0; 
+			int position = 0;
 			while ((f.available() > -1) && (bytesleft > 0)) {
 
 				// get available data size
@@ -229,7 +233,7 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 					}
 
 					// get new position in buffer
-					char * buf = &data[position]; 
+					char * buf = &data[position];
 					// read data
 					int bytesread = f.readBytes(buf, readBytes);
 					bytesleft -= bytesread;
@@ -247,13 +251,13 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 				success = true;
 			}
 		} else {
-			Serial.println("[_parsespiffs] malloc failed"); 
+			Serial.println("[_parsespiffs] malloc failed");
 		}
 	}
 
 	f.close();
 
-	Serial.printf("[_parsespiffs] time: %u\n", millis() - starttime); 
+	Serial.printf("[_parsespiffs] time: %u\n", millis() - starttime);
 	if (success) {
 		return true;
 	} else {
@@ -698,27 +702,7 @@ bool GeneralEffect::load(JsonObject & root, const char *& ID)
 
 }
 
-// bool GeneralEffect::save(JsonObject & root, const char *& ID)
-// {
 
-// 	Serial.printf("[save] ID = %s\n", ID);
-// 	if (root.containsKey(ID)) {
-// 		Serial.printf("[save] [%s]previous setting identified", ID);
-// 		root.remove(ID ) ;
-// 	}
-
-
-// 	JsonObject& current = root.createNestedObject(ID);
-
-// 	addJson(current);
-// 	// current["effect"] = name();
-// 	// current["name"] = "TO BE IMPLEMENTED";
-// 	// current["brightness"] = _brightness ;
-// 	// JsonObject& jscolor1 = current.createNestedObject("color1");
-// 	// jscolor1["R"] = _color.R;
-// 	// jscolor1["G"] = _color.G;
-// 	// jscolor1["B"] = _color.B;
-// }
 
 bool GeneralEffect::addJson(JsonObject & settings)
 {
@@ -734,6 +718,21 @@ bool GeneralEffect::addJson(JsonObject & settings)
 }
 
 
+bool GeneralEffect::args(ESP8266WebServer& HTTP)
+{
+
+	bool found = false;
+
+	// need to add color... but change the JS to send normal POST not JSON...
+
+	if (HTTP.hasArg("brightness")) {
+		setBrightness(HTTP.arg("brightness").toInt());
+		found = true;
+	}
+
+	return found;
+
+}
 
 /*
 
@@ -748,19 +747,43 @@ bool GeneralEffect::addJson(JsonObject & settings)
 */
 
 
-bool MarqueeEffect::load(JsonObject& root, const char *& ID)  {};
-// bool MarqueeEffect::save(JsonObject& root, const char *& ID)
-// {
-// 	Serial.printf("[save] ID = %s\n", ID);
-// 	if (root.containsKey(ID)) {
-// 		Serial.printf("[save] [%s]previous setting identified", ID);
-// 		root.remove(ID ) ;
-// 	}
+bool MarqueeEffect::load(JsonObject& root, const char *& ID)
+{
+	if (!root.containsKey(ID)) {
+		return false;
+	}
 
-// 	JsonObject& current = root.createNestedObject(ID);
+	JsonObject& current = root[ID];
+	const char * effect = current["effect"];
 
-// 	addJson(current);
-// };
+	if (effect) {
+		if ( strcmp( effect , name() ) != 0) { return false; }
+	}
+
+	_brightness = current["brightness"];
+	_speed = current["speed"];
+
+	const char * palette_temp = current["palette"];
+
+	JsonObject& jscolor1 = current["color1"];
+	_color.R = jscolor1["R"];
+	_color.G = jscolor1["G"];
+	_color.B = jscolor1["B"];
+
+	if (current.containsKey("rotation")) {
+		_rotation = current["rotation"];
+	}
+	if (_marqueeText) {
+		free (_marqueeText);
+		_marqueeText = nullptr;
+	}
+	if (current.containsKey("marqueetext")) {
+		const char * temp_text = current["marqueetext"];
+		_marqueeText = strdup(temp_text);
+	}
+	return true;
+
+}
 
 bool MarqueeEffect::addJson(JsonObject& settings)
 {
@@ -781,9 +804,85 @@ bool MarqueeEffect::addJson(JsonObject& settings)
 	return true;
 } ;
 
+bool MarqueeEffect::args(ESP8266WebServer& HTTP)
+{
+	bool found = false;
+
+	// need to add color... but change the JS to send normal POST not JSON...
+
+	if (HTTP.hasArg("brightness")) {
+		setBrightness(HTTP.arg("brightness").toInt());
+		found = true;
+	}
+
+	if (HTTP.hasArg("speed")) {
+		setSpeed(HTTP.arg("speed").toInt());
+		found = true;
+	}
+
+	if (HTTP.hasArg("rotation")) {
+		uint8_t rotation = HTTP.arg("rotation").toInt();
+		if (rotation > 3) rotation = 0;
+		setRotation( rotation );
+		Refresh();
+		found = true;
+	}
+
+	if (HTTP.hasArg("marqueetext")) {
+		setText(HTTP.arg("marqueetext").c_str()) ;
+		Refresh();
+		found = true;
+	}
+
+	return found;
+}
 
 
 
+
+/*
+
+	Adalight class
+
+
+*/
+
+AdalightEffect::AdalightEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _serialspeed(115200) {};
+
+//  These functions just need to add and retrieve preset values from the json.
+bool AdalightEffect::load(JsonObject& root, const char *& ID)
+{
+	if (!root.containsKey(ID)) {
+		return false;
+	}
+
+	JsonObject& current = root[ID];
+	const char * effect = current["effect"];
+
+	if (effect) {
+		if ( strcmp( effect , name() ) != 0) { return false; }
+	}
+
+	_serialspeed = current["serialspeed"];
+
+	return true;
+}
+
+bool AdalightEffect::addJson(JsonObject& settings)
+{
+	settings["effect"] = name();
+	settings["serialspeed"] = _serialspeed;
+}
+
+bool AdalightEffect::args(ESP8266WebServer & HTTP)
+{
+	if (HTTP.hasArg("serialspeed")) {
+		setSerialspeed(HTTP.arg("serialspeed").toInt());
+		return true;
+	} else {
+		return false;
+	}
+}
 
 
 

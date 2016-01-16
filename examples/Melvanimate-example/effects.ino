@@ -97,24 +97,25 @@ void TimingFn(effectState& state)
 
 void Adalight_function();
 
-void AdaLightFn(effectState state)
+void AdaLightFn(effectState& state)
 {
   switch (state) {
 
   case PRE_EFFECT: {
-    Serial.println("Init: Adalight");
-    lights.SetTimeout(0);
-
+    
     if (Serial) {
       Serial.flush();
       delay(500);
       Serial.end();
     }
-    uint32_t speed = 11520;
+    uint32_t speed = 115200;
 
     if (lights.Current() && lights.Current()->getSerialspeed(speed) )
 
-      Serial.begin(speed);
+    Serial.begin(speed);
+    
+    Serial.println("Init: Adalight");
+    lights.SetTimeout(0);
 
     if (millis() > 30000) Adalight_Flash();
   }
@@ -130,6 +131,9 @@ void AdaLightFn(effectState state)
     animator->FadeTo(250, 0);
   }
   break;
+  case EFFECT_REFRESH: {
+    state = PRE_EFFECT; 
+  }
   }
 }
 
@@ -529,14 +533,16 @@ void  DMXfn (effectState state)
 *
 *------------------------------------------------*/
 
-void SimpleColorFn(effectState state)
+void SimpleColorFn(effectState& state)
 {
 
   switch (state) {
 
   case PRE_EFFECT: {
+    Serial.println("[SimpleColorFn] PRE_EFFECT"); 
     lights.SetTimeout(10000);
-    FadeTo(lights.getBrightness() * 8, lights.getColor());
+    lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state... 
+    FadeTo(lights.getColor());
   }
 
   break;
@@ -546,13 +552,15 @@ void SimpleColorFn(effectState state)
   break;
 
   case POST_EFFECT: {
-    FadeTo(250, 0);
+    Serial.println("[SimpleColorFn] POST_EFFECT"); 
+    lights.autoWait(); 
+    FadeTo(0);
   }
   break;
 
   case EFFECT_REFRESH: {
-    FadeTo(lights.getBrightness() * 8, lights.getColor());
-    Serial.println("Refresh Called");
+    state = PRE_EFFECT; 
+    Serial.println("[SimpleColorFn] Refresh Called");
     break;
   }
   }
@@ -572,8 +580,10 @@ void offFn(effectState &state)
   switch (state) {
 
   case PRE_EFFECT: {
+    Serial.println("[OffFn] PRE_EFFECT");
     lights.SetTimeout(10000);
-    FadeTo(lights.getBrightness() * 8, 0);
+    lights.autoWait(); 
+    FadeTo(0);
   }
 
   break;
@@ -1131,20 +1141,16 @@ struct EFFECT_s {
     pPosition = new position_s[_count];
     matrix = lights.matrix();
     pGroup = new EffectObjectHandler* [count];
-    Serial.println("Pre-create");
-    delay(5);
+
     for (uint8_t i = 0; i < count; i++) {
       pGroup[i] =  manager->Add(i, lights.speed() , new EffectObject( LEDs ) );
-      if (!pGroup[i]) { Serial.println("nullptr returned"); }
+      if (!pGroup[i]) { Serial.println("[EFFECT_s] nullptr returned"); }
     }
-    Serial.println("Post-create");
-    delay(10);
 
 
   }
   ~EFFECT_s()
   {
-    Serial.println("Deconstructor called"); 
     delete manager;
     //delete[] colors;
     delete[] pGroup;
@@ -1152,9 +1158,7 @@ struct EFFECT_s {
   }
   void Run()
   {
-    static bool triggered = false;
-    if (!triggered) { Serial.println("run effect_s function hit"); triggered = true; };
-    manager->Update();
+    if (manager) { manager->Update(); }
   }
   EffectGroup* manager;
   //RgbColor * colors;
@@ -1178,37 +1182,34 @@ void BobblySquaresFn(effectState & state)
   switch (state) {
 
   case PRE_EFFECT: {
-    Serial.printf("PRE: Creating Objects (%u)\n", ESP.getFreeHeap());
+    Serial.printf("[BobblySquaresFn] Creating Objects (%u)\n", ESP.getFreeHeap());
     lights.SetTimeout( 0);
     lights.palette().mode(WHEEL);
     lights.palette().total(255) ;
 
-    if (EFFECT) { 
-      Serial.printf("[BobblySquaresFn] before delete EFFECT (%u)\n", ESP.getFreeHeap()); 
-      delete EFFECT; 
-      EFFECT = nullptr; 
-      Serial.printf("[BobblySquaresFn] after delete EFFECT (%u)\n", ESP.getFreeHeap()); 
+    if (EFFECT) {
+      delete EFFECT;
+      EFFECT = nullptr;
 
     }
 
     EFFECT = new EFFECT_s(5, 25);
-    
-    Serial.printf("[BobblySquaresFn] after new EFFECT (%u)\n", ESP.getFreeHeap()); 
 
-    BobblyShapeFn_create(EFFECT, true, true, random(0, 3));
-
+    if (EFFECT) {
+      BobblyShapeFn_create(EFFECT, true, true, random(0, 3));
+    }
   }
 
   break;
   case RUN_EFFECT: {
 
-    if (EFFECT) { EFFECT->Run(); } 
+    if (EFFECT) { EFFECT->Run(); }
 
   }
   break;
 
   case POST_EFFECT: {
-    Serial.println("End: Blob");
+    Serial.println("[BobblySquaresFn] End");
     if (EFFECT) {
       delete EFFECT;
       EFFECT = nullptr;
@@ -1216,7 +1217,7 @@ void BobblySquaresFn(effectState & state)
   }
   break;
   case EFFECT_REFRESH: {
-    Serial.println("Refresh");
+    Serial.println("[BobblySquaresFn] Refresh");
     state = PRE_EFFECT;
   }
   break;
@@ -1233,9 +1234,13 @@ void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2,
 
     EffectObjectHandler * current =  EFFECT->pGroup[obj];  //    pointer to current group of pixels...
 
+    // nullptr protection
+    if (!current) break; 
+
     current->SetObjectUpdateCallback( [ current, EFFECT, obj, random1, random2, shape ]() {
 
       current->reset(); // new set of pixels...
+
       EFFECT->matrix->setShapeFn( [ EFFECT, obj, current, random1 ] (uint16_t pixel, int16_t x, int16_t y) {
         current->Addpixel(pixel);
       });

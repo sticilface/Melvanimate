@@ -9,7 +9,7 @@
   Sticilface - Beerware licence
 --------------------------------------------------------------------------------------------------------*/
 
-#include <GDBStub.h>
+//#include <GDBStub.h>
 
 
 #include <FS.h>
@@ -122,10 +122,10 @@ void setup()
       Serial.println("SETTINGS_FILE");
 
       do {
-      char buf[250];
-      uint8_t number = (f.size() - f.position() > 250)? 250 : f.size() - f.position(); 
-      f.readBytes(buf, number);
-      Serial.write(buf, number);
+        char buf[250];
+        uint8_t number = (f.size() - f.position() > 250) ? 250 : f.size() - f.position();
+        f.readBytes(buf, number);
+        Serial.write(buf, number);
       } while (f.position() < f.size());
 
       Serial.println("---");
@@ -135,7 +135,7 @@ void setup()
     }
 
     if (HTTP.hasArg("remove")) {
-      lights.removePreset(HTTP.arg("remove").toInt()); 
+      lights.removePreset(HTTP.arg("remove").toInt());
       HTTP.setContentLength(0);
       HTTP.send(200); // sends OK if were just receiving data...
     }
@@ -152,6 +152,7 @@ void setup()
 
   lights.Add("Off", new SwitchEffect(offFn));                              // working
   lights.Add("SimpleColor", new GeneralEffect(SimpleColorFn));              // working
+
   lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
   lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
   lights.Add("DMX", new SwitchEffect(DMXfn));                              // need to test - requires custom libs included
@@ -390,9 +391,11 @@ void handle_data()
 {
   uint32_t start_time = millis();
   //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
-  if (check_duplicate_req()) { HTTP.send(200); return; }
+  if (check_duplicate_req()) { HTTP.setContentLength(0); HTTP.send(200); return; }
 
+  Serial.println(); 
   print_args();
+
   if (HTTP.hasArg("plain")) {
 
     DynamicJsonBuffer jsonBuffer;
@@ -406,12 +409,20 @@ void handle_data()
         input.G = color["G"];
         input.B = color["B"];
         if (nameid == "color1") {
-          lights.color(input);
-          Debugf("Settings: RGB(%u,%u,%u)\n", lights.color().R, lights.color().G, lights.color().B);
+          if (lights.Current()) {
+            if (lights.Current()->setColor(input)) {
+              //lights.color(input);
+              Debugf("[handle]: RGB(%u,%u,%u)\n", input.R, input.G, input.B);
+            }
+          }
         }
         if (nameid == "color2") {
-          lights.color2(input);
-          Debugf("Settings: RGB(%u,%u,%u)\n", lights.color2().R, lights.color2().G, lights.color2().B);
+         if (lights.Current()) {
+            if (lights.Current()->setColor2(input)) {
+              //lights.color(input);
+              Debugf("[handle]: RGB(%u,%u,%u)\n", input.R, input.G, input.B);
+            }
+          }
         }
       }
     }
@@ -430,21 +441,34 @@ void handle_data()
     if (HTTP.arg("mode") != "Off") { lights.SetToggle(HTTP.arg("mode").c_str()); }
   }
 
-  if (HTTP.hasArg("brightness")) {
-    lights.setBrightness(HTTP.arg("brightness").toInt());
+//  new way of seting parameters too...  put it ALL in the effect itself...
+//
+  //
+
+  if (lights.Current()) {
+    if (lights.Current()->args(HTTP)) {
+      Serial.println("[handle] Setting applied");
+    }
   }
 
-  if (HTTP.hasArg("speed")) {
-    lights.Current()->setSpeed(HTTP.arg("speed").toInt());
-    //lights.speed(HTTP.arg("speed").toInt());
-  }
+//
+//
 
-  if (HTTP.hasArg("rotation")) {
-    uint8_t rotation = HTTP.arg("rotation").toInt();
-    if (rotation > 3) rotation = 0;
-    lights.matrix()->setRotation( rotation );
-    lights.Refresh();
-  }
+  // if (HTTP.hasArg("brightness")) {
+  //   lights.setBrightness(HTTP.arg("brightness").toInt());
+  // }
+
+  // if (HTTP.hasArg("speed")) {
+  //   lights.Current()->setSpeed(HTTP.arg("speed").toInt());
+  //   //lights.speed(HTTP.arg("speed").toInt());
+  // }
+
+  // if (HTTP.hasArg("rotation")) {
+  //   uint8_t rotation = HTTP.arg("rotation").toInt();
+  //   if (rotation > 3) rotation = 0;
+  //   lights.matrix()->setRotation( rotation );
+  //   lights.Refresh();
+  // }
 
   if (HTTP.hasArg("nopixels") && HTTP.arg("nopixels").length() != 0) {
     lights.setPixels(HTTP.arg("nopixels").toInt());
@@ -455,10 +479,11 @@ void handle_data()
     lights.Current()->setPalette( Palette::stringToEnum(HTTP.arg("palette").c_str()));
   }
 
-  if (HTTP.hasArg("marqueetext")) {
-    lights.Current()->setText(HTTP.arg("marqueetext").c_str()) ;
-    lights.Refresh();
-  }
+  // if (HTTP.hasArg("marqueetext")) {
+  //   lights.Current()->setText(HTTP.arg("marqueetext").c_str()) ;
+  //   lights.Refresh();
+  // }
+
 // matrixmode stuff
 // #define NEO_MATRIX_TOP         0x00 // Pixel 0 is at top of matrix
 // #define NEO_MATRIX_BOTTOM      0x01 // Pixel 0 is at bottom of matrix
@@ -631,9 +656,9 @@ void send_data(String page)
     for (uint8_t i = 0; i < lights.total(); i++) {
       modes.add(lights.getName(i));
     }
-
+    // creates settings node for web page
     JsonObject& settings = root.createNestedObject("settings");
-
+    // adds minimum current effect name, if there if addJson returns false.
     if (lights.Current()) {
       if (!lights.Current()->addJson(settings)) {
         settings["effect"] = lights.getName();
@@ -641,20 +666,21 @@ void send_data(String page)
     }
 
     //  this keeps compatability whilst i test..
-    root["currentmode"] = lights.getName();
-    root["brightness"] = lights.getBrightness();
-    root["speed"] = lights.speed();
-    JsonObject& color = root.createNestedObject("color1");
-    color["R"] = lights.color().R;
-    color["G"] = lights.color().G;
-    color["B"] = lights.color().B;
-    JsonObject& color2 = root.createNestedObject("color2");
-    color2["R"] = lights.color2().R;
-    color2["G"] = lights.color2().G;
-    color2["B"] = lights.color2().B;
-    root["serialspeed"] = lights.serialspeed();
-    root["rotation"] = lights.matrix()->getRotation();
-    root["marqueetext"] = lights.getText();
+    // root["currentmode"] = lights.getName();
+    // root["brightness"] = lights.getBrightness();
+    // root["speed"] = lights.speed();
+    // JsonObject& color = root.createNestedObject("color1");
+    // color["R"] = lights.color().R;
+    // color["G"] = lights.color().G;
+    // color["B"] = lights.color().B;
+    // JsonObject& color2 = root.createNestedObject("color2");
+    // color2["R"] = lights.color2().R;
+    // color2["G"] = lights.color2().G;
+    // color2["B"] = lights.color2().B;
+    // root["serialspeed"] = lights.serialspeed();
+    // root["rotation"] = lights.matrix()->getRotation();
+    // root["marqueetext"] = lights.getText();
+
     root["palette"] = String(lights.palette().getModeString());
 
   }
@@ -756,9 +782,6 @@ void send_data(String page)
   }
 
 
-//  root.prettyPrintTo(Serial);
-//  Serial.println();
-
   ESPmanager::sendJsontoHTTP(root, HTTP);
 
 }
@@ -769,6 +792,29 @@ void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdat
     animator->StartAnimation(pixel, time, animUpdate);
   }
 
+}
+
+void FadeTo(RgbColor color){
+    uint32_t current_brightness = 0;
+    uint32_t target_brightness = color.CalculateBrightness();
+    uint32_t brightness = 0; 
+
+    for (uint16_t i = 0; i < strip->PixelCount(); i++) {
+      current_brightness += strip->GetPixelColor(i).CalculateBrightness();
+    }
+      current_brightness /= strip->PixelCount(); 
+
+      if (current_brightness > target_brightness) {
+        brightness = current_brightness; 
+      } else {
+        brightness = target_brightness; 
+      }
+
+      //int32_t difference = abs(brightness - color.CalculateBrightness() ); 
+
+    Serial.printf("[FadeTo] current brightness %u, target brightness %u, Brightness Diff = %u, time %ums\n", current_brightness, target_brightness, brightness, brightness * 8); 
+
+      FadeTo(brightness * 8, color); 
 }
 
 void FadeTo( uint16_t time, RgbColor color)
