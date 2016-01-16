@@ -170,16 +170,16 @@ void EffectManager::SetTimeout(const char * name, uint32_t time)
 
 }
 
-const char * EffectManager::getName()
-{
-	if (_NextInLine) {
-		return _NextInLine->name(); //  allows webgui to display the current selected instead of the ending one.
-	} else 	if (_currentHandle) {
-		return _currentHandle->name();
-	} else {
-		return "";
-	}
-}
+// const char * EffectManager::getName()
+// {
+// 	if (_NextInLine) {
+// 		return _NextInLine->name(); //  allows webgui to display the current selected instead of the ending one.
+// 	} else 	if (_currentHandle) {
+// 		return _currentHandle->name();
+// 	} else {
+// 		return "";
+// 	}
+// }
 
 const char * EffectManager::getName(uint8_t i)
 {
@@ -209,7 +209,7 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 
 	if (f && f.size()) {
 
-		Serial.println("[_parsespiffs] pre-malloc");
+		//Serial.println("[_parsespiffs] pre-malloc");
 
 		data = new char[f.size()];
 		// prevent nullptr exception if can't allocate

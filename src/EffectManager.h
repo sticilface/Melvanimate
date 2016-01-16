@@ -48,14 +48,11 @@ public:
 		} else {
 			return _currentHandle;
 		}
-
-		 
-
 	};
 
 	const uint16_t total() const { return _count;}
 	const char* getName(uint8_t i);
-	const char* getName();
+	//const char* getName();
 
 	bool newSave(uint8_t ID);
 	bool newLoad(uint8_t ID);

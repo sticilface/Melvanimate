@@ -661,7 +661,7 @@ void send_data(String page)
     // adds minimum current effect name, if there if addJson returns false.
     if (lights.Current()) {
       if (!lights.Current()->addJson(settings)) {
-        settings["effect"] = lights.getName();
+        settings["effect"] = lights.Current()->name();
       }
     }
 

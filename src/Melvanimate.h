@@ -14,7 +14,7 @@
 #include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function 
 #include "Palette.h"
 #include "e131/_E131.h"
-#include "SimpleTimer/_SimpleTimer.h"
+#include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
 
 
 

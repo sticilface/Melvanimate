@@ -241,7 +241,7 @@ bool Melvanimate::returnWaiting()
 	if (animator && _waiting == 2) {
 
 		if (!animator->IsAnimating()) {
-			Serial.printf("[Melvanimate::returnWaiting] Autowait END (%u)\n",millis());
+			Serial.printf("[Melvanimate::returnWaiting] Autowait END (%u)\n", millis());
 			_waiting = false;
 			return false;
 		}
@@ -258,7 +258,7 @@ bool Melvanimate::returnWaiting()
 
 void Melvanimate::autoWait()
 {
-	Serial.printf("[Melvanimate::autoWait] Auto wait set (%u)\n",millis());
+	Serial.printf("[Melvanimate::autoWait] Auto wait set (%u)\n", millis());
 	_waiting_timeout = millis();
 	_waiting = 2;
 }
@@ -266,11 +266,11 @@ void Melvanimate::autoWait()
 void Melvanimate::setWaiting(bool wait)
 {
 	if (wait) {
-		Serial.printf("[Melvanimate::setWaiting] Set wait true (%u)\n",millis());
+		Serial.printf("[Melvanimate::setWaiting] Set wait true (%u)\n", millis());
 		_waiting_timeout = millis();
 		_waiting = true;
 	} else {
-		Serial.printf("[Melvanimate::setWaiting] Set wait false (%u)\n",millis());
+		Serial.printf("[Melvanimate::setWaiting] Set wait false (%u)\n", millis());
 		_waiting = false;
 		_waiting_timeout = 0;
 	}
@@ -296,19 +296,19 @@ bool        Melvanimate::save(bool override)
 
 	JsonObject& current = root.createNestedObject("current");
 
-	current["brightness"] = _brightness ;
-	current["speed"] = _speed ;
-	current["mode"] = getName();
+	// current["brightness"] = _brightness ;
+	// current["speed"] = _speed ;
+	// current["mode"] = getName();
 
-	JsonObject& jscolor1 = current.createNestedObject("color1");
-	jscolor1["R"] = _color.R;
-	jscolor1["G"] = _color.G;
-	jscolor1["B"] = _color.B;
+	// JsonObject& jscolor1 = current.createNestedObject("color1");
+	// jscolor1["R"] = _color.R;
+	// jscolor1["G"] = _color.G;
+	// jscolor1["B"] = _color.B;
 
-	JsonObject& jscolor2 = current.createNestedObject("color2");
-	jscolor2["R"] = _color2.R;
-	jscolor2["G"] = _color2.G;
-	jscolor2["B"] = _color2.B;
+	// JsonObject& jscolor2 = current.createNestedObject("color2");
+	// jscolor2["R"] = _color2.R;
+	// jscolor2["G"] = _color2.G;
+	// jscolor2["B"] = _color2.B;
 
 // specific effect settings
 
@@ -341,102 +341,132 @@ bool        Melvanimate::save(bool override)
 
 	_settings_changed = false;
 	return true;
-};
+}
+
+
 bool        Melvanimate::load()
 {
 
-	DynamicJsonBuffer jsonBuffer(1000);
+	DynamicJsonBuffer jsonBuffer;
 	if (!_settings) {
-		Debugln("ERROR File NOT open!");
-		_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
+		Serial.println("[Melvanimate::load] ERROR File NOT open!");
+		_settings = SPIFFS.open(MELVANA_SETTINGS, "r");
 		if (!_settings) {
-			Debugln("No Settings File Found");
+			Serial.println("[Melvanimate::load] No Settings File Found");
 			return false;
 		}
 	}
 
-	_settings.seek(0, SeekSet);
+	char * data = new char[_settings.size()];
+	// prevent nullptr exception if can't allocate
+	if (data) {
+		Serial.printf("[Melvanimate::load] buffer size %u\n", _settings.size());
 
-	char data[_settings.size()];
+		//  This method give a massive improvement in file reading speed for SPIFFS files..
 
-	for (int i = 0; i < _settings.size(); i++) {
-		data[i] = _settings.read();
-	}
+		int bytesleft = _settings.size();
+		int position = 0;
+		while ((_settings.available() > -1) && (bytesleft > 0)) {
 
-	//f.close();
+			// get available data size
+			int sizeAvailable = _settings.available();
+			if (sizeAvailable) {
+				int readBytes = sizeAvailable;
 
-	JsonObject& root = jsonBuffer.parseObject(data);
+				// read only the asked bytes
+				if (readBytes > bytesleft) {
+					readBytes = bytesleft ;
+				}
 
-	if (!root.success()) {
-		Debugln(F("Parsing settings file Failed!"));
-		return false;
-	} else { Debugln("Parse successfull"); }
+				// get new position in buffer
+				char * buf = &data[position];
+				// read data
+				int bytesread = _settings.readBytes(buf, readBytes);
+				bytesleft -= bytesread;
+				position += bytesread;
+
+			}
+			// time for network streams
+			delay(0);
+		}
+
+
+		JsonObject& root = jsonBuffer.parseObject(data);
+
+		if (!root.success()) {
+			Debugln(F("[Melvanimate::load] Parsing settings file Failed!"));
+			return false;
+		} else { Debugln("[Melvanimate::load] Parse successfull"); }
 // global variables
-	if (root.containsKey("globals")) {
+		if (root.containsKey("globals")) {
 
-		JsonObject& globals = root["globals"];
+			JsonObject& globals = root["globals"];
 
-		_pixels = globals["pixels"].as<long>() ;
-		_matrixconfig = globals["matrixconfig"].as<long>()  ;
-		_grid_x  = globals["gridx"].as<long>();
-		_grid_y  = globals["gridy"].as<long>();
-		//_matrix->setRotation(globals["rotation"]); //conundrum... egg or chicken
+			_pixels = globals["pixels"].as<long>() ;
+			_matrixconfig = globals["matrixconfig"].as<long>()  ;
+			_grid_x  = globals["gridx"].as<long>();
+			_grid_y  = globals["gridy"].as<long>();
+			//_matrix->setRotation(globals["rotation"]); //conundrum... egg or chicken
 
-		// Debugf("Globals:\n _pixels(%u) \n _matrixconfig(%u)\n _gridx(%u)\n _gridy(%u)\n",
-		//        _pixels, _matrixconfig, _grid_x, _grid_y);
-		// Debugf("Globals READ:\n _pixels(%u) \n _matrixconfig(%u)\n _gridx(%u)\n _gridy(%u)\n",
-		//        globals["pixels"].as<long>(), globals["matrixconfig"].as<long>(), globals["gridx"].as<long>(), globals["gridy"].as<long>());
+			// Debugf("Globals:\n _pixels(%u) \n _matrixconfig(%u)\n _gridx(%u)\n _gridy(%u)\n",
+			//        _pixels, _matrixconfig, _grid_x, _grid_y);
+			// Debugf("Globals READ:\n _pixels(%u) \n _matrixconfig(%u)\n _gridx(%u)\n _gridy(%u)\n",
+			//        globals["pixels"].as<long>(), globals["matrixconfig"].as<long>(), globals["gridx"].as<long>(), globals["gridy"].as<long>());
 
-	} else Debugln("No Globals");
+		} else Debugln("[Melvanimate::load] No Globals");
 // current settings
-	if (root.containsKey("current")) {
+		if (root.containsKey("current")) {
 
-		JsonObject& current = root["current"];
+			JsonObject& current = root["current"];
 
-	//	if (current.containsKey("brightness")) { _brightness = (uint8_t)current["brightness"].as<long>(); }
-	//	if (current.containsKey("speed")) { _speed = (uint8_t)current["speed"].as<long>(); }
+			//	if (current.containsKey("brightness")) { _brightness = (uint8_t)current["brightness"].as<long>(); }
+			//	if (current.containsKey("speed")) { _speed = (uint8_t)current["speed"].as<long>(); }
 
-		// if (current.containsKey("color1")) {
-		// 	JsonObject& jscolor1 = current["color1"];
-		// 	_color.R = jscolor1["R"].as<long>();
-		// 	_color.G = jscolor1["G"].as<long>();
-		// 	_color.B = jscolor1["B"].as<long>();
-		// }
+			// if (current.containsKey("color1")) {
+			// 	JsonObject& jscolor1 = current["color1"];
+			// 	_color.R = jscolor1["R"].as<long>();
+			// 	_color.G = jscolor1["G"].as<long>();
+			// 	_color.B = jscolor1["B"].as<long>();
+			// }
 
-		// if (current.containsKey("color2")) {
-		// 	JsonObject& jscolor2 = current["color2"];
-		// 	_color2.R = jscolor2["R"].as<long>();
-		// 	_color2.G = jscolor2["G"].as<long>();
-		// 	_color2.B = jscolor2["B"].as<long>();
-		// }
+			// if (current.containsKey("color2")) {
+			// 	JsonObject& jscolor2 = current["color2"];
+			// 	_color2.R = jscolor2["R"].as<long>();
+			// 	_color2.G = jscolor2["G"].as<long>();
+			// 	_color2.B = jscolor2["B"].as<long>();
+			// }
 
 
 
-		// Debugf("Current:\n _brightness(%u) \n _speed(%u)\n _color1(%u,%u,%u)\n _color2(%u,%u,%u)\n",
-		//        _brightness, _speed, _color.R, _color.G, _color.B, _color2.R, _color2.G, _color2.B, _color2.R);
-		// Debugf("Current READ:\n _brightness(%u) \n _speed(%u)\n _color1(%u,%u,%u)\n _color2(%u,%u,%u)\n",
-		//        current["brightness"].as<long>(), current["speed"].as<long>(), jscolor1["R"].as<long>(), jscolor1["G"].as<long>(), jscolor1["B"].as<long>(),
-		//        jscolor2["R"].as<long>(), jscolor2["G"].as<long>(), jscolor2["B"].as<long>());
+			// Debugf("Current:\n _brightness(%u) \n _speed(%u)\n _color1(%u,%u,%u)\n _color2(%u,%u,%u)\n",
+			//        _brightness, _speed, _color.R, _color.G, _color.B, _color2.R, _color2.G, _color2.B, _color2.R);
+			// Debugf("Current READ:\n _brightness(%u) \n _speed(%u)\n _color1(%u,%u,%u)\n _color2(%u,%u,%u)\n",
+			//        current["brightness"].as<long>(), current["speed"].as<long>(), jscolor1["R"].as<long>(), jscolor1["G"].as<long>(), jscolor1["B"].as<long>(),
+			//        jscolor2["R"].as<long>(), jscolor2["G"].as<long>(), jscolor2["B"].as<long>());
 
-	} else Debugln("No Current");
+		} else Debugln("[Melvanimate::load] No Current");
 // effect settings
-	if (root.containsKey("effectsettings")) {
-		JsonObject& effectsettings = root["effectsettings"];
+		if (root.containsKey("effectsettings")) {
+			JsonObject& effectsettings = root["effectsettings"];
 
-		// if (effectsettings.containsKey("Adalight")) {
-		// 	JsonObject& jsAdalight = effectsettings["Adalight"];
-		// 	if (jsAdalight.containsKey("serialspeed")) _serialspeed = jsAdalight["serialspeed"];
-		// }
+			// if (effectsettings.containsKey("Adalight")) {
+			// 	JsonObject& jsAdalight = effectsettings["Adalight"];
+			// 	if (jsAdalight.containsKey("serialspeed")) _serialspeed = jsAdalight["serialspeed"];
+			// }
 
-		// if (effectsettings.containsKey("Marquee")) {
-		// 	JsonObject& jsAdalight = effectsettings["Marquee"];
-		// 	if (jsAdalight.containsKey("marqueetext"))  setText( jsAdalight["marqueetext"].asString() );
-		// }
+			// if (effectsettings.containsKey("Marquee")) {
+			// 	JsonObject& jsAdalight = effectsettings["Marquee"];
+			// 	if (jsAdalight.containsKey("marqueetext"))  setText( jsAdalight["marqueetext"].asString() );
+			// }
 
-	} else Debugln("No effect settings");
+		} else Debugln("[Melvanimate::load] No effect settings");
 
 
-	return true;
+		return true;
+
+	} else {
+		Debugln("[Melvanimate::load] Unable to Malloc for settings");
+	}
 
 };
 
@@ -446,7 +476,7 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 	if (_timer != -1) {
 		timer.deleteTimer(_timer);
 		_timer = -1;
-		Serial.println("Timer Cancelled");
+		Serial.println("[Melvanimate::setTimer] Timer Cancelled");
 	}
 
 	timeout *= (1000 * 60); // convert timout to milliseconds from minutes...
@@ -465,15 +495,15 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 			} else if (command.equalsIgnoreCase("speed")) {
 				speed(option.toInt());
 			} else if (command.equalsIgnoreCase("loadpreset")) {
-				Serial.println("Load preset: not done yet");
+				Serial.println("[Melvanimate::setTimer] Load preset: not done yet");
 			}
 			_timer = -1 ; //  get ride of flag to timer!
 		});
 
-		if (_timer > -1 ) { Serial.printf("Timer Started (%s,%s)\n", command.c_str(), option.c_str()); }
+		if (_timer > -1 ) { Serial.printf("[Melvanimate::setTimer] Started (%s,%s)\n", command.c_str(), option.c_str()); }
 
 	} else {
-		Serial.println("No Timeout, so timer cancelled");
+		Serial.println("[Melvanimate::setTimer] No Timeout, so timer cancelled");
 	}
 
 }
