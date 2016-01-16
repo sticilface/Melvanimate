@@ -738,22 +738,7 @@
 
             $("#homepage").on("pagebeforeshow", function() {
               
-                $("#flip-enable").change( function() {
-                
-                $("#status").empty().append("Waiting...").css("color", "blue");;
-                $.post("data.esp", $(this).serialize(), function(data) {
-                        console.log("Data Sent");
-                    }).success(function() {
-                        $("#status").empty().append("Success").css("color", "green");;
-                        GetData(); 
-
-                    })
-                    .error(function() {
-                        $("#status").empty().append("Error").css("color", "red");;
-                    })
-                    .complete(function() {});
-                    
-                })
+                $("#flip-enable").on("change", flipChanged );
 
                 var mode = $('#modeslist').val();
 
@@ -914,6 +899,24 @@
             }
 
         } // end of rundocumentt
+        
+    function flipChanged(e) {
+      
+                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $.post("data.esp", $(this).serialize(), function(data) {
+                        console.log("Data Sent");
+                    }).success(function() {
+                        $("#status").empty().append("Success").css("color", "green");;
+                        GetData(); 
+
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
+    }
+    
+    
 
         function GetData(pagevar) {
             console.log("pagevar = " + pagevar);
@@ -958,7 +961,7 @@
 
                     if ($.mobile.activePage.attr('id') == 'homepage') {
 
-                        if (result.hasOwnProperty('modes')) {
+                        if (result.hasOwnProperty('modes') && result.hasOwnProperty('settings')) {
                             temp = result.modes;
                             $("#modeslist").find('option').remove();
                             //console.log("currentmode = " + result.currentmode);
@@ -973,11 +976,11 @@
 
                             $('#modeslist').selectmenu('refresh');
                             
-                            if (result.currentmode != "Off") { 
-                              $("#flip-enable").val("on").flipswitch('refresh'); //.trigger("change"); 
+                            if (result.settings.effect != "Off") { 
+                              $("#flip-enable").off("change").val("on").flipswitch('refresh').on("change",flipChanged); //.trigger("change"); 
                               
                             } else {
-                              $("#flip-enable").val("off").flipswitch('refresh'); //.trigger("change");
+                              $("#flip-enable").off("change").val("off").flipswitch('refresh').on("change",flipChanged); //.trigger("change");
                             }
                             
                         }
@@ -1001,7 +1004,7 @@
                         }
 
                         if (settings.hasOwnProperty('serialspeed')) {
-                            $('#adalight-serialspeed').val(result.serialspeed).selectmenu('refresh');
+                            $('#adalight-serialspeed').val(settings.serialspeed).selectmenu('refresh');
                         }
 
                         if (settings.hasOwnProperty('rotation')) {
