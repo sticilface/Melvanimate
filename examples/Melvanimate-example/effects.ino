@@ -98,7 +98,7 @@ void TimingFn(effectState& state)
 
 void Adalight_function();
 
-void AdaLightFn(effectState& state)
+void AdaLightFn(effectState& state, EffectHandler* ptr)
 {
   switch (state) {
 
@@ -270,7 +270,7 @@ void Adalight_function ()      //  uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, c
 *------------------------------------------------*/
 
 
-void UDPFn(effectState state)
+void UDPFn(effectState state, EffectHandler* ptr)
 {
   int packetSize;
 
@@ -334,7 +334,7 @@ void UDPFn(effectState state)
 *
 *------------------------------------------------*/
 
-void  DMXfn (effectState state)
+void  DMXfn (effectState state, EffectHandler* ptr)
 {
 
   int packetSize;
@@ -492,39 +492,43 @@ void  DMXfn (effectState state)
 *
 *------------------------------------------------*/
 
-void SimpleColorFn(effectState& state)
+void SimpleColorFn(effectState& state, EffectHandler* ptr)
 {
-  RgbColor color;
-  uint8_t brightness = 0;
-  switch (state) {
+  GeneralEffect* effect = static_cast<GeneralEffect*>(ptr);
 
-  case PRE_EFFECT: {
-    Serial.println("[SimpleColorFn] PRE_EFFECT");
-    lights.SetTimeout(10000);
-    lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state...
-    if (lights.Current()->getColor(color) && lights.Current()->getBrightness(brightness)) {
-      FadeTo( lights.dim(color, brightness));
+  if (effect) {
+    RgbColor color;
+    uint8_t brightness = 0;
+    switch (state) {
+
+    case PRE_EFFECT: {
+      Serial.println("[SimpleColorFn] PRE_EFFECT");
+      lights.SetTimeout(10000);
+      lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state...
+      if (effect->getColor(color) && effect->getBrightness(brightness)) {
+        FadeTo( lights.dim(color, brightness));
+      }
     }
-  }
 
-  break;
-  case RUN_EFFECT: {
-    //FadeTo(2000, lights.Current()->getColor());
-  }
-  break;
-
-  case POST_EFFECT: {
-    Serial.println("[SimpleColorFn] POST_EFFECT");
-    lights.autoWait();
-    FadeTo(0);
-  }
-  break;
-
-  case EFFECT_REFRESH: {
-    state = PRE_EFFECT;
-    Serial.println("[SimpleColorFn] Refresh Called");
     break;
-  }
+    case RUN_EFFECT: {
+      //FadeTo(2000, lights.Current()->getColor());
+    }
+    break;
+
+    case POST_EFFECT: {
+      Serial.println("[SimpleColorFn] POST_EFFECT");
+      lights.autoWait();
+      FadeTo(0);
+    }
+    break;
+
+    case EFFECT_REFRESH: {
+      state = PRE_EFFECT;
+      Serial.println("[SimpleColorFn] Refresh Called");
+      break;
+    }
+    }
   }
 }
 
@@ -535,7 +539,7 @@ void SimpleColorFn(effectState& state)
 *------------------------------------------------*/
 
 
-void offFn(effectState &state)
+void offFn(effectState &state, EffectHandler* ptr)
 {
 
 
@@ -566,74 +570,73 @@ void offFn(effectState &state)
 *------------------------------------------------*/
 
 
-void MarqueeFn(effectState state)
+void MarqueeFn(effectState state, EffectHandler* ptr)
 {
 
 
-  switch (state) {
-
-  case PRE_EFFECT: {
-    Serial.println("[MarqueeFn] PRE_EFFECT"); 
-    strip->ClearTo(0);
-    palette_type pal;
-    lights.Current()->getPalette(pal);
-    lights.palette().mode(pal);
-    lights.palette().total(255);
+  MarqueeEffect* effect = static_cast<MarqueeEffect*> (ptr);
 
 
-    MarqueeEffect *p1 = dynamic_cast<MarqueeEffect *> (lights.Current());
+  if (effect) {
 
-    if (p1) {
+    switch (state) {
 
-    p1->testfunction(); 
+    case PRE_EFFECT: {
+      Serial.println("[MarqueeFn] PRE_EFFECT");
+      strip->ClearTo(0);
+      palette_type pal;
+      effect->getPalette(pal);
+      lights.palette().mode(pal);
+      lights.palette().total(255);
+
+
 
     }
 
-  }
-
-  break;
-  case RUN_EFFECT: {
-    uint8_t speed = 0;
-    char * text;
-    uint8_t brightness = 255;
-    RgbColor input_color = RgbColor(0); 
-
-    bool gotspeed = lights.Current()->getSpeed(speed); 
-    bool gottext = lights.Current()->getText(text);
-    bool gotbrightness = lights.Current()->getBrightness(brightness); 
-    bool gotcolor = lights.Current()->getColor(input_color);
-    lights.palette().input(input_color);
-
-    RgbColor color = lights.palette().next();
-    RgbColor dimmedcolor = lights.dim(color, brightness);
-
-    lights.SetTimeout( speed * 10);
-
-    {
-      static uint32_t timer = 0; 
-      if (millis() - timer > 5000) {
-      Serial.printf("%s -> (%u,%u,%u)speed = %u, text = %s, brightness = %u, RGB(%u,%u,%u)\n", lights.Current()->name(), gotspeed, gottext, gotbrightness, speed, text, brightness, dimmedcolor.R, dimmedcolor.G, dimmedcolor.B );
-      timer = millis(); 
-      }
-    }
-
-    displaytext(text, speed * 10,  dimmedcolor);
-
-  }
-  break;
-
-  case POST_EFFECT: {
-    lights.autoWait();
-    FadeTo(500, 0);
-  }
-  break;
-  case EFFECT_REFRESH: {
-    Serial.println("Refresh called");
-    lights.timeoutvar = lights.getX();
-    strip->ClearTo(0);
     break;
-  }
+    case RUN_EFFECT: {
+      uint8_t speed = 0;
+      char * text;
+      uint8_t brightness = 255;
+      RgbColor input_color = RgbColor(0);
 
+      bool gotspeed = effect->getSpeed(speed);
+      bool gottext = effect->getText(text);
+      bool gotbrightness = effect->getBrightness(brightness);
+      bool gotcolor = effect->getColor(input_color);
+      lights.palette().input(input_color);
+
+      RgbColor color = lights.palette().next();
+      RgbColor dimmedcolor = lights.dim(color, brightness);
+
+      lights.SetTimeout( speed * 10);
+
+      {
+        static uint32_t timer = 0;
+        if (millis() - timer > 5000) {
+          Serial.printf("%s -> (%u,%u,%u)speed = %u, text = %s, brightness = %u, RGB(%u,%u,%u)\n", effect->name(), gotspeed, gottext, gotbrightness, speed, text, brightness, dimmedcolor.R, dimmedcolor.G, dimmedcolor.B );
+          timer = millis();
+        }
+      }
+
+      displaytext(text, speed * 10,  dimmedcolor);
+
+    }
+    break;
+
+    case POST_EFFECT: {
+      lights.autoWait();
+      FadeTo(500, 0);
+    }
+    break;
+    case EFFECT_REFRESH: {
+      Serial.println("Refresh called");
+      lights.timeoutvar = lights.getX();
+      strip->ClearTo(0);
+      break;
+    }
+
+    }
   }
 
 }

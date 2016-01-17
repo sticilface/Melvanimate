@@ -182,30 +182,30 @@ class SwitchEffect : public EffectHandler
 {
 
 public:
-	typedef std::function<void(effectState& )> EffectHandlerFunction;
+	typedef std::function<void(effectState&, EffectHandler* )> EffectHandlerFunction;
 	SwitchEffect(EffectHandlerFunction Fn) : _Fn(Fn) {};
 	bool Run() override
 	{
 		if (_state == PRE_EFFECT) {
-			_Fn(_state);
+			_Fn(_state, this);
 			_state = RUN_EFFECT;
 			return true;
 		}
 
 		if (_state == RUN_EFFECT) {
 			if (millis() - _lastTick > _timeout) {
-				_Fn(_state);
+				_Fn(_state, this);
 				_lastTick = millis();
 			}
 		}
 	};
-	bool Start() override { _state = PRE_EFFECT ; _Fn(_state) ; _state = RUN_EFFECT; }
-	bool Stop() override { _state = POST_EFFECT; _Fn(_state); };
+	bool Start() override { _state = PRE_EFFECT ; _Fn(_state, this) ; _state = RUN_EFFECT; }
+	bool Stop() override { _state = POST_EFFECT; _Fn(_state, this); };
 	void SetTimeout (uint32_t timeout) override { _timeout = timeout; };
 	void Refresh()
 	{
 		_state = EFFECT_REFRESH;
-		_Fn(_state) ;
+		_Fn(_state, this) ;
 		if ( _state == EFFECT_REFRESH ) _state = RUN_EFFECT;
 	}
 
