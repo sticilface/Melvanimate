@@ -112,8 +112,16 @@
                 </select>
             </div>
 
-            <div id="effectoptions">
+            
+              
+            <div class="ui-field-contain presetlistclass">
+                <label for="currentpresetslist">Preset:</label>
+                <select name="preset" id="currentpresetslist" class="mysubmitdropdown"> 
+                </select>
+            </div>              
 
+<div id="effectoptions">
+  
                 <div class="ui-field-contain complex ObjectManagerexample BobblySquares Marquee">
                     <label for="select-palettes">Palette:</label>
                     <select name="palette" id="select-palettes" class='mysubmitthis'>
@@ -621,7 +629,8 @@
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this.form).find('input,select').filter(':visible').serialize(), function(data) {
                         console.log("Data Sent");
-                    }).success(function() {
+                    }).success(function(e) {
+                      processJSON(e);
                         $("#status").empty().append("Success").css("color", "green");;
                     })
                     .error(function() {
@@ -634,7 +643,8 @@
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
                         console.log("Data Sent");
-                    }).success(function() {
+                    }).success(function(e) {
+                        processJSON(e); 
                         $("#status").empty().append("Success").css("color", "green");;
                     })
                     .error(function() {
@@ -649,8 +659,9 @@
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).find('input'), function(data) {
                         console.log("Data Sent");
-                    }).success(function() {
+                    }).success(function(e) {
                         $("#status").empty().append("Success").css("color", "green");;
+                        processJSON(e); 
                     })
                     .error(function() {
                         $("#status").empty().append("Error").css("color", "red");;
@@ -662,7 +673,8 @@
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
                         console.log("Data Sent");
-                    }).success(function() {
+                    }).success(function(e) {
+                        processJSON(e); 
                         $("#status").empty().append("Success").css("color", "green");;
                     })
                     .error(function() {
@@ -779,11 +791,19 @@
                                 }
                             };
                             console.log(JSON.stringify(data));
+                            $("#status").empty().append("Waiting...").css("color", "blue");;
                             $.post("data.esp", JSON.stringify(data),
                                 function(data) {
                                     console.log(data);
                                 }
-                            );
+                            ).success(function(e) {
+                            processJSON(e); 
+                            $("#status").empty().append("Success").css("color", "green");;
+                        })
+                        .error(function() {
+                            $("#status").empty().append("Error").css("color", "red");;
+                        })
+                        .complete(function() {});
                             $elm.css('color', "rgb(" + colors.RND.rgb.r + "," + colors.RND.rgb.g + "," + colors.RND.rgb.b + ")");
                             $elm.css('text-shadow', 'none');
                             //SendColor(); 
@@ -826,8 +846,10 @@
                 });
 
                 $("#brightness").on('slidestop', function() {
+                    $("#status").empty().append("Waiting...").css("color", "blue");;
                     $.post("data.esp", $(this).serialize())
-                        .success(function() {
+                        .success(function(e) {
+                            processJSON(e); 
                             $("#status").empty().append("Success").css("color", "green");;
                         })
                         .error(function() {
@@ -837,8 +859,10 @@
                 });
 
                 $("#speed").on('slidestop', function() {
+                    $("#status").empty().append("Waiting...").css("color", "blue");;
                     $.post("data.esp", $(this).serialize())
-                        .success(function() {
+                        .success(function(e) {
+                            processJSON(e); 
                             $("#status").empty().append("Success").css("color", "green");;
                         })
                         .error(function() {
@@ -849,7 +873,8 @@
             });
 
             function SendColor() {
-                $.post("data.esp", $(this).serialize()).success(function() {
+                $.post("data.esp", $(this).serialize()).success(function(e) {
+                        processJSON(e)
                         $("#status").empty().append("Success").css("color", "green");;
                     })
                     .error(function() {
@@ -905,10 +930,10 @@
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
                         console.log("Data Sent");
-                    }).success(function() {
+                    }).success(function(e) {
                         $("#status").empty().append("Success").css("color", "green");;
-                        GetData(); 
-
+                        //GetData(); 
+                        processJSON(e);
                     })
                     .error(function() {
                         $("#status").empty().append("Error").css("color", "red");;
@@ -916,20 +941,10 @@
                     .complete(function() {});
     }
     
-    
-
-        function GetData(pagevar) {
-            console.log("pagevar = " + pagevar);
-            if (!pagevar) {
-                pagevar = $.mobile.activePage.attr('id');
-                console.log("Pagevar empty");
-            } else {
-                console.log("Pagevar NOT empty");
-            }
-
-            $("#status").empty().append("Waiting...").css("color", "blue");;
-
-            $.getJSON("data.esp?data=" + pagevar, function(result) {
+    function processJSON(result) {
+      
+                  if (!pagevar) { pagevar = $.mobile.activePage.attr('id'); } 
+                
                     console.log("RESULT:")
                     console.log(result);
                     if (pagevar === "all") {
@@ -1028,7 +1043,33 @@
                         });
                         
                       }
+                      
+                      
+                      if (result.hasOwnProperty('currentpresets')) {
+                        console.log("has currentpresets"); 
+                        
+                        $("#currentpresetslist").find('option').remove();
+                            //console.log("currentmode = " + result.currentmode);
+                            $("#currentpresetslist").append('<option value=255>  none </option>');
+                            $.each(result.currentpresets, function(key, value) {
+                                var isconnected = " ";
+                                if (result.hasOwnProperty('settings')) {
+                                if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
+                                }
+                                  
+                                $("#currentpresetslist").append('<option value=' + key + " " + isconnected + '>' + value + '</option>');
+                            }); 
+                        $('#currentpresetslist').selectmenu('refresh');
 
+                        $(".presetlistclass").show();
+                        
+                        
+                      } else {
+                        $("#currentpresetslist").find('option').remove();
+                        $('.presetlistclass').hide();
+
+                      }
+                      //  presetlist
                     }
 
                     // Layout Page
@@ -1096,6 +1137,25 @@
                             $("#input-palette-delay").val(result.palettedelay);
                         }
                     }
+    }
+
+  var pagevar; 
+  
+        function GetData(pagevar) {
+            console.log("pagevar = " + pagevar);
+            if (!pagevar) {
+                pagevar = $.mobile.activePage.attr('id');
+                console.log("Pagevar empty");
+            } else {
+                console.log("Pagevar NOT empty");
+            }
+
+            $("#status").empty().append("Waiting...").css("color", "blue");;
+
+            $.getJSON("data.esp?data=" + pagevar, function(result) {
+              
+              processJSON(result);
+
 
                 }).success(function() {
                     $("#status").empty().append("Success").css("color", "green");;
