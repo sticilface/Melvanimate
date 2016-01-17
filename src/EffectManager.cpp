@@ -461,6 +461,7 @@ bool EffectManager::newSave(uint8_t ID)
 
 bool EffectManager::newLoad(uint8_t ID)
 {
+	bool success = false;
 	if (_currentHandle) {
 		DynamicJsonBuffer jsonBuffer;
 		const char * cID = jsonBuffer.strdup(String(ID).c_str());
@@ -472,20 +473,29 @@ bool EffectManager::newLoad(uint8_t ID)
 
 			if (root && _currentHandle->load(*root, cID)) {
 				Refresh();
-				if (data) { delete[] data; }
-				return true;
+				success = true;
 
-			} else {
-				// put in here the ability to switch effect.. then load...
-				if (data) { delete[] data; }
-				return false;
+			} else if (root) {
+				if (root->containsKey(cID)) {
+					JsonObject& preset = (*root)[cID];
+					if (Start(preset["effect"].asString())) {
+						Serial.println("[EffectManager::newLoad] New effect started");
+						if (_NextInLine->load(*root, cID)) {
+							Serial.println("[EffectManager::newLoad] _NextInLine presets loaded");
+							success = true;
+						} else if (_currentHandle->load(*root, cID)) {
+							Serial.println("[EffectManager::newLoad] _currentHandle presets loaded");							
+							success = true;
+						}
+					}
+				}
+
 			}
 		}
 
-	} else {
-
-		return false;
+		if (data) { delete[] data; }
 	}
+	return success;
 }
 
 
@@ -884,7 +894,7 @@ bool MarqueeEffect::args(JsonObject& root)
 		Refresh();
 		found = true;
 	}
-	
+
 	if (found) { _preset = 255; }
 
 	return found;

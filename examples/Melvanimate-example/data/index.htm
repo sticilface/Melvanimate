@@ -1057,7 +1057,7 @@
                                 if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
                                 }
                                   
-                                $("#currentpresetslist").append('<option value=' + key + " " + isconnected + '>' + value + '</option>');
+                                $("#currentpresetslist").append('<option value=' + key + " " + isconnected + '>['+key+'] ' + value + '</option>');
                             }); 
                         $('#currentpresetslist').selectmenu('refresh');
 
