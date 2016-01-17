@@ -70,34 +70,14 @@ class Melvanimate : public EffectManager
 {
 public:
 	Melvanimate();
-//	const RgbColor  getColor();
 
-	//const RgbColor  getColor2() { return dim(_color2); }
-
-	//const RgbColor  dim( RgbColor input) { return dim(input, getBrightness()); }
 	static const RgbColor 	dim( RgbColor input, const uint8_t brightness);
 
-	// const uint8_t   getBrightness();
-	// void      		setBrightness(const uint8_t bright);
+	void  grid(const uint16_t x, const uint16_t y);
+	void  setmatrix(const uint8_t i);
 
-//	void      color(const RgbColor color);
-//	const RgbColor  color();
-	//RgbColor nextcolor();
-
-//	void      color2(const RgbColor color);
-//	const RgbColor  color2() { return _color2; }
-//	void      speed(const uint8_t speed) { _settings_changed = true;  _speed = speed ; Refresh(); }
-//	const uint8_t   speed() { return _speed; }
-
-	//const int       serialspeed() { return _serialspeed; }
-	//void      serialspeed(const int speed);
-
-
-	void        grid(const uint16_t x, const uint16_t y);
-	void        setmatrix(const uint8_t i);
-
-	const uint8_t     getmatrix() { return _matrixconfig; }
-	Melvtrix *        matrix() { return _matrix; } //  returns pointer to the GFX melvtrix
+	const uint8_t getmatrix() { return _matrixconfig; }
+	Melvtrix *  matrix() { return _matrix; } //  returns pointer to the GFX melvtrix
 
 	Palette & palette() { return *_palette; }
 
@@ -112,8 +92,6 @@ public:
 	bool        load();
 	bool        begin();
 	bool		animations() {return _animations; }
-	//void 		setText(String var);
-	//const char * getText();
 
 	void setWaiting(bool wait = true);
 	void autoWait();

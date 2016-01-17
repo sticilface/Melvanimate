@@ -100,44 +100,48 @@ void Adalight_function();
 
 void AdaLightFn(effectState& state, EffectHandler* ptr)
 {
-  switch (state) {
 
-  case PRE_EFFECT: {
+  AdalightEffect* effect = static_cast<AdalightEffect*>(ptr);
 
-    if (Serial) {
-      Serial.flush();
-      delay(500);
-      Serial.end();
+  if (effect) {
+    switch (state) {
+
+    case PRE_EFFECT: {
+
+      if (Serial) {
+        Serial.flush();
+        delay(500);
+        Serial.end();
+      }
+      uint32_t speed = 115200;
+
+      if (effect->getSerialspeed(speed) )
+
+        Serial.begin(speed);
+
+      Serial.println("Init: Adalight");
+      lights.SetTimeout(0);
+
+      if (millis() > 30000) Adalight_Flash();
     }
-    uint32_t speed = 115200;
 
-    if (lights.Current() && lights.Current()->getSerialspeed(speed) )
+    break;
+    case RUN_EFFECT: {
+      Adalight_function();
+    }
+    break;
 
-      Serial.begin(speed);
-
-    Serial.println("Init: Adalight");
-    lights.SetTimeout(0);
-
-    if (millis() > 30000) Adalight_Flash();
-  }
-
-  break;
-  case RUN_EFFECT: {
-    Adalight_function();
-  }
-  break;
-
-  case POST_EFFECT: {
-    Serial.println("End: Adalight");
-    animator->FadeTo(250, 0);
-  }
-  break;
-  case EFFECT_REFRESH: {
-    state = PRE_EFFECT;
-  }
+    case POST_EFFECT: {
+      Serial.println("End: Adalight");
+      animator->FadeTo(250, 0);
+    }
+    break;
+    case EFFECT_REFRESH: {
+      state = PRE_EFFECT;
+    }
+    }
   }
 }
-
 
 
 
@@ -497,17 +501,16 @@ void SimpleColorFn(effectState& state, EffectHandler* ptr)
   GeneralEffect* effect = static_cast<GeneralEffect*>(ptr);
 
   if (effect) {
-    RgbColor color;
-    uint8_t brightness = 0;
+
     switch (state) {
 
     case PRE_EFFECT: {
       Serial.println("[SimpleColorFn] PRE_EFFECT");
       lights.SetTimeout(10000);
       lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state...
-      if (effect->getColor(color) && effect->getBrightness(brightness)) {
-        FadeTo( lights.dim(color, brightness));
-      }
+      
+        FadeTo( lights.dim(effect->getColor(), effect->getBrightness()));
+      
     }
 
     break;
@@ -584,8 +587,7 @@ void MarqueeFn(effectState state, EffectHandler* ptr)
     case PRE_EFFECT: {
       Serial.println("[MarqueeFn] PRE_EFFECT");
       strip->ClearTo(0);
-      palette_type pal;
-      effect->getPalette(pal);
+      palette_type pal = effect->getPalette();
       lights.palette().mode(pal);
       lights.palette().total(255);
 
@@ -595,29 +597,17 @@ void MarqueeFn(effectState state, EffectHandler* ptr)
 
     break;
     case RUN_EFFECT: {
-      uint8_t speed = 0;
-      char * text;
-      uint8_t brightness = 255;
-      RgbColor input_color = RgbColor(0);
 
-      bool gotspeed = effect->getSpeed(speed);
-      bool gottext = effect->getText(text);
-      bool gotbrightness = effect->getBrightness(brightness);
-      bool gotcolor = effect->getColor(input_color);
-      lights.palette().input(input_color);
 
-      RgbColor color = lights.palette().next();
-      RgbColor dimmedcolor = lights.dim(color, brightness);
+      uint8_t speed = effect->getSpeed();
+      const char * text = effect->getText();
+
+      lights.palette().input( effect->getColor() );
+
+      RgbColor dimmedcolor = lights.dim( lights.palette().next() , effect->getBrightness());
 
       lights.SetTimeout( speed * 10);
 
-      {
-        static uint32_t timer = 0;
-        if (millis() - timer > 5000) {
-          Serial.printf("%s -> (%u,%u,%u)speed = %u, text = %s, brightness = %u, RGB(%u,%u,%u)\n", effect->name(), gotspeed, gottext, gotbrightness, speed, text, brightness, dimmedcolor.R, dimmedcolor.G, dimmedcolor.B );
-          timer = millis();
-        }
-      }
 
       displaytext(text, speed * 10,  dimmedcolor);
 

@@ -41,48 +41,6 @@ bool        Melvanimate::begin()
 
 }
 
-// const RgbColor  Melvanimate::getColor()
-// {
-// 	if (_currentHandle) {
-// 		RgbColor color = RgbColor(0);
-// 		if (_currentHandle->getColor(color)) {
-// 			return dim(color);
-// 		}
-// 	}
-
-// 	//return dim(_color);
-// 	return RgbColor(0);
-// }
-
-// const uint8_t  Melvanimate::getBrightness()
-// {
-// 	if (_currentHandle) {
-// 		uint8_t bri = 0;
-// 		if (_currentHandle->getBrightness(bri)) {
-// 			return bri;
-// 		}
-// 	}
-// 	//Serial.printf("[getBri:default] %u\n", _brightness);
-
-// 	// return default
-// 	//return _brightness;
-// 	return 0;
-// }
-
-
-
-// const RgbColor  Melvanimate::color()
-// {
-// 	if (_currentHandle) {
-// 		RgbColor temp = 0;
-// 		if (_currentHandle->getColor(temp)) {
-// 			return temp;
-// 		}
-// 	}
-
-// 	return RgbColor(0);
-// }
-
 
 void Melvanimate::_init_matrix()
 {
@@ -127,60 +85,7 @@ const RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
 	return RgbColor( HslColor(originalHSL.H, originalHSL.S, originalHSL.L )  );
 }
 
-// void      Melvanimate::setBrightness(const uint8_t bright)
-// {
-// 	// if (bright == _brightness ) {
-// 	// 	return;
-// 	// }
 
-// 	//_brightness = bright;
-
-// 	if (_currentHandle) {
-// 		if (_currentHandle->setBrightness(bright)) {
-// 			//Serial.printf("[setBri]\n", );
-// 		}
-// 	}
-
-// 	Refresh();
-// 	_settings_changed = true;
-// }
-
-// void      Melvanimate::color(const RgbColor color)
-// {
-// 	//_color = color;
-// 	_palette->input(color);
-
-// 	if (_currentHandle) {
-// 		_currentHandle->setColor(color);
-// 	}
-
-
-// 	_settings_changed = true;
-// 	Refresh();
-// }
-
-// void      Melvanimate::color2(const RgbColor color)
-// {
-// 	_color2 = color;
-// 	_settings_changed = true;
-// 	Refresh();
-// }
-
-
-// void      Melvanimate::serialspeed(const int speed)
-// {
-// 	if (speed == _serialspeed) { return; }
-// 	_serialspeed = speed;
-// 	if (Serial) {
-// 		Debugln("Flushing and Ending Serial 1");
-// 		Serial.flush();
-// 		delay(500);
-// 		Serial.end();
-// 	}
-// 	_settings_changed = true;
-// 	Serial.begin(_serialspeed);
-// 	Debugf("New Serial started speed: %u\n", _serialspeed);
-// }
 void        Melvanimate::grid(const uint16_t x, const uint16_t y)
 {
 	if ( x * y > _pixels) { return; } // bail if grid is too big for pixels.. not sure its required
@@ -213,25 +118,6 @@ void        Melvanimate::setPixels(const uint16_t pixels)
 	_init_LEDs();
 	Debugf("HEAP: %u\n", ESP.getFreeHeap());
 }
-
-// RgbColor Melvanimate::nextcolor()
-// {
-// 	if (_palette) { return dim(_palette->next()); } else { return RgbColor(0); }
-// }
-
-
-// const char * Melvanimate::getText()
-// {
-// 	return _marqueetext.c_str();
-// }
-
-// void Melvanimate::setText(String var)
-// {
-// 	_marqueetext = var;
-// 	_settings_changed = true;
-// 	Refresh();
-// }
-
 
 //  This is a callback that when set, checks to see if current animation has ended.
 // set using setWaitFn ( std::bind (&Melvana::returnWaiting, this)  ); in initialisation
@@ -295,33 +181,6 @@ bool        Melvanimate::save(bool override)
 		globals["rotation"] = _matrix->getRotation();
 	}
 
-	JsonObject& current = root.createNestedObject("current");
-
-	// current["brightness"] = _brightness ;
-	// current["speed"] = _speed ;
-	// current["mode"] = getName();
-
-	// JsonObject& jscolor1 = current.createNestedObject("color1");
-	// jscolor1["R"] = _color.R;
-	// jscolor1["G"] = _color.G;
-	// jscolor1["B"] = _color.B;
-
-	// JsonObject& jscolor2 = current.createNestedObject("color2");
-	// jscolor2["R"] = _color2.R;
-	// jscolor2["G"] = _color2.G;
-	// jscolor2["B"] = _color2.B;
-
-// specific effect settings
-
-//	JsonObject& effectsettings = root.createNestedObject("effectsettings");
-
-// Adalight
-	// JsonObject& jsAdalight = effectsettings.createNestedObject("Adalight");
-	// jsAdalight["serialspeed"] = _serialspeed ;
-
-// Marquee
-	// JsonObject& jsMarquee = effectsettings.createNestedObject("Marquee");
-	// jsMarquee["marqueetext"] = getText() ;
 
 
 	if (!_settings) {
@@ -336,9 +195,6 @@ bool        Melvanimate::save(bool override)
 
 	_settings.seek(0, SeekSet);
 	root.prettyPrintTo(_settings);
-	//f.close();
-	//Debugln("Done");
-	//Debugf("jsonBuffer SIZE : %u\n", jsonBuffer.size() );
 
 	_settings_changed = false;
 	return true;
@@ -407,12 +263,7 @@ bool        Melvanimate::load()
 			_matrixconfig = globals["matrixconfig"].as<long>()  ;
 			_grid_x  = globals["gridx"].as<long>();
 			_grid_y  = globals["gridy"].as<long>();
-			//_matrix->setRotation(globals["rotation"]); //conundrum... egg or chicken
 
-			// Debugf("Globals:\n _pixels(%u) \n _matrixconfig(%u)\n _gridx(%u)\n _gridy(%u)\n",
-			//        _pixels, _matrixconfig, _grid_x, _grid_y);
-			// Debugf("Globals READ:\n _pixels(%u) \n _matrixconfig(%u)\n _gridx(%u)\n _gridy(%u)\n",
-			//        globals["pixels"].as<long>(), globals["matrixconfig"].as<long>(), globals["gridx"].as<long>(), globals["gridy"].as<long>());
 
 		} else Debugln("[Melvanimate::load] No Globals");
 // current settings
@@ -420,45 +271,12 @@ bool        Melvanimate::load()
 
 			JsonObject& current = root["current"];
 
-			//	if (current.containsKey("brightness")) { _brightness = (uint8_t)current["brightness"].as<long>(); }
-			//	if (current.containsKey("speed")) { _speed = (uint8_t)current["speed"].as<long>(); }
-
-			// if (current.containsKey("color1")) {
-			// 	JsonObject& jscolor1 = current["color1"];
-			// 	_color.R = jscolor1["R"].as<long>();
-			// 	_color.G = jscolor1["G"].as<long>();
-			// 	_color.B = jscolor1["B"].as<long>();
-			// }
-
-			// if (current.containsKey("color2")) {
-			// 	JsonObject& jscolor2 = current["color2"];
-			// 	_color2.R = jscolor2["R"].as<long>();
-			// 	_color2.G = jscolor2["G"].as<long>();
-			// 	_color2.B = jscolor2["B"].as<long>();
-			// }
-
-
-
-			// Debugf("Current:\n _brightness(%u) \n _speed(%u)\n _color1(%u,%u,%u)\n _color2(%u,%u,%u)\n",
-			//        _brightness, _speed, _color.R, _color.G, _color.B, _color2.R, _color2.G, _color2.B, _color2.R);
-			// Debugf("Current READ:\n _brightness(%u) \n _speed(%u)\n _color1(%u,%u,%u)\n _color2(%u,%u,%u)\n",
-			//        current["brightness"].as<long>(), current["speed"].as<long>(), jscolor1["R"].as<long>(), jscolor1["G"].as<long>(), jscolor1["B"].as<long>(),
-			//        jscolor2["R"].as<long>(), jscolor2["G"].as<long>(), jscolor2["B"].as<long>());
-
 		} else Debugln("[Melvanimate::load] No Current");
 // effect settings
 		if (root.containsKey("effectsettings")) {
 			JsonObject& effectsettings = root["effectsettings"];
 
-			// if (effectsettings.containsKey("Adalight")) {
-			// 	JsonObject& jsAdalight = effectsettings["Adalight"];
-			// 	if (jsAdalight.containsKey("serialspeed")) _serialspeed = jsAdalight["serialspeed"];
-			// }
 
-			// if (effectsettings.containsKey("Marquee")) {
-			// 	JsonObject& jsAdalight = effectsettings["Marquee"];
-			// 	if (jsAdalight.containsKey("marqueetext"))  setText( jsAdalight["marqueetext"].asString() );
-			// }
 
 		} else Debugln("[Melvanimate::load] No effect settings");
 
@@ -486,18 +304,21 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 	if (timeout) {
 
 		_timer = timer.setTimeout(timeout, [command, option, this]() {
-
+			DynamicJsonBuffer jsonBuffer;
+			JsonObject& root = jsonBuffer.createObject();
 			if (command.equalsIgnoreCase("off")) {
 				Start("Off");
 			} else if (command.equalsIgnoreCase("start")) {
 				Start(option);
 			} else if (command.equalsIgnoreCase("brightness")) {
 				if (Current()) {
-					Current()->setBrightness(option.toInt());
+					root["brightness"] = option.toInt(); 
+					Current()->args(root);
 				}
 			} else if (command.equalsIgnoreCase("speed")) {
 				if (Current()) {
-					Current()->setSpeed(option.toInt());
+					root["speed"] = option.toInt(); 
+					Current()->args(root);
 				}
 			} else if (command.equalsIgnoreCase("loadpreset")) {
 				Serial.println("[Melvanimate::setTimer] Load preset: not done yet");

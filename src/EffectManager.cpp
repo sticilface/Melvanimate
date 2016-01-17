@@ -18,13 +18,6 @@ EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandl
 	_NextInLine(nullptr)
 {};
 
-// EffectManager::EffectManager(NeoPixelBus ** strip, NeoPixelAnimator ** animator) : _count(0), _firstHandle(nullptr), _currentHandle(nullptr), _lastHandle(nullptr),
-// 	timeoutvar(0), effectposition(0), _NextInLine(nullptr), _strip(strip), _animator(animator)
-// {};
-
-
-
-
 bool EffectManager::Add(const char * name, EffectHandler* handle)
 {
 	_count++;
@@ -56,7 +49,7 @@ bool EffectManager::SetToggle(const char * name)
 
 	if (handler) {
 		_toggleHandle = handler;
-		getPresets(_toggleHandle, _numberofpresets, _presets);
+		//getPresets(_toggleHandle, _numberofpresets, _presets);
 		return true;
 	}
 	return false;
@@ -98,11 +91,10 @@ bool EffectManager::Start(const char * name)
 
 	if (handler) {
 		_NextInLine = handler;
-		//if ( strcmp(handler->name(), "Off") != 0) {
-		//_toggleHandle = handler; // don't think i need this...
-		getPresets(_NextInLine, _numberofpresets, _presets);
+		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
+
 		Serial.printf("[Start] %u presets found for %s\n", _numberofpresets, _NextInLine->name());
-		//}
+
 		return true;
 	} else {
 		return false;
@@ -304,14 +296,25 @@ bool EffectManager::removePreset(uint8_t ID)
 
 }
 
-bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets, uint8_t *& presets)
+bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names)
 {
 	char * data = nullptr;
 
-	// delete any existing preset information .
+	// delete any existing preset information.
+
+	for (uint8_t i = 0; i < numberofpresets; i++) {
+		char * p = preset_names[i];
+		if (p) { free(p); }
+	}
+
 	if (presets) {
 		delete[] presets;
 		presets = nullptr;
+	}
+
+	if (preset_names) {
+		delete[] preset_names;
+		preset_names = nullptr;
 	}
 
 	numberofpresets = 0;
@@ -348,10 +351,16 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 				numberofpresets = count;
 
 				if (numberofpresets) {
+
 					presets = new uint8_t[numberofpresets];
+					preset_names = new char*[numberofpresets];
+
 					count = 0; // reset the counter...
 
-					if (presets) {
+					if (presets && preset_names) {
+
+						memset(presets, 0, numberofpresets);
+						memset(preset_names, 0, numberofpresets);
 
 						for (JsonObject::iterator it = root->begin(); it != root->end(); ++it) {
 							// get id of preset
@@ -361,7 +370,16 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 							// compare to the name of current effect
 							if ( strcmp(current["effect"], handle->name()) == 0) {
 								// if matched then this preset is a valid effect for the current one.
-								presets[count++] = String(key).toInt();
+								presets[count] = String(key).toInt();
+
+								if (current.containsKey("name")) {
+									preset_names[count] = strdup(current["name"]);
+								} else {
+									preset_names[count] = nullptr;
+								}
+
+
+								count++;
 							}
 
 						}
@@ -458,6 +476,7 @@ bool EffectManager::newLoad(uint8_t ID)
 				return true;
 
 			} else {
+				// put in here the ability to switch effect.. then load...
 				if (data) { delete[] data; }
 				return false;
 			}
@@ -689,6 +708,8 @@ bool GeneralEffect::load(JsonObject & root, const char *& ID)
 
 	Serial.printf("RGB (%u,%u,%u)\n", _color.R, _color.G, _color.B);
 
+	_preset = String(ID).toInt();
+	Serial.printf("[GeneralEffect::load] _preset = %u\n", _preset);
 	//current["name"] = "TO BE IMPLEMENTED";
 	return true;
 
@@ -705,6 +726,7 @@ bool GeneralEffect::addJson(JsonObject & settings)
 	jscolor1["R"] = _color.R;
 	jscolor1["G"] = _color.G;
 	jscolor1["B"] = _color.B;
+
 	//include return true to override the default no handler...
 	return true;
 }
@@ -728,15 +750,16 @@ bool GeneralEffect::addJson(JsonObject & settings)
 
 bool GeneralEffect::args(JsonObject & root)
 {
-	bool found = false; 
+	bool found = false;
+
 	if (root.containsKey("color")) {
-		   JsonObject& color = root["color"];
-		   RgbColor input;
-		   input.R = color["R"];
-		   input.G = color["G"];
-		   input.B = color["B"];
-		   setColor(input);
-		   found = true; 
+		JsonObject& color = root["color"];
+		RgbColor input;
+		input.R = color["R"];
+		input.G = color["G"];
+		input.B = color["B"];
+		setColor(input);
+		found = true;
 
 	}
 
@@ -744,6 +767,8 @@ bool GeneralEffect::args(JsonObject & root)
 		setBrightness( root["brightness"] );
 		found = true;
 	}
+
+	if (found) { _preset = 255; }
 	return found;
 }
 
@@ -794,6 +819,8 @@ bool MarqueeEffect::load(JsonObject& root, const char *& ID)
 		const char * temp_text = current["marqueetext"];
 		_marqueeText = strdup(temp_text);
 	}
+
+	_preset = String(ID).toInt();
 	return true;
 
 }
@@ -824,13 +851,13 @@ bool MarqueeEffect::args(JsonObject& root)
 	// need to add color... but change the JS to send normal POST not JSON...
 
 	if (root.containsKey("color")) {
-		   JsonObject& color = root["color"];
-		   RgbColor input;
-		   input.R = color["R"];
-		   input.G = color["G"];
-		   input.B = color["B"];
-		   setColor(input);
-		   found = true; 
+		JsonObject& color = root["color"];
+		RgbColor input;
+		input.R = color["R"];
+		input.G = color["G"];
+		input.B = color["B"];
+		setColor(input);
+		found = true;
 
 	}
 
@@ -857,6 +884,8 @@ bool MarqueeEffect::args(JsonObject& root)
 		Refresh();
 		found = true;
 	}
+	
+	if (found) { _preset = 255; }
 
 	return found;
 }
@@ -888,6 +917,7 @@ bool AdalightEffect::load(JsonObject& root, const char *& ID)
 	}
 
 	_serialspeed = current["serialspeed"];
+	_preset = String(ID).toInt();
 
 	return true;
 }
@@ -896,16 +926,20 @@ bool AdalightEffect::addJson(JsonObject& settings)
 {
 	settings["effect"] = name();
 	settings["serialspeed"] = _serialspeed;
+	return true;
 }
 
 bool AdalightEffect::args(JsonObject& root)
 {
+	bool found = false;
+
 	if (root.containsKey("serialspeed")) {
 		setSerialspeed(root["serialspeed"]);
-		return true;
-	} else {
-		return false;
+		found = true;
 	}
+
+	if (found) { _preset = 255; }
+	return found;
 }
 
 

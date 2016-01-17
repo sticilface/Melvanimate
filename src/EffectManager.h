@@ -59,11 +59,13 @@ public:
 	bool removePreset(uint8_t ID);
 
 	// fetches info from SPIFFS about which presest applies to current
-	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets);
+	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
 
 	bool SetToggle(const char * name);
 
-
+	uint8_t _numberofpresets = 0;
+	uint8_t * _presets = nullptr;
+	char ** _preset_names = nullptr; 
 
 protected:
 
@@ -78,8 +80,8 @@ private:
 
 	std::function<bool()>  _waitFn = nullptr;
 	// hold a 'new' array of elegible presets for _currenthandler
-	uint8_t _numberofpresets = 0;
-	uint8_t * _presets = nullptr;
+
+
 	bool _parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
 	EffectHandler* _findhandle(const char * handle);
 
@@ -100,49 +102,12 @@ public:
 
 	virtual bool args(JsonObject & root) { return false;} // use json so it can be used with MQTT etc... 
 
-
 	// experimental
 	virtual bool load(JsonObject& root, const char *& ID) { return false ; };
 	virtual bool addJson(JsonObject& settings) { return false; };
-
 	// save does NOT have to be overridden.  it calls addJson instead.
 	virtual bool save(JsonObject& root, const char *& ID);
-
-	// not being used... 
-	virtual void* getp() { return nullptr; }
-
-	// specific virtual functions for ALL effects...
-	// If they are not handlesd by subclass, they return false.
-
-	virtual bool setBrightness(uint8_t bri) { return false; }
-	virtual bool getBrightness(uint8_t& bri) { return false;};
-
-	virtual bool setColor(RgbColor ) { return false;}
-	virtual bool getColor(RgbColor&) { return false;}
-
-	virtual bool setColor2(RgbColor ) { return false;}
-	virtual bool getColor2(RgbColor&) { return false;}
-
-	virtual bool setSerialspeed(uint32_t speed) { return false;}
-	virtual bool getSerialspeed(uint32_t& speed) { return false;}
-
-	virtual bool setSpeed(uint8_t speed)   {   return false; }
-	virtual bool getSpeed(uint8_t& speed)  {   return false; }
-
-	virtual bool setRotation(uint8_t rotation)   {   return false; }
-	virtual bool getRotation(uint8_t& rotation)  {   return false; }
-
-	virtual bool setText(const char * text)   { return false; }
-	virtual bool getText( char *& text)   { return false; }
-
-	virtual bool setPalette(palette_type palette)   {   return false;  }
-	virtual bool getPalette(palette_type& palette)  {   return false;  }
-
-	//colours
-
-	// virtual void Color(RgbColor color) {} // not in use...
-	// virtual void Random() {}
-	//virtual palette* Palette() {};
+	virtual uint8_t getPreset() { return _preset; }
 
 	EffectHandler* next() { return _next; } //  ASK what is next
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
@@ -151,6 +116,8 @@ public:
 private:
 	EffectHandler* _next = nullptr;
 	const char * _name;
+protected:
+	uint8_t _preset = 255; 
 
 
 };
@@ -199,10 +166,10 @@ public:
 			}
 		}
 	};
-	bool Start() override { _state = PRE_EFFECT ; _Fn(_state, this) ; _state = RUN_EFFECT; }
-	bool Stop() override { _state = POST_EFFECT; _Fn(_state, this); };
-	void SetTimeout (uint32_t timeout) override { _timeout = timeout; };
-	void Refresh()
+	virtual bool Start() override { _state = PRE_EFFECT ; _Fn(_state, this) ; _state = RUN_EFFECT; }
+	virtual bool Stop() override { _state = POST_EFFECT; _Fn(_state, this); };
+	virtual void SetTimeout (uint32_t timeout) override { _timeout = timeout; };
+	virtual void Refresh()
 	{
 		_state = EFFECT_REFRESH;
 		_Fn(_state, this) ;
@@ -253,11 +220,11 @@ public:
 	//bool args(ESP8266WebServer& HTTP) override; 
 	bool args(JsonObject& root) override; 
 
-	bool setBrightness(uint8_t bri) override  {   _brightness = bri; Refresh(); return true; }
-	bool getBrightness(uint8_t& bri) override { Serial.println("[GeneralEffect] bri");  bri = _brightness; return true; }
+	void setBrightness(uint8_t bri)   {   _brightness = bri; Refresh(); }
+	uint8_t getBrightness()  { return _brightness; }
 
-	bool setColor(RgbColor color) override  { _color = color; Refresh(); return true; }
-	bool getColor(RgbColor& color) override {  color = _color; return true; }
+	void setColor(RgbColor color)   { _color = color; Refresh(); }
+	RgbColor getColor()  {  return _color;  }
 
 private:
 	uint8_t _brightness;
@@ -287,27 +254,24 @@ public:
 	bool args(JsonObject& root) override; 
 
 	//  Specific Variables
-	bool setBrightness(uint8_t bri) override  {   _brightness = bri; return true; }
-	bool getBrightness(uint8_t& bri) override {    bri = _brightness; return true; }
+	void setBrightness(uint8_t bri)   {   _brightness = bri;  }
+	uint8_t getBrightness()  {    return _brightness;  }
 
-	bool setColor(RgbColor color) override  { _color = color; return true; }
-	bool getColor(RgbColor& color) override {  color = _color; return true; }
+	void setColor(RgbColor color)   { _color = color;  }
+	RgbColor getColor()  {  return  _color;}
 
-	bool setSpeed(uint8_t speed) override  {   _speed = speed; return true; }
-	bool getSpeed(uint8_t& speed) override {   speed = _speed; return true; }
+	void setSpeed(uint8_t speed)   {   _speed = speed; }
+	uint8_t getSpeed()  {   return _speed;  }
 
-	bool setRotation(uint8_t rotation) override  {   _rotation = rotation; return true; }
-	bool getRotation(uint8_t& rotation) override {   rotation = _rotation; return true; }
+	void setRotation(uint8_t rotation)   {   _rotation = rotation;}
+	uint8_t getRotation()  {   return _rotation; }
 
-	bool setText(const char * text) override  {   free(_marqueeText); _marqueeText = strdup(text); return true; }
-	bool getText(char *& text) override { text = _marqueeText; return true; }
+	void setText(const char * text)   {   free(_marqueeText); _marqueeText = strdup(text);  }
+	const char * getText()  { return _marqueeText; }
 
-	bool setPalette(palette_type palette) override  {   _palette = palette; return true; }
-	bool getPalette(palette_type& palette) override {   palette = _palette; return true; }
+	void setPalette(palette_type palette)   {   _palette = palette;  }
+	palette_type getPalette()  {   return _palette;  }
 
-	void* getp() override { return this; }
-
-	void testfunction() { Serial.println("[MarqueeEffect] test NOT overridden function"); }
 
 private:
 	char * _marqueeText;
@@ -330,8 +294,8 @@ public:
 	bool addJson(JsonObject& settings) override; 
 	bool args(JsonObject& root) override; 
 
-	bool setSerialspeed(uint32_t speed) override {  _serialspeed = speed; Refresh(); return true; }
-	bool getSerialspeed(uint32_t& speed) override {  speed = _serialspeed; return true; }
+	bool setSerialspeed(uint32_t speed)  {  _serialspeed = speed; Refresh(); return true; }
+	bool getSerialspeed(uint32_t& speed)  {  speed = _serialspeed; return true; }
 
 private:
 	uint32_t _serialspeed;
