@@ -39,6 +39,7 @@ void SnakesFn(SwitchEffect::effectState state)
 *                 Timing Test
 *
 *------------------------------------------------*/
+/*
 void TimingFn(effectState& state)
 {
 
@@ -86,7 +87,7 @@ void TimingFn(effectState& state)
   break;
   }
 }
-
+*/
 /*-----------------------------------------------
 *
 *                 AdaLight
@@ -102,7 +103,7 @@ void AdaLightFn(effectState& state)
   switch (state) {
 
   case PRE_EFFECT: {
-    
+
     if (Serial) {
       Serial.flush();
       delay(500);
@@ -112,8 +113,8 @@ void AdaLightFn(effectState& state)
 
     if (lights.Current() && lights.Current()->getSerialspeed(speed) )
 
-    Serial.begin(speed);
-    
+      Serial.begin(speed);
+
     Serial.println("Init: Adalight");
     lights.SetTimeout(0);
 
@@ -132,7 +133,7 @@ void AdaLightFn(effectState& state)
   }
   break;
   case EFFECT_REFRESH: {
-    state = PRE_EFFECT; 
+    state = PRE_EFFECT;
   }
   }
 }
@@ -167,24 +168,6 @@ void  Adalight_Flash()
 
   }
 
-//return;
-
-  // strip->ClearTo(RgbColor(255, 0, 0));
-  // strip->Show();
-  // delay(200);
-
-  // strip->ClearTo(RgbColor(0, 255, 0));
-  // strip->Show();
-  // delay(200);
-
-  // strip->ClearTo(RgbColor(0, 0, 255));
-  // strip->Show();
-  // delay(200);
-
-  // strip->ClearTo(RgbColor(0, 0, 0));
-  // strip->Show();
-  // delay(100);
-
 }
 
 void Adalight_function ()      //  uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
@@ -202,28 +185,7 @@ void Adalight_function ()      //  uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, c
   const unsigned long serialTimeout = 15000; // turns LEDs of if nothing recieved for 15 seconds..
   static bool SendFailhere = false;
 
-
-  // if (Current_Effect_State == PRE_EFFECT) { state = MODE_INITIALISE; } ;
-  //   //Pre_effect();
-  // // }
-
-  // if (Current_Effect_State == POST_EFFECT) state = MODE_FINISH;
-
-  //if (Current_Effect_State == POST_EFFECT) state = MODE_FINISH;
-
-
   switch (state) {
-
-  // case MODE_INITIALISE:
-  //   Serial.println(F("Begining of Adalight"));
-  //   timer_effect_tick_timeout = 0;
-  //   if(millis() > 60000) Adalight_Flash();
-  //   state = MODE_HEADER;
-  //   Current_Effect_State = RUN_EFFECT;
-  //   //Pre_effect();
-  //   //Current_Effect_State = RUN_EFFECT;
-
-  //   break;
 
   case MODE_HEADER:
 
@@ -504,9 +466,6 @@ void  DMXfn (effectState state)
 
     }
 
-
-
-
     break;
 
   case POST_EFFECT:
@@ -535,31 +494,34 @@ void  DMXfn (effectState state)
 
 void SimpleColorFn(effectState& state)
 {
-
+  RgbColor color;
+  uint8_t brightness = 0;
   switch (state) {
 
   case PRE_EFFECT: {
-    Serial.println("[SimpleColorFn] PRE_EFFECT"); 
+    Serial.println("[SimpleColorFn] PRE_EFFECT");
     lights.SetTimeout(10000);
-    lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state... 
-    FadeTo(lights.getColor());
+    lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state...
+    if (lights.Current()->getColor(color) && lights.Current()->getBrightness(brightness)) {
+      FadeTo( lights.dim(color, brightness));
+    }
   }
 
   break;
   case RUN_EFFECT: {
-    FadeTo(2000, lights.getColor());
+    //FadeTo(2000, lights.Current()->getColor());
   }
   break;
 
   case POST_EFFECT: {
-    Serial.println("[SimpleColorFn] POST_EFFECT"); 
-    lights.autoWait(); 
+    Serial.println("[SimpleColorFn] POST_EFFECT");
+    lights.autoWait();
     FadeTo(0);
   }
   break;
 
   case EFFECT_REFRESH: {
-    state = PRE_EFFECT; 
+    state = PRE_EFFECT;
     Serial.println("[SimpleColorFn] Refresh Called");
     break;
   }
@@ -582,20 +544,16 @@ void offFn(effectState &state)
   case PRE_EFFECT: {
     Serial.println("[OffFn] PRE_EFFECT");
     lights.SetTimeout(10000);
-    lights.autoWait(); 
+    lights.autoWait();
     FadeTo(0);
   }
 
   break;
   case RUN_EFFECT: {
-    FadeTo(2000, 0);
+    strip->ClearTo(0);
   }
   break;
 
-  case POST_EFFECT: {
-
-  }
-  break;
   }
 
 }
@@ -615,32 +573,63 @@ void MarqueeFn(effectState state)
   switch (state) {
 
   case PRE_EFFECT: {
+    Serial.println("[MarqueeFn] PRE_EFFECT"); 
     strip->ClearTo(0);
     palette_type pal;
     lights.Current()->getPalette(pal);
     lights.palette().mode(pal);
     lights.palette().total(255);
+
+
+    MarqueeEffect *p1 = dynamic_cast<MarqueeEffect *> (lights.Current());
+
+    if (p1) {
+
+    p1->testfunction(); 
+
+    }
+
   }
 
   break;
   case RUN_EFFECT: {
-    uint8_t speed;
-    lights.Current()->getSpeed(speed);
+    uint8_t speed = 0;
+    char * text;
+    uint8_t brightness = 255;
+    RgbColor input_color = RgbColor(0); 
+
+    bool gotspeed = lights.Current()->getSpeed(speed); 
+    bool gottext = lights.Current()->getText(text);
+    bool gotbrightness = lights.Current()->getBrightness(brightness); 
+    bool gotcolor = lights.Current()->getColor(input_color);
+    lights.palette().input(input_color);
+
+    RgbColor color = lights.palette().next();
+    RgbColor dimmedcolor = lights.dim(color, brightness);
+
     lights.SetTimeout( speed * 10);
-    char * text ;
-    if (lights.Current()->getText(text)) {
-      displaytext(text, speed * 10, lights.dim(lights.palette().next()) );
+
+    {
+      static uint32_t timer = 0; 
+      if (millis() - timer > 5000) {
+      Serial.printf("%s -> (%u,%u,%u)speed = %u, text = %s, brightness = %u, RGB(%u,%u,%u)\n", lights.Current()->name(), gotspeed, gottext, gotbrightness, speed, text, brightness, dimmedcolor.R, dimmedcolor.G, dimmedcolor.B );
+      timer = millis(); 
+      }
     }
+
+    displaytext(text, speed * 10,  dimmedcolor);
+
   }
   break;
 
   case POST_EFFECT: {
+    lights.autoWait();
     FadeTo(500, 0);
   }
   break;
   case EFFECT_REFRESH: {
     Serial.println("Refresh called");
-    lights.effectposition = lights.getX();
+    lights.timeoutvar = lights.getX();
     strip->ClearTo(0);
     break;
   }
@@ -649,14 +638,14 @@ void MarqueeFn(effectState state)
 
 }
 
-//  Use the fade to and back callback!
+// Use the fade to and back callback!
 void displaytext(const char * text, uint16_t timeout, RgbColor color)
 {
 
   static bool reset = true;
 
   if (reset) {
-    lights.effectposition = lights.getX();
+    lights.timeoutvar = lights.getX();
     reset = false;
   }
   const uint16_t len = strlen(text) * 7;
@@ -664,12 +653,12 @@ void displaytext(const char * text, uint16_t timeout, RgbColor color)
   Melvtrix & matrix = *lights.matrix();
   matrix.setTextWrap(false);
 
-  if (lights.effectposition < lights.getX()) {
+  if (lights.timeoutvar < lights.getX()) {
     matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
       strip->SetPixelColor(pixel, 0);
     });
 
-    matrix.setCursor( lights.effectposition + 1, lights.getY() - 8  );
+    matrix.setCursor( lights.timeoutvar + 1, lights.getY() - 8  );
     matrix.print(text);
   }
 
@@ -678,10 +667,10 @@ void displaytext(const char * text, uint16_t timeout, RgbColor color)
     strip->SetPixelColor(pixel, color  );
   });
 
-  matrix.setCursor( lights.effectposition--,  lights.getY() - 8  );
+  matrix.setCursor( lights.timeoutvar--,  lights.getY() - 8  );
   matrix.print(text);
 
-  if (lights.effectposition < -len) {
+  if (lights.timeoutvar < -len) {
     reset = true;
   }
 
@@ -694,93 +683,93 @@ void displaytext(const char * text, uint16_t timeout, RgbColor color)
 *------------------------------------------------*/
 
 
-void RainbowCycleFn(effectState state)
-{
+// void RainbowCycleFn(effectState state)
+// {
 
-  Melvtrix & matrix = *lights.matrix();
+//   Melvtrix & matrix = *lights.matrix();
 
-  switch (state) {
+//   switch (state) {
 
-  case PRE_EFFECT: {
+//   case PRE_EFFECT: {
 
-    lights.autoWait();
-    Debugf(" Matrix height: %u\n", matrix.height());
-    Debugf(" Matrix width: %u\n", matrix.width());
-
-
-    Debugf(" Add x: %s\n", ( (lights.matrix())->width() > 1 ) ? "true" : "false" );
-
-    matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
+//     lights.autoWait();
+//     Debugf(" Matrix height: %u\n", matrix.height());
+//     Debugf(" Matrix width: %u\n", matrix.width());
 
 
+//     Debugf(" Add x: %s\n", ( (lights.matrix())->width() > 1 ) ? "true" : "false" );
 
-      uint16_t seqnumber = ( (lights.matrix())->width() > 1 ) ? (x * y) + x : (x * y) + y;
-
-      RgbColor original = strip->GetPixelColor(pixel);
-      RgbColor color = lights.dim(Palette::wheel( ((seqnumber * 256 / lights.getPixels()) + lights.effectposition) & 255) );
-      AnimUpdateCallback animUpdate = [ pixel, color, original ](float progress) {
-        RgbColor updatedColor = RgbColor::LinearBlend(original, color ,  progress) ;
-        strip->SetPixelColor(pixel, updatedColor);
-      };
-
-      StartAnimation(pixel, 1000, animUpdate);
-
-    });
-
-    for (int x = 0; x < matrix.width(); x++) {
-      for (int y = 0; y < matrix.height(); y++ ) {
-        matrix.drawPixel(x, y); // Adafruit drawPixel has been overloaded without color for callback use
-      }
-    }
-
-    lights.effectposition++;
-
-  }
-
-  break;
-  case RUN_EFFECT: {
-    //  allows per effect tuning of the timeout
-    uint32_t timeout = map(lights.speed(), 0, 255, 0 , 10000);
-    lights.SetTimeout( timeout);
+//     matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
 
 
 
+//       uint16_t seqnumber = ( (lights.matrix())->width() > 1 ) ? (x * y) + x : (x * y) + y;
 
-    matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
+//       RgbColor original = strip->GetPixelColor(pixel);
+//       RgbColor color = lights.dim(Palette::wheel( ((seqnumber * 256 / lights.getPixels()) + lights.effectposition) & 255) );
+//       AnimUpdateCallback animUpdate = [ pixel, color, original ](float progress) {
+//         RgbColor updatedColor = RgbColor::LinearBlend(original, color ,  progress) ;
+//         strip->SetPixelColor(pixel, updatedColor);
+//       };
+
+//       StartAnimation(pixel, 1000, animUpdate);
+
+//     });
+
+//     for (int x = 0; x < matrix.width(); x++) {
+//       for (int y = 0; y < matrix.height(); y++ ) {
+//         matrix.drawPixel(x, y); // Adafruit drawPixel has been overloaded without color for callback use
+//       }
+//     }
+
+//     lights.effectposition++;
+
+//   }
+
+//   break;
+//   case RUN_EFFECT: {
+//     //  allows per effect tuning of the timeout
+//     uint32_t timeout = map(lights.speed(), 0, 255, 0 , 10000);
+//     lights.SetTimeout( timeout);
 
 
-      uint16_t seqnumber = ( (lights.matrix())->width() > 1 ) ? (x * y) + x : (x * y) + y;
 
-      RgbColor color = lights.dim(Palette::wheel( ((seqnumber * 256 / lights.getPixels()) + lights.effectposition) & 255) );
-      strip->SetPixelColor(pixel, color);
-    });
 
-    for (int x = 0; x < matrix.width(); x++) {
-      for (int y = 0; y < matrix.height(); y++ ) {
-        matrix.drawPixel(x, y); // Adafruit drawPixel has been overloaded without color for callback use
-      }
-    }
+//     matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
 
-    lights.effectposition++;
-    if (lights.effectposition == 256 * 5) lights.effectposition = 0;
 
-  }
-  break;
+//       uint16_t seqnumber = ( (lights.matrix())->width() > 1 ) ? (x * y) + x : (x * y) + y;
 
-  case POST_EFFECT: {
-    lights.autoWait();
-    FadeTo( lights.getBrightness() * 8, 0);
-  }
-  break;
+//       RgbColor color = lights.dim(Palette::wheel( ((seqnumber * 256 / lights.getPixels()) + lights.effectposition) & 255) );
+//       strip->SetPixelColor(pixel, color);
+//     });
 
-  case EFFECT_REFRESH: {
+//     for (int x = 0; x < matrix.width(); x++) {
+//       for (int y = 0; y < matrix.height(); y++ ) {
+//         matrix.drawPixel(x, y); // Adafruit drawPixel has been overloaded without color for callback use
+//       }
+//     }
 
-    break;
-  }
+//     lights.effectposition++;
+//     if (lights.effectposition == 256 * 5) lights.effectposition = 0;
 
-  }
+//   }
+//   break;
 
-}
+//   case POST_EFFECT: {
+//     lights.autoWait();
+//     FadeTo( lights.getBrightness() * 8, 0);
+//   }
+//   break;
+
+//   case EFFECT_REFRESH: {
+
+//     break;
+//   }
+
+//   }
+
+// }
 
 
 /*-----------------------------------------------
@@ -790,80 +779,80 @@ void RainbowCycleFn(effectState state)
 *------------------------------------------------*/
 
 
-void RainbowFn(effectState state)
-{
+// void RainbowFn(effectState state)
+// {
 
-  Melvtrix & matrix = *lights.matrix();
+//   Melvtrix & matrix = *lights.matrix();
 
-  switch (state) {
+//   switch (state) {
 
-  case PRE_EFFECT: {
+//   case PRE_EFFECT: {
 
-    lights.autoWait();
+//     lights.autoWait();
 
-    Debugf(" Matrix height: %u\n", matrix.height());
-    Debugf(" Matrix width: %u\n", matrix.width());
+//     Debugf(" Matrix height: %u\n", matrix.height());
+//     Debugf(" Matrix width: %u\n", matrix.width());
 
-    matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
-      uint16_t seqnumber = ( (lights.matrix())->width() > 1 ) ? (x * y) + x : (x * y) + y;
-      RgbColor original = strip->GetPixelColor(pixel);
-      RgbColor color = lights.dim(Palette::wheel( (seqnumber + lights.effectposition) & 255 ));
-      AnimUpdateCallback animUpdate = [ pixel, color, original ](float progress) {
-        RgbColor updatedColor = RgbColor::LinearBlend(original, color ,  progress) ;
-        strip->SetPixelColor(pixel, updatedColor);
-      };
+//     matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
+//       uint16_t seqnumber = ( (lights.matrix())->width() > 1 ) ? (x * y) + x : (x * y) + y;
+//       RgbColor original = strip->GetPixelColor(pixel);
+//       RgbColor color = lights.dim(Palette::wheel( (seqnumber + lights.effectposition) & 255 ));
+//       AnimUpdateCallback animUpdate = [ pixel, color, original ](float progress) {
+//         RgbColor updatedColor = RgbColor::LinearBlend(original, color ,  progress) ;
+//         strip->SetPixelColor(pixel, updatedColor);
+//       };
 
-      StartAnimation(pixel, 1000, animUpdate);
+//       StartAnimation(pixel, 1000, animUpdate);
 
-    });
+//     });
 
-    for (int x = 0; x < matrix.width(); x++) {
-      for (int y = 0; y < matrix.height(); y++ ) {
-        matrix.drawPixel(x, y); // Adafruit drawPixel has been overloaded without color for callback use
-      }
-    }
+//     for (int x = 0; x < matrix.width(); x++) {
+//       for (int y = 0; y < matrix.height(); y++ ) {
+//         matrix.drawPixel(x, y); // Adafruit drawPixel has been overloaded without color for callback use
+//       }
+//     }
 
-    lights.effectposition++;
+//     lights.effectposition++;
 
-  }
+//   }
 
-  break;
-  case RUN_EFFECT: {
-    //  allows per effect tuning of the timeout
-    uint32_t timeout = map(lights.speed(), 0, 255, 0 , 10000);
-    lights.SetTimeout( timeout);
-    matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
-      uint16_t seqnumber = ( (lights.matrix())->width() > 1 ) ? (x * y) + x : (x * y) + y;
-      RgbColor color = lights.dim(Palette::wheel( (seqnumber + lights.effectposition) & 255  ));
-      strip->SetPixelColor(pixel, color);
-    });
+//   break;
+//   case RUN_EFFECT: {
+//     //  allows per effect tuning of the timeout
+//     uint32_t timeout = map(lights.speed(), 0, 255, 0 , 10000);
+//     lights.SetTimeout( timeout);
+//     matrix.setShapeFn( [] (uint16_t pixel, int16_t x, int16_t y) {
+//       uint16_t seqnumber = ( (lights.matrix())->width() > 1 ) ? (x * y) + x : (x * y) + y;
+//       RgbColor color = lights.dim(Palette::wheel( (seqnumber + lights.effectposition) & 255  ));
+//       strip->SetPixelColor(pixel, color);
+//     });
 
-    for (int x = 0; x < matrix.width(); x++) {
-      for (int y = 0; y < matrix.height(); y++ ) {
-        matrix.drawPixel(x, y); // Adafruit drawPixel has been overloaded without color for callback use
-      }
-    }
+//     for (int x = 0; x < matrix.width(); x++) {
+//       for (int y = 0; y < matrix.height(); y++ ) {
+//         matrix.drawPixel(x, y); // Adafruit drawPixel has been overloaded without color for callback use
+//       }
+//     }
 
-    lights.effectposition++;
-    if (lights.effectposition == 256 * 5) lights.effectposition = 0;
+//     lights.effectposition++;
+//     if (lights.effectposition == 256 * 5) lights.effectposition = 0;
 
-  }
-  break;
+//   }
+//   break;
 
-  case POST_EFFECT: {
-    lights.autoWait();
-    FadeTo(lights.getBrightness() * 8, 0);
-  }
-  break;
+//   case POST_EFFECT: {
+//     lights.autoWait();
+//     FadeTo(lights.getBrightness() * 8, 0);
+//   }
+//   break;
 
-  case EFFECT_REFRESH: {
+//   case EFFECT_REFRESH: {
 
-    break;
-  }
+//     break;
+//   }
 
-  }
+//   }
 
-}
+// }
 
 
 /*-----------------------------------------------
@@ -1084,38 +1073,38 @@ void RainbowFn(effectState state)
 *------------------------------------------------*/
 
 
-void SnakesFn(effectState state)
-{
+// void SnakesFn(effectState state)
+// {
 
-  switch (state) {
+//   switch (state) {
 
-  case PRE_EFFECT: {
-    Serial.println("PRE_EFFECT - SNAKES");
-    lights.autoWait();
+//   case PRE_EFFECT: {
+//     Serial.println("PRE_EFFECT - SNAKES");
+//     lights.autoWait();
 
 
 
-  }
+//   }
 
-  break;
-  case RUN_EFFECT: {
-    static uint32_t tick = 0;
-    if (millis() - tick > 5000) {
-      Serial.println("RUN");
-      tick = millis();
-    }
+//   break;
+//   case RUN_EFFECT: {
+//     static uint32_t tick = 0;
+//     if (millis() - tick > 5000) {
+//       Serial.println("RUN");
+//       tick = millis();
+//     }
 
-  }
-  break;
+//   }
+//   break;
 
-  case POST_EFFECT: {
-    Serial.println("POST_EFFECT - SNAKES");
-    lights.setWaiting();
+//   case POST_EFFECT: {
+//     Serial.println("POST_EFFECT - SNAKES");
+//     lights.setWaiting();
 
-  }
-  break;
-  }
-}
+//   }
+//   break;
+//   }
+// }
 
 
 /*-----------------------------------------------
@@ -1126,158 +1115,158 @@ void SnakesFn(effectState state)
 
 
 
-struct EFFECT_s {
+// struct EFFECT_s {
 
-  struct position_s {
-    uint16_t x = 0;
-    uint16_t y = 0;
-  } ;
-  position_s * pPosition;
+//   struct position_s {
+//     uint16_t x = 0;
+//     uint16_t y = 0;
+//   } ;
+//   position_s * pPosition;
 
-  EFFECT_s(uint8_t _count, uint8_t LEDs)//, uint8_t colorscount = 0)
-  {
-    count = _count;
-    manager = new EffectGroup; // create effect group
-    pPosition = new position_s[_count];
-    matrix = lights.matrix();
-    pGroup = new EffectObjectHandler* [count];
+//   EFFECT_s(uint8_t _count, uint8_t LEDs)//, uint8_t colorscount = 0)
+//   {
+//     count = _count;
+//     manager = new EffectGroup; // create effect group
+//     pPosition = new position_s[_count];
+//     matrix = lights.matrix();
+//     pGroup = new EffectObjectHandler* [count];
 
-    for (uint8_t i = 0; i < count; i++) {
-      pGroup[i] =  manager->Add(i, lights.speed() , new EffectObject( LEDs ) );
-      if (!pGroup[i]) { Serial.println("[EFFECT_s] nullptr returned"); }
-    }
-
-
-  }
-  ~EFFECT_s()
-  {
-    delete manager;
-    //delete[] colors;
-    delete[] pGroup;
-    delete[] pPosition;
-  }
-  void Run()
-  {
-    if (manager) { manager->Update(); }
-  }
-  EffectGroup* manager;
-  //RgbColor * colors;
-  EffectObjectHandler ** pGroup;
-  Melvtrix * matrix;
-  uint8_t count = 0;
-
-  position_s & position(uint16_t i) { return pPosition[i];}
+//     for (uint8_t i = 0; i < count; i++) {
+//       pGroup[i] =  manager->Add(i, lights.speed() , new EffectObject( LEDs ) );
+//       if (!pGroup[i]) { Serial.println("[EFFECT_s] nullptr returned"); }
+//     }
 
 
-};
-//  Generates random squares, no fill...
-//  Does
-void BobblySquaresFn_create(struct EFFECT_s *&, bool, bool);
+//   }
+//   ~EFFECT_s()
+//   {
+//     delete manager;
+//     //delete[] colors;
+//     delete[] pGroup;
+//     delete[] pPosition;
+//   }
+//   void Run()
+//   {
+//     if (manager) { manager->Update(); }
+//   }
+//   EffectGroup* manager;
+//   //RgbColor * colors;
+//   EffectObjectHandler ** pGroup;
+//   Melvtrix * matrix;
+//   uint8_t count = 0;
 
-void BobblySquaresFn(effectState & state)
-{
-  static EFFECT_s* EFFECT = nullptr; // dont forget to initialise pointers... ARGHHHHHHHH
-
-
-  switch (state) {
-
-  case PRE_EFFECT: {
-    Serial.printf("[BobblySquaresFn] Creating Objects (%u)\n", ESP.getFreeHeap());
-    lights.SetTimeout( 0);
-    lights.palette().mode(WHEEL);
-    lights.palette().total(255) ;
-
-    if (EFFECT) {
-      delete EFFECT;
-      EFFECT = nullptr;
-
-    }
-
-    EFFECT = new EFFECT_s(5, 25);
-
-    if (EFFECT) {
-      BobblyShapeFn_create(EFFECT, true, true, random(0, 3));
-    }
-  }
-
-  break;
-  case RUN_EFFECT: {
-
-    if (EFFECT) { EFFECT->Run(); }
-
-  }
-  break;
-
-  case POST_EFFECT: {
-    Serial.println("[BobblySquaresFn] End");
-    if (EFFECT) {
-      delete EFFECT;
-      EFFECT = nullptr;
-    }
-  }
-  break;
-  case EFFECT_REFRESH: {
-    Serial.println("[BobblySquaresFn] Refresh");
-    state = PRE_EFFECT;
-  }
-  break;
-
-  }
-
-}
-
-void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2, uint8_t shape)
-{
+//   position_s & position(uint16_t i) { return pPosition[i];}
 
 
-  for (uint8_t obj = 0; obj < EFFECT->count; obj++) {
+// };
+// //  Generates random squares, no fill...
+// //  Does
+// void BobblySquaresFn_create(struct EFFECT_s *&, bool, bool);
 
-    EffectObjectHandler * current =  EFFECT->pGroup[obj];  //    pointer to current group of pixels...
+// void BobblySquaresFn(effectState & state)
+// {
+//   static EFFECT_s* EFFECT = nullptr; // dont forget to initialise pointers... ARGHHHHHHHH
 
-    // nullptr protection
-    if (!current) break; 
 
-    current->SetObjectUpdateCallback( [ current, EFFECT, obj, random1, random2, shape ]() {
+//   switch (state) {
 
-      current->reset(); // new set of pixels...
+//   case PRE_EFFECT: {
+//     Serial.printf("[BobblySquaresFn] Creating Objects (%u)\n", ESP.getFreeHeap());
+//     lights.SetTimeout( 0);
+//     lights.palette().mode(WHEEL);
+//     lights.palette().total(255) ;
 
-      EFFECT->matrix->setShapeFn( [ EFFECT, obj, current, random1 ] (uint16_t pixel, int16_t x, int16_t y) {
-        current->Addpixel(pixel);
-      });
+//     if (EFFECT) {
+//       delete EFFECT;
+//       EFFECT = nullptr;
 
-      uint8_t size = random(2, 6);
-      uint16_t x = EFFECT->position(obj).x = random(0, lights.matrix()->width() - size + 1);
-      uint16_t y = EFFECT->position(obj).y = random(0, lights.matrix()->height() - size + 1);
+//     }
 
-      uint16_t add_factor = (random1) ? random(5, 10) : 10;
-      current->Timeout( lights.speed() * add_factor); // update speed of current effect!
+//     EFFECT = new EFFECT_s(5, 25);
 
-      switch (shape) {
-      case 0:
-        EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
-        break;
-      case 1:
-        EFFECT->matrix->drawCircle(x, y, size, 0); //  fills shape with
-        break;
-      case 2:
-        EFFECT->matrix->drawTriangle(x, y, x + size, y, x + (size / 2), y + size, 0); //  fills shape with
-        break;
-      case 3:
-        EFFECT->matrix->fillTriangle(x, y, x + size, y, x + (size / 2), y + size , 0); //  fills shape with
-        break;
-      }
+//     if (EFFECT) {
+//       BobblyShapeFn_create(EFFECT, true, true, random(0, 3));
+//     }
+//   }
 
-      //EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
+//   break;
+//   case RUN_EFFECT: {
 
-    });
+//     if (EFFECT) { EFFECT->Run(); }
 
-    current->SetPixelUpdateCallback( [random2] (uint16_t n, uint16_t pixel) {
-      uint16_t add_factor = (random2) ? random(5, 10) : 10;
-      FadeToAndBack(pixel, lights.nextcolor(), lights.speed() * random(5, 10) );
-      //FadeToAndBack(pixel, RgbColor(5,0,0), lights.speed() * random(5, 10) );
+//   }
+//   break;
 
-    });
-  }
+//   case POST_EFFECT: {
+//     Serial.println("[BobblySquaresFn] End");
+//     if (EFFECT) {
+//       delete EFFECT;
+//       EFFECT = nullptr;
+//     }
+//   }
+//   break;
+//   case EFFECT_REFRESH: {
+//     Serial.println("[BobblySquaresFn] Refresh");
+//     state = PRE_EFFECT;
+//   }
+//   break;
 
-}
+//   }
+
+// }
+
+// void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2, uint8_t shape)
+// {
+
+
+//   for (uint8_t obj = 0; obj < EFFECT->count; obj++) {
+
+//     EffectObjectHandler * current =  EFFECT->pGroup[obj];  //    pointer to current group of pixels...
+
+//     // nullptr protection
+//     if (!current) break;
+
+//     current->SetObjectUpdateCallback( [ current, EFFECT, obj, random1, random2, shape ]() {
+
+//       current->reset(); // new set of pixels...
+
+//       EFFECT->matrix->setShapeFn( [ EFFECT, obj, current, random1 ] (uint16_t pixel, int16_t x, int16_t y) {
+//         current->Addpixel(pixel);
+//       });
+
+//       uint8_t size = random(2, 6);
+//       uint16_t x = EFFECT->position(obj).x = random(0, lights.matrix()->width() - size + 1);
+//       uint16_t y = EFFECT->position(obj).y = random(0, lights.matrix()->height() - size + 1);
+
+//       uint16_t add_factor = (random1) ? random(5, 10) : 10;
+//       current->Timeout( lights.speed() * add_factor); // update speed of current effect!
+
+//       switch (shape) {
+//       case 0:
+//         EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
+//         break;
+//       case 1:
+//         EFFECT->matrix->drawCircle(x, y, size, 0); //  fills shape with
+//         break;
+//       case 2:
+//         EFFECT->matrix->drawTriangle(x, y, x + size, y, x + (size / 2), y + size, 0); //  fills shape with
+//         break;
+//       case 3:
+//         EFFECT->matrix->fillTriangle(x, y, x + size, y, x + (size / 2), y + size , 0); //  fills shape with
+//         break;
+//       }
+
+//       //EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
+
+//     });
+
+//     current->SetPixelUpdateCallback( [random2] (uint16_t n, uint16_t pixel) {
+//       uint16_t add_factor = (random2) ? random(5, 10) : 10;
+//       FadeToAndBack(pixel, lights.nextcolor(), lights.speed() * random(5, 10) );
+//       //FadeToAndBack(pixel, RgbColor(5,0,0), lights.speed() * random(5, 10) );
+
+//     });
+//   }
+
+// }
 

@@ -48,6 +48,7 @@ FSBrowser fsbrowser(HTTP);
 ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 
+
 struct XY_t {
   int x;
   int y;
@@ -154,20 +155,21 @@ void setup()
   lights.Add("SimpleColor", new GeneralEffect(SimpleColorFn));              // working
 
   lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
-  lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
-  lights.Add("DMX", new SwitchEffect(DMXfn));                              // need to test - requires custom libs included
-  lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
-  lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
-  lights.Add("Rainbow", new SwitchEffect(RainbowFn));
-  lights.Add("BobblySquares", new SwitchEffect(BobblySquaresFn));
+
+  // lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
+  // lights.Add("DMX", new SwitchEffect(DMXfn));                              // need to test - requires custom libs included
+   lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
+  // lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
+  // lights.Add("Rainbow", new SwitchEffect(RainbowFn));
+  // lights.Add("BobblySquares", new SwitchEffect(BobblySquaresFn));
 
 // experimental and in testing
 
-  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
-  lights.Add("generic", new Effect(SimpleFn));
-  lights.Add("complex", new ComplexEffect(ComplexFn));
-  lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
-  lights.Add("Object", new SwitchEffect(ObjectFn));
+  // lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
+  // lights.Add("generic", new Effect(SimpleFn));
+  // lights.Add("complex", new ComplexEffect(ComplexFn));
+  // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
+  // lights.Add("Object", new SwitchEffect(ObjectFn));
 
 
   //timer.setTimeout(5000, []() { lights.Start("Marquee");} ) ;
@@ -393,38 +395,47 @@ void handle_data()
   //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
   if (check_duplicate_req()) { HTTP.setContentLength(0); HTTP.send(200); return; }
 
-  Serial.println(); 
+  Serial.println();
   print_args();
 
   if (HTTP.hasArg("plain")) {
 
-    DynamicJsonBuffer jsonBuffer;
-    JsonObject& root = jsonBuffer.parseObject(HTTP.arg("plain").c_str());
+    DynamicJsonBuffer jsonBufferplain;
+    JsonObject& root = jsonBufferplain.parseObject(HTTP.arg("plain").c_str());
     if (root.success()) {
-      if (root.containsKey("color")) {
-        JsonObject& color = root["color"];
-        RgbColor input;
-        String nameid = color["name"];
-        input.R = color["R"];
-        input.G = color["G"];
-        input.B = color["B"];
-        if (nameid == "color1") {
-          if (lights.Current()) {
-            if (lights.Current()->setColor(input)) {
-              //lights.color(input);
-              Debugf("[handle]: RGB(%u,%u,%u)\n", input.R, input.G, input.B);
-            }
-          }
-        }
-        if (nameid == "color2") {
-         if (lights.Current()) {
-            if (lights.Current()->setColor2(input)) {
-              //lights.color(input);
-              Debugf("[handle]: RGB(%u,%u,%u)\n", input.R, input.G, input.B);
-            }
-          }
+
+      if (lights.Current()) {
+        if (lights.Current()->args(root)) {
+          Serial.println("[handle] JSON (via Plain) Setting applied");
         }
       }
+
+
+
+      // if (root.containsKey("color")) {
+      //   JsonObject& color = root["color"];
+      //   RgbColor input;
+      //   String nameid = color["name"];
+      //   input.R = color["R"];
+      //   input.G = color["G"];
+      //   input.B = color["B"];
+      //   if (nameid == "color1") {
+      //     if (lights.Current()) {
+      //       if (lights.Current()->setColor(input)) {
+      //         //lights.color(input);
+      //         Debugf("[handle]: RGB(%u,%u,%u)\n", input.R, input.G, input.B);
+      //       }
+      //     }
+      //   }
+      //   if (nameid == "color2") {
+      //    if (lights.Current()) {
+      //       if (lights.Current()->setColor2(input)) {
+      //         //lights.color(input);
+      //         Debugf("[handle]: RGB(%u,%u,%u)\n", input.R, input.G, input.B);
+      //       }
+      //     }
+      //   }
+      // }
     }
   }
 
@@ -445,11 +456,32 @@ void handle_data()
 //
   //
 
+  // if (lights.Current()) {
+  //   if (lights.Current()->args(HTTP)) {
+  //     Serial.println("[handle] Setting applied");
+  //   }
+  // }
+
+  DynamicJsonBuffer jsonBuffer;
+
+  //JsonArray & root = jsonBuffer.createArray();
+  JsonObject & root = jsonBuffer.createObject();
+
+  for (uint8_t i = 0; i < HTTP.args(); i++) {
+
+    //JsonObject& entry = root.createNestedObject();
+    root[HTTP.argName(i)] = HTTP.arg(i);
+  }
+
+  // Serial.println("JSON arguments");
+  // root.prettyPrintTo(Serial);
+
   if (lights.Current()) {
-    if (lights.Current()->args(HTTP)) {
-      Serial.println("[handle] Setting applied");
+    if (lights.Current()->args(root)) {
+      Serial.println("[handle] JSON Setting applied");
     }
   }
+
 
 //
 //
@@ -544,11 +576,11 @@ void handle_data()
   }
 
 
-  if (HTTP.hasArg("serialspeed")) {
-    if (lights.Current()) {
-      lights.Current()->setSerialspeed(HTTP.arg("serialspeed").toInt());
-    }
-  }
+  // if (HTTP.hasArg("serialspeed")) {
+  //   if (lights.Current()) {
+  //     lights.Current()->setSerialspeed(HTTP.arg("serialspeed").toInt());
+  //   }
+  // }
 
   if (HTTP.hasArg("flashfirst")) {
     lights.Start("Off");
@@ -794,27 +826,28 @@ void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdat
 
 }
 
-void FadeTo(RgbColor color){
-    uint32_t current_brightness = 0;
-    uint32_t target_brightness = color.CalculateBrightness();
-    uint32_t brightness = 0; 
+void FadeTo(RgbColor color)
+{
+  uint32_t current_brightness = 0;
+  uint32_t target_brightness = color.CalculateBrightness();
+  uint32_t brightness = 0;
 
-    for (uint16_t i = 0; i < strip->PixelCount(); i++) {
-      current_brightness += strip->GetPixelColor(i).CalculateBrightness();
-    }
-      current_brightness /= strip->PixelCount(); 
+  for (uint16_t i = 0; i < strip->PixelCount(); i++) {
+    current_brightness += strip->GetPixelColor(i).CalculateBrightness();
+  }
+  current_brightness /= strip->PixelCount();
 
-      if (current_brightness > target_brightness) {
-        brightness = current_brightness; 
-      } else {
-        brightness = target_brightness; 
-      }
+  if (current_brightness > target_brightness) {
+    brightness = current_brightness;
+  } else {
+    brightness = target_brightness;
+  }
 
-      //int32_t difference = abs(brightness - color.CalculateBrightness() ); 
+  //int32_t difference = abs(brightness - color.CalculateBrightness() );
 
-    Serial.printf("[FadeTo] current brightness %u, target brightness %u, Brightness Diff = %u, time %ums\n", current_brightness, target_brightness, brightness, brightness * 8); 
+  Serial.printf("[FadeTo] current brightness %u, target brightness %u, Brightness Diff = %u, time %ums\n", current_brightness, target_brightness, brightness, brightness * 8);
 
-      FadeTo(brightness * 8, color); 
+  FadeTo(brightness * 8, color);
 }
 
 void FadeTo( uint16_t time, RgbColor color)

@@ -97,7 +97,9 @@ public:
 	virtual bool Pause() {return false; }
 	virtual void Refresh() {}
 	virtual void SetTimeout(uint32_t) {}
-	virtual bool args(ESP8266WebServer& HTTP) {return false;}
+
+	virtual bool args(JsonObject & root) { return false;} // use json so it can be used with MQTT etc... 
+
 
 	// experimental
 	virtual bool load(JsonObject& root, const char *& ID) { return false ; };
@@ -112,8 +114,8 @@ public:
 	// specific virtual functions for ALL effects...
 	// If they are not handlesd by subclass, they return false.
 
-	virtual bool setBrightness(uint8_t) { return false; }
-	virtual bool getBrightness(uint8_t&) { return false;};
+	virtual bool setBrightness(uint8_t bri) { return false; }
+	virtual bool getBrightness(uint8_t& bri) { return false;};
 
 	virtual bool setColor(RgbColor ) { return false;}
 	virtual bool getColor(RgbColor&) { return false;}
@@ -130,8 +132,8 @@ public:
 	virtual bool setRotation(uint8_t rotation)   {   return false; }
 	virtual bool getRotation(uint8_t& rotation)  {   return false; }
 
-	virtual bool setText(const char * text)   {   return false; }
-	virtual bool getText( char *& text)   {   return false; }
+	virtual bool setText(const char * text)   { return false; }
+	virtual bool getText( char *& text)   { return false; }
 
 	virtual bool setPalette(palette_type palette)   {   return false;  }
 	virtual bool getPalette(palette_type& palette)  {   return false;  }
@@ -180,7 +182,7 @@ class SwitchEffect : public EffectHandler
 {
 
 public:
-	typedef std::function<void(effectState&)> EffectHandlerFunction;
+	typedef std::function<void(effectState& )> EffectHandlerFunction;
 	SwitchEffect(EffectHandlerFunction Fn) : _Fn(Fn) {};
 	bool Run() override
 	{
@@ -248,10 +250,11 @@ public:
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override;
 	bool addJson(JsonObject& settings) override;
-	bool args(ESP8266WebServer& HTTP) override; 
+	//bool args(ESP8266WebServer& HTTP) override; 
+	bool args(JsonObject& root) override; 
 
 	bool setBrightness(uint8_t bri) override  {   _brightness = bri; Refresh(); return true; }
-	bool getBrightness(uint8_t& bri) override {   bri = _brightness; return true; }
+	bool getBrightness(uint8_t& bri) override { Serial.println("[GeneralEffect] bri");  bri = _brightness; return true; }
 
 	bool setColor(RgbColor color) override  { _color = color; Refresh(); return true; }
 	bool getColor(RgbColor& color) override {  color = _color; return true; }
@@ -267,7 +270,7 @@ class MarqueeEffect : public SwitchEffect
 {
 
 public:
-	MarqueeEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _brightness(255), _color(0), _speed(5), _palette(OFF), _rotation(0)
+	MarqueeEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _brightness(255), _speed(5), _palette(OFF), _rotation(0)
 	{
 		_color = RgbColor(0, 0, 0);
 		_marqueeText = strdup("MELVANIMATE");
@@ -280,12 +283,12 @@ public:
 
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override ;
-	bool addJson(JsonObject& settings) override  ;
-	bool args(ESP8266WebServer& HTTP) override; 
+	bool addJson(JsonObject& settings) override;
+	bool args(JsonObject& root) override; 
 
 	//  Specific Variables
 	bool setBrightness(uint8_t bri) override  {   _brightness = bri; return true; }
-	bool getBrightness(uint8_t& bri) override {   bri = _brightness; return true; }
+	bool getBrightness(uint8_t& bri) override {    bri = _brightness; return true; }
 
 	bool setColor(RgbColor color) override  { _color = color; return true; }
 	bool getColor(RgbColor& color) override {  color = _color; return true; }
@@ -297,10 +300,14 @@ public:
 	bool getRotation(uint8_t& rotation) override {   rotation = _rotation; return true; }
 
 	bool setText(const char * text) override  {   free(_marqueeText); _marqueeText = strdup(text); return true; }
-	bool getText(char *& text) override {   text = _marqueeText; return true; }
+	bool getText(char *& text) override { text = _marqueeText; return true; }
 
 	bool setPalette(palette_type palette) override  {   _palette = palette; return true; }
 	bool getPalette(palette_type& palette) override {   palette = _palette; return true; }
+
+	void* getp() override { return this; }
+
+	void testfunction() { Serial.println("[MarqueeEffect] test NOT overridden function"); }
 
 private:
 	char * _marqueeText;
@@ -321,7 +328,7 @@ public:
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override; 
 	bool addJson(JsonObject& settings) override; 
-	bool args(ESP8266WebServer & HTTP); 
+	bool args(JsonObject& root) override; 
 
 	bool setSerialspeed(uint32_t speed) override {  _serialspeed = speed; Refresh(); return true; }
 	bool getSerialspeed(uint32_t& speed) override {  speed = _serialspeed; return true; }

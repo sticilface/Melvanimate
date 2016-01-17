@@ -70,27 +70,29 @@ class Melvanimate : public EffectManager
 {
 public:
 	Melvanimate();
-	const RgbColor  getColor();
+//	const RgbColor  getColor();
 
 	//const RgbColor  getColor2() { return dim(_color2); }
 
-	const RgbColor  dim( RgbColor input) { return dim(input, getBrightness()); }
+	//const RgbColor  dim( RgbColor input) { return dim(input, getBrightness()); }
 	static const RgbColor 	dim( RgbColor input, const uint8_t brightness);
 
-	const uint8_t   getBrightness();
-	void      		setBrightness(const uint8_t bright);
+	// const uint8_t   getBrightness();
+	// void      		setBrightness(const uint8_t bright);
 
-	void      color(const RgbColor color);
-	const RgbColor  color();
-	RgbColor nextcolor();
+//	void      color(const RgbColor color);
+//	const RgbColor  color();
+	//RgbColor nextcolor();
 
-	void      color2(const RgbColor color);
-	const RgbColor  color2() { return _color2; }
-	void      speed(const uint8_t speed) { _settings_changed = true;  _speed = speed ; Refresh(); }
-	const uint8_t   speed() { return _speed; }
+//	void      color2(const RgbColor color);
+//	const RgbColor  color2() { return _color2; }
+//	void      speed(const uint8_t speed) { _settings_changed = true;  _speed = speed ; Refresh(); }
+//	const uint8_t   speed() { return _speed; }
 
 	//const int       serialspeed() { return _serialspeed; }
 	//void      serialspeed(const int speed);
+
+
 	void        grid(const uint16_t x, const uint16_t y);
 	void        setmatrix(const uint8_t i);
 
@@ -122,25 +124,19 @@ public:
 	int getTimer() { return _timer;  }
 
 	bool multiplematrix = false; //
-	uint32_t timeoutvar;  //  parameters used by some effects...
-	int32_t effectposition; //  just keep one copy of them.. save having loads of statics!
+	int32_t timeoutvar;  //  parameters used by some effects...
 
 private:
 	void _init_LEDs();
 	void _init_matrix();
 	uint16_t  _pixels;
-	uint8_t _brightness;
-	uint8_t _speed;
-	RgbColor _color;
-	RgbColor _color2;
-	int _serialspeed;
 	Melvtrix * _matrix;
 	uint8_t _matrixconfig;
 	uint16_t _grid_x, _grid_y;
 	bool _settings_changed;
-	String _marqueetext = "Welcome to Melvana"; // default text!
 	bool _animations;
 	File _settings = File();
+	
 	uint8_t _waiting;
 	uint32_t _waiting_timeout = 0;
 

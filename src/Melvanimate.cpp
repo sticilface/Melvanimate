@@ -13,9 +13,9 @@ const uint16_t UDPlightPort = 8888;
 E131* e131 = nullptr;
 SimpleTimer timer;
 
-Melvanimate::Melvanimate(): _brightness(255), _color(0, 0, 0), _color2(0, 0, 0), _speed(50), _pixels(TOTALPIXELS)
-	, _grid_x(8), _grid_y(8), _serialspeed(115200), _matrixconfig(0), _matrix(nullptr)
-	, _settings_changed(false), timeoutvar(0), effectposition(0), _palette(nullptr)
+Melvanimate::Melvanimate(): _pixels(TOTALPIXELS)
+	, _grid_x(8), _grid_y(8), _matrixconfig(0), _matrix(nullptr)
+	, _settings_changed(false), timeoutvar(0), _palette(nullptr)
 {
 	_matrixconfig = ( NEO_MATRIX_TOP + NEO_MATRIX_LEFT +  NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE );
 	setWaitFn ( std::bind (&Melvanimate::returnWaiting, this)  );   //  this callback gives bool to Effectmanager... "am i waiting..."
@@ -41,46 +41,47 @@ bool        Melvanimate::begin()
 
 }
 
-const RgbColor  Melvanimate::getColor()
-{
-	if (_currentHandle) {
-		RgbColor color = RgbColor(0);
-		if (_currentHandle->getColor(color)) {
-			return dim(color);
-		}
-	}
+// const RgbColor  Melvanimate::getColor()
+// {
+// 	if (_currentHandle) {
+// 		RgbColor color = RgbColor(0);
+// 		if (_currentHandle->getColor(color)) {
+// 			return dim(color);
+// 		}
+// 	}
 
-	return dim(_color);
+// 	//return dim(_color);
+// 	return RgbColor(0);
+// }
 
-}
+// const uint8_t  Melvanimate::getBrightness()
+// {
+// 	if (_currentHandle) {
+// 		uint8_t bri = 0;
+// 		if (_currentHandle->getBrightness(bri)) {
+// 			return bri;
+// 		}
+// 	}
+// 	//Serial.printf("[getBri:default] %u\n", _brightness);
 
-const uint8_t  Melvanimate::getBrightness()
-{
-	if (_currentHandle) {
-		uint8_t bri = 0;
-		if (_currentHandle->getBrightness(bri)) {
-			return bri;
-		}
-	}
-	//Serial.printf("[getBri:default] %u\n", _brightness);
-
-	// return default
-	return _brightness;
-
-}
+// 	// return default
+// 	//return _brightness;
+// 	return 0;
+// }
 
 
 
-const RgbColor  Melvanimate::color()
-{
-	if (_currentHandle) {
-		RgbColor temp = 0;
-		if (_currentHandle->getColor(temp)) {
-			return temp;
-		}
-	}
-	return _color;
-}
+// const RgbColor  Melvanimate::color()
+// {
+// 	if (_currentHandle) {
+// 		RgbColor temp = 0;
+// 		if (_currentHandle->getColor(temp)) {
+// 			return temp;
+// 		}
+// 	}
+
+// 	return RgbColor(0);
+// }
 
 
 void Melvanimate::_init_matrix()
@@ -126,44 +127,44 @@ const RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
 	return RgbColor( HslColor(originalHSL.H, originalHSL.S, originalHSL.L )  );
 }
 
-void      Melvanimate::setBrightness(const uint8_t bright)
-{
-	// if (bright == _brightness ) {
-	// 	return;
-	// }
+// void      Melvanimate::setBrightness(const uint8_t bright)
+// {
+// 	// if (bright == _brightness ) {
+// 	// 	return;
+// 	// }
 
-	_brightness = bright;
+// 	//_brightness = bright;
 
-	if (_currentHandle) {
-		if (_currentHandle->setBrightness(bright)) {
-			//Serial.printf("[setBri]\n", );
-		}
-	}
+// 	if (_currentHandle) {
+// 		if (_currentHandle->setBrightness(bright)) {
+// 			//Serial.printf("[setBri]\n", );
+// 		}
+// 	}
 
-	Refresh();
-	_settings_changed = true;
-}
+// 	Refresh();
+// 	_settings_changed = true;
+// }
 
-void      Melvanimate::color(const RgbColor color)
-{
-	_color = color;
-	_palette->input(color);
+// void      Melvanimate::color(const RgbColor color)
+// {
+// 	//_color = color;
+// 	_palette->input(color);
 
-	if (_currentHandle) {
-		_currentHandle->setColor(color);
-	}
+// 	if (_currentHandle) {
+// 		_currentHandle->setColor(color);
+// 	}
 
 
-	_settings_changed = true;
-	Refresh();
-}
+// 	_settings_changed = true;
+// 	Refresh();
+// }
 
-void      Melvanimate::color2(const RgbColor color)
-{
-	_color2 = color;
-	_settings_changed = true;
-	Refresh();
-}
+// void      Melvanimate::color2(const RgbColor color)
+// {
+// 	_color2 = color;
+// 	_settings_changed = true;
+// 	Refresh();
+// }
 
 
 // void      Melvanimate::serialspeed(const int speed)
@@ -213,10 +214,10 @@ void        Melvanimate::setPixels(const uint16_t pixels)
 	Debugf("HEAP: %u\n", ESP.getFreeHeap());
 }
 
-RgbColor Melvanimate::nextcolor()
-{
-	if (_palette) { return dim(_palette->next()); } else { return RgbColor(0); }
-}
+// RgbColor Melvanimate::nextcolor()
+// {
+// 	if (_palette) { return dim(_palette->next()); } else { return RgbColor(0); }
+// }
 
 
 // const char * Melvanimate::getText()
@@ -491,9 +492,13 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 			} else if (command.equalsIgnoreCase("start")) {
 				Start(option);
 			} else if (command.equalsIgnoreCase("brightness")) {
-				setBrightness(option.toInt());
+				if (Current()) {
+					Current()->setBrightness(option.toInt());
+				}
 			} else if (command.equalsIgnoreCase("speed")) {
-				speed(option.toInt());
+				if (Current()) {
+					Current()->setSpeed(option.toInt());
+				}
 			} else if (command.equalsIgnoreCase("loadpreset")) {
 				Serial.println("[Melvanimate::setTimer] Load preset: not done yet");
 			}

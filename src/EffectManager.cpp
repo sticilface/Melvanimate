@@ -56,6 +56,7 @@ bool EffectManager::SetToggle(const char * name)
 
 	if (handler) {
 		_toggleHandle = handler;
+		getPresets(_toggleHandle, _numberofpresets, _presets);
 		return true;
 	}
 	return false;
@@ -170,16 +171,7 @@ void EffectManager::SetTimeout(const char * name, uint32_t time)
 
 }
 
-// const char * EffectManager::getName()
-// {
-// 	if (_NextInLine) {
-// 		return _NextInLine->name(); //  allows webgui to display the current selected instead of the ending one.
-// 	} else 	if (_currentHandle) {
-// 		return _currentHandle->name();
-// 	} else {
-// 		return "";
-// 	}
-// }
+
 
 const char * EffectManager::getName(uint8_t i)
 {
@@ -718,20 +710,41 @@ bool GeneralEffect::addJson(JsonObject & settings)
 }
 
 
-bool GeneralEffect::args(ESP8266WebServer& HTTP)
+// bool GeneralEffect::args(ESP8266WebServer& HTTP)
+// {
+
+// 	bool found = false;
+
+// 	// need to add color... but change the JS to send normal POST not JSON...
+
+// 	if (HTTP.hasArg("brightness")) {
+// 		setBrightness(HTTP.arg("brightness").toInt());
+// 		found = true;
+// 	}
+
+// 	return found;
+
+// }
+
+bool GeneralEffect::args(JsonObject & root)
 {
+	bool found = false; 
+	if (root.containsKey("color")) {
+		   JsonObject& color = root["color"];
+		   RgbColor input;
+		   input.R = color["R"];
+		   input.G = color["G"];
+		   input.B = color["B"];
+		   setColor(input);
+		   found = true; 
 
-	bool found = false;
-
-	// need to add color... but change the JS to send normal POST not JSON...
-
-	if (HTTP.hasArg("brightness")) {
-		setBrightness(HTTP.arg("brightness").toInt());
-		found = true;
 	}
 
+	if (root.containsKey("brightness")) {
+		setBrightness( root["brightness"] );
+		found = true;
+	}
 	return found;
-
 }
 
 /*
@@ -804,32 +817,43 @@ bool MarqueeEffect::addJson(JsonObject& settings)
 	return true;
 } ;
 
-bool MarqueeEffect::args(ESP8266WebServer& HTTP)
+bool MarqueeEffect::args(JsonObject& root)
 {
 	bool found = false;
 
 	// need to add color... but change the JS to send normal POST not JSON...
 
-	if (HTTP.hasArg("brightness")) {
-		setBrightness(HTTP.arg("brightness").toInt());
+	if (root.containsKey("color")) {
+		   JsonObject& color = root["color"];
+		   RgbColor input;
+		   input.R = color["R"];
+		   input.G = color["G"];
+		   input.B = color["B"];
+		   setColor(input);
+		   found = true; 
+
+	}
+
+	if (root.containsKey("brightness")) {
+		setBrightness(root["brightness"]);
 		found = true;
 	}
 
-	if (HTTP.hasArg("speed")) {
-		setSpeed(HTTP.arg("speed").toInt());
+	if (root.containsKey("speed")) {
+		setSpeed(root["speed"]);
 		found = true;
 	}
 
-	if (HTTP.hasArg("rotation")) {
-		uint8_t rotation = HTTP.arg("rotation").toInt();
+	if (root.containsKey("rotation")) {
+		uint8_t rotation = root["rotation"];
 		if (rotation > 3) rotation = 0;
 		setRotation( rotation );
 		Refresh();
 		found = true;
 	}
 
-	if (HTTP.hasArg("marqueetext")) {
-		setText(HTTP.arg("marqueetext").c_str()) ;
+	if (root.containsKey("marqueetext")) {
+		setText(root["marqueetext"]) ;
 		Refresh();
 		found = true;
 	}
@@ -874,10 +898,10 @@ bool AdalightEffect::addJson(JsonObject& settings)
 	settings["serialspeed"] = _serialspeed;
 }
 
-bool AdalightEffect::args(ESP8266WebServer & HTTP)
+bool AdalightEffect::args(JsonObject& root)
 {
-	if (HTTP.hasArg("serialspeed")) {
-		setSerialspeed(HTTP.arg("serialspeed").toInt());
+	if (root.containsKey("serialspeed")) {
+		setSerialspeed(root["serialspeed"]);
 		return true;
 	} else {
 		return false;
