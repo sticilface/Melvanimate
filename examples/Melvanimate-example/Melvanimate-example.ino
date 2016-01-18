@@ -17,7 +17,7 @@
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
 #include <ESP8266HTTPUpdateServer.h>
-#include <ESP8266WebServer.h>
+//#include <ESP8266WebServer.h>
 #include <ESP8266HTTPClient.h>
 #include <ArduinoOTA.h>
 
@@ -26,10 +26,14 @@
 #include <pubsubclient.h>
 #include <Adafruit_GFX.h>
 
-#include <ESPmanager.h>
-#include <FSBrowser.h>
+//#include <ESPmanager.h>
+//#include <FSBrowser.h>
 #include <Melvanimate.h>
 #include "SimpleTimer/_SimpleTimer.h"
+
+
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 
 // #include <cont.h>
 // #include <stddef.h>
@@ -37,15 +41,15 @@
 
 
 
-ESP8266WebServer HTTP(80);
-FSBrowser fsbrowser(HTTP);
+AsyncWebServer HTTP(80);
+//FSBrowser fsbrowser(HTTP);
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SONET_1", "tachi123");
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
 
-ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
+//ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 
 
@@ -80,8 +84,8 @@ void setup()
 
   lights.begin();
 
-  settings.begin();
-  fsbrowser.begin();
+ // settings.begin();
+ // fsbrowser.begin();
 
 
   HTTP.on("/crash", HTTP_ANY, crashfunc);
@@ -258,7 +262,7 @@ void loop()
 
   HTTP.handleClient();
 
-  settings.handle();
+ // settings.handle();
 
   lights.Loop();
 
@@ -780,7 +784,7 @@ void send_data(String page)
   }
 
 
-  ESPmanager::sendJsontoHTTP(root, HTTP);
+//  ESPmanager::sendJsontoHTTP(root, HTTP);
 
 }
 
