@@ -16,9 +16,9 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
-#include <ESP8266HTTPUpdateServer.h>
+//#include <ESP8266HTTPUpdateServer.h>
 //#include <ESP8266WebServer.h>
-#include <ESP8266HTTPClient.h>
+//#include <ESP8266HTTPClient.h>
 #include <ArduinoOTA.h>
 
 #include <ArduinoJson.h>
@@ -34,11 +34,128 @@
 
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include "AsyncWebServerResponseImpl.h"
+
+// template <class T> void sendJsontoHTTPnew(const T & root, AsyncWebServerRequest *request){
+//   *stream = new AsyncResponseStream("text/json", root.measureLength());
+//   request->send(stream);
+// }
 
 // #include <cont.h>
 // #include <stddef.h>
 // #include <ets_sys.h>
 
+
+//AsyncResponseStream *stream = nullptr; 
+
+//#include <cbuf.h>
+
+#include "misc.h"
+
+// template<size_t CAPACITY>
+// class AsyncPrinter: public Print {
+// private:
+//     AsyncClient *_client;
+//     cbuf *_buffer;
+// public:
+// AsyncPrinter():_client(NULL),_buffer(NULL){}
+// AsyncPrinter(AsyncClient *client):_client(client){
+//       client->onPoll([](void *obj, AsyncClient* c){
+//         AsyncPrinter *p = (AsyncPrinter*)obj;
+//         p->sendBuffer();
+//       }, this);
+//       client->onDisconnect([](void *obj, AsyncClient* c){
+//         AsyncPrinter *p = (AsyncPrinter*)obj;
+//         p->_on_close();
+//         c->free();
+// delete c;
+//       }, this);
+//       _buffer = new cbuf(CAPACITY);
+//     }
+// ~AsyncPrinter(){
+// _on_close();
+//     }
+// size_t write(uint8_t data){
+// if(!connected())
+// return 0;
+//       _buffer->write(data);
+// if(_buffer->getSize() == CAPACITY)
+// sendBuffer();
+// return 1;
+//     }
+// size_t write(const uint8_t *data, size_t len){
+// if(!connected())
+// return 0;
+// size_t space = _buffer->room();
+// size_t toWrite = 0;
+// if(space < len){
+//         toWrite = len - space;
+//         _buffer->write((const char*)data, toWrite);
+// sendBuffer();
+//       }
+//       _buffer->write((const char*)(data+toWrite), len - toWrite);
+// return len;
+//     }
+// bool connected(){
+// return (_client != NULL && _client->connected());
+//     }
+// void close(){
+// if(_client != NULL)
+//         _client->close();
+//     }
+// void sendBuffer(){
+// size_t available = _buffer->getSize();
+// if(available == 0)
+// return;
+// while(!_client->canSend())
+// delay(0);
+// char *out = new char[available];
+//       _buffer->read(out, available);
+//       _buffer->flush();
+//       _client->write(out, available);
+// delete out;
+//     }
+// void _on_close(){
+// if(_client != NULL){
+//         _client->onPoll(NULL, NULL);
+//         _client->onDisconnect(NULL, NULL);
+//       }
+//       _client = NULL;
+//       _buffer->flush();
+// delete _buffer;
+//     }
+// };
+
+//    void send(Stream &stream, String contentType, size_t len);
+
+// template <class T> void sendJsontoHTTP( const T & root, AsyncWebServerRequest *request)
+// {
+
+//      size_t jsonlength = root.measureLength();
+//     // _HTTP.setContentLength(jsonlength);
+
+//      AsyncWebServerResponse response; 
+//      response.addHeader("Content-Length", String(jsonlength));
+//      response.addHeader("Content-Type", "text/json"); 
+//      request->send(&response);
+//      AsyncPrinter<1440> proxy(request->client());
+//      root.printTo(proxy);
+//      proxy.sendBuffer();
+//      //proxy.stop();
+
+// }
+
+// size_t sendJson(uint8_t *buf,  size_t maxlen){
+//   //fill buf with as much as you can up to maxlen and return the amount written
+//   return json.read(buf, maxlen);
+
+//   uint8_t * buf = new uint8_t(1024);
+
+// }
+
+// void respond(AsyncWebServerRequest *req){
+//   req->send("text/json", lengthOfJson, sendJson);//<<lengthOfJson is ContentLength
+// }
 
 
 AsyncWebServer HTTP(80);
@@ -51,7 +168,8 @@ AsyncWebServer HTTP(80);
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
-
+const char * http_username = "andrew";
+const char * http_password = "test"; 
 
 struct XY_t {
   int x;
@@ -88,42 +206,45 @@ void setup()
  // fsbrowser.begin();
 
 
-  HTTP.on("/crash", HTTP_ANY, crashfunc);
+  //HTTP.on("/crash", HTTP_ANY, crashfunc);
 
-  // HTTP.on("/stack", HTTP_ANY, []() {
+  // request->on("/stack", HTTP_ANY, []() {
   //   cont_ stackvars;
   //   if (cont_get_free_stack(&stackvars)){
 
   //   }
 
   // });
+  //HTTP.serveStatic("/espman", SPIFFS, "/espman", "max-age=86400");
+
 
   HTTP.on("/data.esp", HTTP_ANY, handle_data);
-  HTTP.on("/debug", HTTP_GET, []() {
+
+  HTTP.on("/debug", HTTP_GET, [](AsyncWebServerRequest *request) {
     static bool debugstate = false;
     debugstate = !debugstate;
     Serial.setDebugOutput(debugstate);
-    HTTP.setContentLength(0);
-    HTTP.send(200); // sends OK if were just receiving data...
+    //request->setContentLength(0);
+    request->send(200); // sends OK if were just receiving data...
   });
 
-  HTTP.on("/command", HTTP_ANY, []() {
-    if (HTTP.hasArg("save")) {
-      lights.newSave(HTTP.arg("save").toInt());
-      Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
-      HTTP.setContentLength(0);
-      HTTP.send(200); // sends OK if were just receiving data...
+  HTTP.on("/command", HTTP_ANY, [](AsyncWebServerRequest *request) {
+    if (request->hasArg("save")) {
+      lights.newSave(request->arg("save").toInt());
+      Serial.printf("[request->on/command] done, heap: %u\n", ESP.getFreeHeap());
+      //request->setContentLength(0);
+      request->send(200); // sends OK if were just receiving data...
     }
 
-    if (HTTP.hasArg("load")) {
-      lights.newLoad(HTTP.arg("load").toInt());
+    if (request->hasArg("load")) {
+      lights.newLoad(request->arg("load").toInt());
       Serial.printf("[load] done, heap: %u\n", ESP.getFreeHeap());
       Serial.printf("[load] current preset = %u\n", lights.Current()->getPreset());
-      HTTP.setContentLength(0);
-      HTTP.send(200); // sends OK if were just receiving data...
+      //request->setContentLength(0);
+      request->send(200); // sends OK if were just receiving data...
     }
 
-    if (HTTP.hasArg("print")) {
+    if (request->hasArg("print")) {
       File f = SPIFFS.open(PRESETS_FILE, "r");
       Serial.println("SETTINGS_FILE");
 
@@ -136,17 +257,17 @@ void setup()
 
       Serial.println("---");
 
-      HTTP.setContentLength(0);
-      HTTP.send(200); // sends OK if were just receiving data...
+  //    request->setContentLength(0);
+      request->send(200); // sends OK if were just receiving data...
     }
 
-    if (HTTP.hasArg("remove")) {
-      lights.removePreset(HTTP.arg("remove").toInt());
-      HTTP.setContentLength(0);
-      HTTP.send(200); // sends OK if were just receiving data...
+    if (request->hasArg("remove")) {
+      lights.removePreset(request->arg("remove").toInt());
+ //     request->setContentLength(0);
+      request->send(200); // sends OK if were just receiving data...
     }
 
-    if (HTTP.hasArg("list")) {
+    if (request->hasArg("list")) {
 
       Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
 
@@ -162,11 +283,12 @@ void setup()
 
   });
 
-  void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
+  //void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
 
-  HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
+  //HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
 
-  HTTP.begin();
+  HTTP.serveStatic("/", SPIFFS, "/");
+
 
 // -------------------------------------------------------- //
 
@@ -251,6 +373,75 @@ void setup()
   //   Serial.println("remove presets");
   // } while (SPIFFS.remove("/MelvanaSettings.txt") );
 
+
+
+  HTTP.addHandler(new SPIFFSEditor(http_username,http_password));
+
+  HTTP.onNotFound([](AsyncWebServerRequest *request){
+    os_printf("NOT_FOUND: ");
+    if(request->method() == HTTP_GET)
+      os_printf("GET");
+    else if(request->method() == HTTP_POST)
+      os_printf("POST");
+    else if(request->method() == HTTP_DELETE)
+      os_printf("DELETE");
+    else if(request->method() == HTTP_PUT)
+      os_printf("PUT");
+    else if(request->method() == HTTP_PATCH)
+      os_printf("PATCH");
+    else if(request->method() == HTTP_HEAD)
+      os_printf("HEAD");
+    else if(request->method() == HTTP_OPTIONS)
+      os_printf("OPTIONS");
+    else
+      os_printf("UNKNOWN");
+    os_printf(" http://%s%s\n", request->host().c_str(), request->url().c_str());
+
+    if(request->contentLength()){
+      os_printf("_CONTENT_TYPE: %s\n", request->contentType().c_str());
+      os_printf("_CONTENT_LENGTH: %u\n", request->contentLength());
+    }
+
+    int headers = request->headers();
+    int i;
+    for(i=0;i<headers;i++){
+      AsyncWebHeader* h = request->getHeader(i);
+      os_printf("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
+    }
+
+    int params = request->params();
+    for(i=0;i<params;i++){
+      AsyncWebParameter* p = request->getParam(i);
+      if(p->isFile()){
+        os_printf("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+      } else if(p->isPost()){
+        os_printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+      } else {
+        os_printf("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
+      }
+    }
+
+    request->send(404);
+  });
+
+  HTTP.onFileUpload([](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
+    if(!index)
+      os_printf("UploadStart: %s\n", filename.c_str());
+    os_printf("%s", (const char*)data);
+    if(final)
+      os_printf("UploadEnd: %s (%u)\n", filename.c_str(), index+len);
+  });
+  HTTP.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
+    if(!index)
+      os_printf("BodyStart: %u\n", total);
+    os_printf("%s", (const char*)data);
+    if(index + len == total)
+      os_printf("BodyEnd: %u\n", total);
+  });
+
+
+HTTP.begin();
+
 }
 
 void loop()
@@ -260,7 +451,7 @@ void loop()
   uint8_t poss = 0;
   _arrays[0] = millis();
 
-  HTTP.handleClient();
+  // request->handleClient();
 
  // settings.handle();
 
@@ -282,6 +473,8 @@ void loop()
   // if (millis() - _tick > 1000 ) {
   //   Serial.printf("Loop >1S %u\n", millis() - _tick);
   // }
+
+
 
 }
 
@@ -359,33 +552,31 @@ void OnOff(uint16_t pixel, RgbColor color, uint16_t time)
 }
 
 
-void print_args()
+void print_args(AsyncWebServerRequest *request)
 {
 
-
-  for (uint8_t i = 0; i < HTTP.args(); i++) {
+  for (uint8_t i = 0; i < request->args(); i++) {
     Serial.print("[ARG:");
     Serial.print(i);
     Serial.print("] ");
-    Serial.print(HTTP.argName(i));
+    Serial.print(request->argName(i));
     Serial.print(" = ");
-    Serial.println(HTTP.arg(i));
-    Serial.flush();
+    Serial.println(request->arg(i));
   }
 }
 
 //  this is required as some
-bool check_duplicate_req()
+bool check_duplicate_req(AsyncWebServerRequest *request)
 {
   static uint32_t last_time = 0;
   static char last_request[16] = {0};
-  if (HTTP.hasArg("data")) return false;
+  if (request->hasArg("data")) return false;
 
   MD5Builder md5;
   md5.begin();
 
-  for (uint8_t args = 0; args < HTTP.args(); args++) {
-    String req = HTTP.argName(args) + HTTP.arg(args);
+  for (uint8_t args = 0; args < request->args(); args++) {
+    String req = request->argName(args) + request->arg(args);
     md5.add(req);
   }
 
@@ -397,7 +588,7 @@ bool check_duplicate_req()
 
   if (memcmp(last_request, this_request, 16) == 0) {
     match = true;
-    //Serial.println("Request ignored: duplicate");
+    //Serial.println("request ignored: duplicate");
   }
 
   memcpy(last_request, this_request, 16);
@@ -408,20 +599,24 @@ bool check_duplicate_req()
   return match & !time_elapsed;
 
 }
-void handle_data()
+
+void handle_data(AsyncWebServerRequest *request)
+
 {
   uint32_t start_time = millis();
   String page = "homepage"; 
   //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
-  if (check_duplicate_req()) { HTTP.setContentLength(0); HTTP.send(200); return; }
+  if (check_duplicate_req(request)) { request->send(200); return; }
 
   Serial.println();
-  print_args();
+  print_args(request);
 
-  if (HTTP.hasArg("plain")) {
+Serial.println("a");
+
+  if (request->hasArg("plain")) {
 
     DynamicJsonBuffer jsonBufferplain;
-    JsonObject& root = jsonBufferplain.parseObject(HTTP.arg("plain").c_str());
+    JsonObject& root = jsonBufferplain.parseObject(request->arg("plain").c_str());
     if (root.success()) {
 
       if (lights.Current()) {
@@ -432,23 +627,26 @@ void handle_data()
 
     }
   }
+Serial.println("b");
 
-  if (HTTP.hasArg("enable")) {
-    if (HTTP.arg("enable").equalsIgnoreCase("on")) {
+  if (request->hasArg("enable")) {
+    if (request->arg("enable").equalsIgnoreCase("on")) {
       lights.Start();
-    } else if (HTTP.arg("enable").equalsIgnoreCase("off")) {
+    } else if (request->arg("enable").equalsIgnoreCase("off")) {
       lights.Start("Off");
     }
   }
+Serial.println("c");
 
-  if (HTTP.hasArg("mode")) {
-    modechange = lights.Start(HTTP.arg("mode"));
-    if (HTTP.arg("mode") != "Off") { lights.SetToggle(HTTP.arg("mode").c_str()); }
+  if (request->hasArg("mode")) {
+    modechange = lights.Start(request->arg("mode"));
+    if (request->arg("mode") != "Off") { lights.SetToggle(request->arg("mode").c_str()); }
   }
 
+Serial.println("d");
 
-  if (HTTP.hasArg("preset")) {
-    uint8_t preset = HTTP.arg("preset").toInt();
+  if (request->hasArg("preset")) {
+    uint8_t preset = request->arg("preset").toInt();
     if (lights.newLoad(preset)) {
     //  try to switch current effect to preset...
     Serial.printf("[handle] Loaded preset %u\n", preset);
@@ -456,13 +654,14 @@ void handle_data()
 
   }
 
+Serial.println("e");
 
   DynamicJsonBuffer jsonBuffer;
 
   JsonObject & root = jsonBuffer.createObject();
 
-  for (uint8_t i = 0; i < HTTP.args(); i++) {
-    root[HTTP.argName(i)] = HTTP.arg(i);
+  for (uint8_t i = 0; i < request->args(); i++) {
+    root[request->argName(i)] = request->arg(i);
   }
 
   if (lights.Current()) {
@@ -471,18 +670,19 @@ void handle_data()
     }
   }
 
-  if (HTTP.hasArg("nopixels") && HTTP.arg("nopixels").length() != 0) {
-    lights.setPixels(HTTP.arg("nopixels").toInt());
+  if (request->hasArg("nopixels") && request->arg("nopixels").length() != 0) {
+    lights.setPixels(request->arg("nopixels").toInt());
     page = "layout"; 
 
   }
 
-  if (HTTP.hasArg("palette")) {
-    lights.palette().mode(HTTP.arg("palette").c_str());
+  if (request->hasArg("palette")) {
+    lights.palette().mode(request->arg("palette").c_str());
     page = "layout"; 
 
   }
 
+Serial.println("f");
 
 
 // matrixmode stuff
@@ -510,36 +710,37 @@ void handle_data()
 // #define NEO_TILE_ZIGZAG        0x80 // Tile order reverses between lines
 // #define NEO_TILE_SEQUENCE      0x80 // Bitmask for tile line order
 
-  if (HTTP.hasArg("grid_x") && HTTP.hasArg("grid_y")) {
-    lights.grid(HTTP.arg("grid_x").toInt(), HTTP.arg("grid_y").toInt() );
+  if (request->hasArg("grid_x") && request->hasArg("grid_y")) {
+    lights.grid(request->arg("grid_x").toInt(), request->arg("grid_y").toInt() );
     page = "layout"; 
   }
+Serial.println("g");
 
-  if (HTTP.hasArg("matrixmode")) {
+  if (request->hasArg("matrixmode")) {
     page = "layout"; 
     uint8_t matrixvar = 0;
-    if (HTTP.arg("matrixmode") == "singlematrix") { lights.multiplematrix = false; }
-    if (HTTP.arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
-    if (HTTP.arg("firstpixel") == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
-    if (HTTP.arg("firstpixel") == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
-    if (HTTP.arg("firstpixel") == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
+    if (request->arg("matrixmode") == "singlematrix") { lights.multiplematrix = false; }
+    if (request->arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
+    if (request->arg("firstpixel") == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
+    if (request->arg("firstpixel") == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
+    if (request->arg("firstpixel") == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
 
-    if (HTTP.arg("axis") == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
-    if (HTTP.arg("axis") == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
+    if (request->arg("axis") == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
+    if (request->arg("axis") == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
 
-    if (HTTP.arg("sequence") == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
-    if (HTTP.arg("sequence") == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
+    if (request->arg("sequence") == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
+    if (request->arg("sequence") == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
 
-    if (HTTP.arg("matrixmode") == "multiplematrix") {
+    if (request->arg("matrixmode") == "multiplematrix") {
       lights.multiplematrix = true;
-      if (HTTP.arg("multimatrixtile") == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
-      if (HTTP.arg("multimatrixtile") == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
-      if (HTTP.arg("multimatrixtile") == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
-      if (HTTP.arg("multimatrixtile") == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
-      if (HTTP.arg("multimatrixaxis") == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
-      if (HTTP.arg("multimatrixaxis") == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
-      if (HTTP.arg("multimatrixseq") == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
-      if (HTTP.arg("multimatrixseq") == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
+      if (request->arg("multimatrixtile") == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
+      if (request->arg("multimatrixtile") == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
+      if (request->arg("multimatrixtile") == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
+      if (request->arg("multimatrixtile") == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
+      if (request->arg("multimatrixaxis") == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
+      if (request->arg("multimatrixaxis") == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
+      if (request->arg("multimatrixseq") == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
+      if (request->arg("multimatrixseq") == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
     }
 
     Debugf("NEW Matrix params: %u\n", matrixvar);
@@ -547,13 +748,14 @@ void handle_data()
   }
 
 
-  // if (HTTP.hasArg("serialspeed")) {
+  // if (request->hasArg("serialspeed")) {
   //   if (lights.Current()) {
-  //     lights.Current()->setSerialspeed(HTTP.arg("serialspeed").toInt());
+  //     lights.Current()->setSerialspeed(request->arg("serialspeed").toInt());
   //   }
   // }
+Serial.println("h");
 
-  if (HTTP.hasArg("flashfirst")) {
+  if (request->hasArg("flashfirst")) {
     page = "layout"; 
     lights.Start("Off");
     lights.Stop();
@@ -567,8 +769,9 @@ void handle_data()
 
 
   }
+Serial.println("i");
 
-  if (HTTP.hasArg("revealorder")) {
+  if (request->hasArg("revealorder")) {
     page = "layout"; 
     lights.Start("Off");
     lights.Stop();
@@ -591,51 +794,52 @@ void handle_data()
 
   }
 
-  if (HTTP.hasArg("palette-random")) {
-    lights.palette().randommode(HTTP.arg("palette-random").c_str());
+  if (request->hasArg("palette-random")) {
+    lights.palette().randommode(request->arg("palette-random").c_str());
     page = "palette"; 
 
   }
 
 
-  if (HTTP.hasArg("palette-spread")) {
-    lights.palette().range(HTTP.arg("palette-spread").toFloat());
+  if (request->hasArg("palette-spread")) {
+    lights.palette().range(request->arg("palette-spread").toFloat());
     page = "palette"; 
   }
 
-  if (HTTP.hasArg("palette-delay")) {
-    lights.palette().delay(HTTP.arg("palette-delay").toInt());
+  if (request->hasArg("palette-delay")) {
+    lights.palette().delay(request->arg("palette-delay").toInt());
     page = "palette"; 
 
   }
 
+Serial.println("j");
 
-  if (HTTP.hasArg("data")) {
-    send_data(HTTP.arg("data")); // sends JSON data for whatever page is currently being viewed
+  if (request->hasArg("data")) {
+    send_data(request, request->arg("data")); // sends JSON data for whatever page is currently being viewed
     return;
   }
 
-  if (HTTP.hasArg("enabletimer")) {
+  if (request->hasArg("enabletimer")) {
     page = "timer"; 
-    if (HTTP.arg("enabletimer") == "on") {
+    if (request->arg("enabletimer") == "on") {
 
-      if (HTTP.hasArg("timer") && HTTP.hasArg("timercommand")) {
+      if (request->hasArg("timer") && request->hasArg("timercommand")) {
 
-        String effect =  (HTTP.hasArg("timeroption")) ? HTTP.arg("timeroption") : String();
+        String effect =  (request->hasArg("timeroption")) ? request->arg("timeroption") : String();
 
-        if (lights.setTimer(HTTP.arg("timer").toInt(), HTTP.arg("timercommand"), effect )) {
+        if (lights.setTimer(request->arg("timer").toInt(), request->arg("timercommand"), effect )) {
           Serial.println("[handle] Timer command accepted");
         }
       }
-    } else if (HTTP.arg("enabletimer") == "off") {
+    } else if (request->arg("enabletimer") == "off") {
       lights.setTimer(0, "off");
     }
 
   }
 
-  //HTTP.setContentLength(0);
-  //HTTP.send(200); // sends OK if were just receiving data...
-  send_data(page);
+  //request->setContentLength(0);
+  //request->send(200); // sends OK if were just receiving data...
+  send_data(request, page);
 
 
   save_flag = millis();
@@ -649,7 +853,7 @@ void handle_data()
 
 
 
-void send_data(String page)
+void send_data(AsyncWebServerRequest *request, String page)
 {
   DynamicJsonBuffer jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
@@ -785,6 +989,29 @@ void send_data(String page)
 
 
 //  ESPmanager::sendJsontoHTTP(root, HTTP);
+ // sendJsontoHTTPnew(root,request);
+
+
+  File f = SPIFFS.open("/senddata.tmp","w"); 
+  if (f) {
+    Serial.println("1");
+
+    root.printTo(f);
+    root.printTo(f); 
+      Serial.println("2");
+
+    f.close(); 
+      Serial.println("3");
+
+    request->send(SPIFFS, "/senddata.tmp", "text/json");
+        Serial.println("4");
+
+
+  }
+//        void send(FS &fs, String path, String contentType=String(), bool download=false);
+
+  
+
 
 }
 
@@ -832,14 +1059,14 @@ void FadeTo( uint16_t time, RgbColor color)
 }
 
 
-void crashfunc()
-{
+// bool crashfunc(AsyncWebServerrequest *request)
+// {
 
-  NeoPixelBus * voidpointer;
+//   NeoPixelBus * voidpointer;
 
-  voidpointer->Show();
+//   voidpointer->Show();
 
-}
+// }
 
 
 
