@@ -287,7 +287,6 @@ void setup()
 
   //HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
 
-  HTTP.serveStatic("/", SPIFFS, "/");
 
 
 // -------------------------------------------------------- //
@@ -376,6 +375,9 @@ void setup()
 
 
   HTTP.addHandler(new SPIFFSEditor(http_username,http_password));
+
+  HTTP.serveStatic("/", SPIFFS, "/");
+
 
   HTTP.onNotFound([](AsyncWebServerRequest *request){
     os_printf("NOT_FOUND: ");
@@ -554,6 +556,7 @@ void OnOff(uint16_t pixel, RgbColor color, uint16_t time)
 
 void print_args(AsyncWebServerRequest *request)
 {
+  Serial.printf("[args] %u\n", request->args());
 
   for (uint8_t i = 0; i < request->args(); i++) {
     Serial.print("[ARG:");
@@ -563,6 +566,21 @@ void print_args(AsyncWebServerRequest *request)
     Serial.print(" = ");
     Serial.println(request->arg(i));
   }
+
+
+      int params = request->params();
+    for(int i=0;i<params;i++){
+      AsyncWebParameter* p = request->getParam(i);
+      if(p->isFile()){
+        Serial.printf("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+      } else if(p->isPost()){
+        Serial.printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+      } else {
+        Serial.printf("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
+      }
+    }
+
+
 }
 
 //  this is required as some
@@ -611,7 +629,14 @@ void handle_data(AsyncWebServerRequest *request)
   Serial.println();
   print_args(request);
 
-Serial.println("a");
+    if (request->hasArg("mode")) {
+      Serial.println("[handle] HAS MODE PARAM");
+    } else {
+      Serial.println("[handle] FAIL NO MODE PARAM");
+
+    }
+
+
 
   if (request->hasArg("plain")) {
 
@@ -627,7 +652,6 @@ Serial.println("a");
 
     }
   }
-Serial.println("b");
 
   if (request->hasArg("enable")) {
     if (request->arg("enable").equalsIgnoreCase("on")) {
@@ -636,14 +660,12 @@ Serial.println("b");
       lights.Start("Off");
     }
   }
-Serial.println("c");
 
   if (request->hasArg("mode")) {
     modechange = lights.Start(request->arg("mode"));
     if (request->arg("mode") != "Off") { lights.SetToggle(request->arg("mode").c_str()); }
   }
 
-Serial.println("d");
 
   if (request->hasArg("preset")) {
     uint8_t preset = request->arg("preset").toInt();
@@ -654,7 +676,6 @@ Serial.println("d");
 
   }
 
-Serial.println("e");
 
   DynamicJsonBuffer jsonBuffer;
 
@@ -682,7 +703,6 @@ Serial.println("e");
 
   }
 
-Serial.println("f");
 
 
 // matrixmode stuff
@@ -714,7 +734,6 @@ Serial.println("f");
     lights.grid(request->arg("grid_x").toInt(), request->arg("grid_y").toInt() );
     page = "layout"; 
   }
-Serial.println("g");
 
   if (request->hasArg("matrixmode")) {
     page = "layout"; 
@@ -753,7 +772,6 @@ Serial.println("g");
   //     lights.Current()->setSerialspeed(request->arg("serialspeed").toInt());
   //   }
   // }
-Serial.println("h");
 
   if (request->hasArg("flashfirst")) {
     page = "layout"; 
@@ -769,7 +787,6 @@ Serial.println("h");
 
 
   }
-Serial.println("i");
 
   if (request->hasArg("revealorder")) {
     page = "layout"; 
@@ -812,7 +829,6 @@ Serial.println("i");
 
   }
 
-Serial.println("j");
 
   if (request->hasArg("data")) {
     send_data(request, request->arg("data")); // sends JSON data for whatever page is currently being viewed
@@ -992,19 +1008,19 @@ void send_data(AsyncWebServerRequest *request, String page)
  // sendJsontoHTTPnew(root,request);
 
 
-  File f = SPIFFS.open("/senddata.tmp","w"); 
+  File f = SPIFFS.open("/senddata.tmp","w+"); 
   if (f) {
-    Serial.println("1");
+//    Serial.println("1");
 
     root.printTo(f);
-    root.printTo(f); 
-      Serial.println("2");
+    root.printTo(Serial); 
+      Serial.println();
 
     f.close(); 
-      Serial.println("3");
+//      Serial.println("3");
 
     request->send(SPIFFS, "/senddata.tmp", "text/json");
-        Serial.println("4");
+//        Serial.println("4");
 
 
   }
