@@ -882,13 +882,20 @@ void handle_data(AsyncWebServerRequest *request)
     client = request;
   } else {
     Serial.println("[handle] 500 sent"); 
-    client->send(500);    
-    client= nullptr; 
-    // AsyncWebServerRequest *c = client;
-    // while (c->next != NULL) c = c->next;
-    // c->next = request;
+ //   client->send(500);    
+//    client= nullptr; 
+    AsyncWebServerRequest *c = client;
+    while (c->next != NULL) c = c->next;
+    c->next = request;
   }
 
+  // if(client == NULL){
+  //   client = request;
+  // } else {
+  //   AsyncWebServerRequest *c = client;
+  //   while(c->next != NULL) c = c->next;
+  //   c->next = request;
+  // }
 
 
   save_flag = millis();
@@ -1043,22 +1050,22 @@ int send_data(String page)
 // sendJsontoHTTPnew(root,request);
 
 
-  File f = SPIFFS.open("/senddata.txt", "w");
-  if (f) {
-    Serial.println("[send_data] Json file written"); 
-    root.printTo(f);
-    f.close();
-    client->send(SPIFFS, "/senddata.txt", "text/json");
-    //SPIFFS.remove("/senddata.txt"); 
-  }
-
-
-  // while (client != NULL) {
-  //   Serial.println("[loop] Send Json");
-  //   AsyncResponseStream *stream = client->getResponseStream("text/json", root.measureLength());
-  //   root.printTo(*stream);
-  //   client = client->next;
+  // File f = SPIFFS.open("/senddata.txt", "w");
+  // if (f) {
+  //   Serial.println("[send_data] Json file written"); 
+  //   root.printTo(f);
+  //   f.close();
+  //   client->send(SPIFFS, "/senddata.txt", "text/json");
+  //   //SPIFFS.remove("/senddata.txt"); 
   // }
+
+
+  while (client != NULL) {
+    Serial.println("[loop] Send Json");
+    AsyncResponseStream *stream = client->getResponseStream("text/json", root.measureLength());
+    root.printTo(*stream);
+    client = client->next;
+  }
 
 
 
