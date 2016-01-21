@@ -35,7 +35,10 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include "AsyncWebServerResponseImpl.h"
+//AsyncResponseStream *stream;
+AsyncWebServerRequest *client;
 
+String _global_page = "";
 // template <class T> void sendJsontoHTTPnew(const T & root, AsyncWebServerRequest *request){
 //   *stream = new AsyncResponseStream("text/json", root.measureLength());
 //   request->send(stream);
@@ -46,7 +49,7 @@
 // #include <ets_sys.h>
 
 
-//AsyncResponseStream *stream = nullptr; 
+//AsyncResponseStream *stream = nullptr;
 
 //#include <cbuf.h>
 
@@ -134,9 +137,9 @@
 //      size_t jsonlength = root.measureLength();
 //     // _HTTP.setContentLength(jsonlength);
 
-//      AsyncWebServerResponse response; 
+//      AsyncWebServerResponse response;
 //      response.addHeader("Content-Length", String(jsonlength));
-//      response.addHeader("Content-Type", "text/json"); 
+//      response.addHeader("Content-Type", "text/json");
 //      request->send(&response);
 //      AsyncPrinter<1440> proxy(request->client());
 //      root.printTo(proxy);
@@ -169,7 +172,7 @@ AsyncWebServer HTTP(80);
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 const char * http_username = "andrew";
-const char * http_password = "test"; 
+const char * http_password = "test";
 
 struct XY_t {
   int x;
@@ -202,8 +205,8 @@ void setup()
 
   lights.begin();
 
- // settings.begin();
- // fsbrowser.begin();
+// settings.begin();
+// fsbrowser.begin();
 
 
   //HTTP.on("/crash", HTTP_ANY, crashfunc);
@@ -220,7 +223,7 @@ void setup()
 
   HTTP.on("/data.esp", HTTP_ANY, handle_data);
 
-  HTTP.on("/debug", HTTP_GET, [](AsyncWebServerRequest *request) {
+  HTTP.on("/debug", HTTP_GET, [](AsyncWebServerRequest * request) {
     static bool debugstate = false;
     debugstate = !debugstate;
     Serial.setDebugOutput(debugstate);
@@ -228,7 +231,7 @@ void setup()
     request->send(200); // sends OK if were just receiving data...
   });
 
-  HTTP.on("/command", HTTP_ANY, [](AsyncWebServerRequest *request) {
+  HTTP.on("/command", HTTP_ANY, [](AsyncWebServerRequest * request) {
     if (request->hasArg("save")) {
       lights.newSave(request->arg("save").toInt());
       Serial.printf("[request->on/command] done, heap: %u\n", ESP.getFreeHeap());
@@ -257,13 +260,13 @@ void setup()
 
       Serial.println("---");
 
-  //    request->setContentLength(0);
+      //    request->setContentLength(0);
       request->send(200); // sends OK if were just receiving data...
     }
 
     if (request->hasArg("remove")) {
       lights.removePreset(request->arg("remove").toInt());
- //     request->setContentLength(0);
+//     request->setContentLength(0);
       request->send(200); // sends OK if were just receiving data...
     }
 
@@ -374,49 +377,49 @@ void setup()
 
 
 
-  HTTP.addHandler(new SPIFFSEditor(http_username,http_password));
+  HTTP.addHandler(new SPIFFSEditor(http_username, http_password));
 
   HTTP.serveStatic("/", SPIFFS, "/");
 
 
-  HTTP.onNotFound([](AsyncWebServerRequest *request){
+  HTTP.onNotFound([](AsyncWebServerRequest * request) {
     os_printf("NOT_FOUND: ");
-    if(request->method() == HTTP_GET)
+    if (request->method() == HTTP_GET)
       os_printf("GET");
-    else if(request->method() == HTTP_POST)
+    else if (request->method() == HTTP_POST)
       os_printf("POST");
-    else if(request->method() == HTTP_DELETE)
+    else if (request->method() == HTTP_DELETE)
       os_printf("DELETE");
-    else if(request->method() == HTTP_PUT)
+    else if (request->method() == HTTP_PUT)
       os_printf("PUT");
-    else if(request->method() == HTTP_PATCH)
+    else if (request->method() == HTTP_PATCH)
       os_printf("PATCH");
-    else if(request->method() == HTTP_HEAD)
+    else if (request->method() == HTTP_HEAD)
       os_printf("HEAD");
-    else if(request->method() == HTTP_OPTIONS)
+    else if (request->method() == HTTP_OPTIONS)
       os_printf("OPTIONS");
     else
       os_printf("UNKNOWN");
     os_printf(" http://%s%s\n", request->host().c_str(), request->url().c_str());
 
-    if(request->contentLength()){
+    if (request->contentLength()) {
       os_printf("_CONTENT_TYPE: %s\n", request->contentType().c_str());
       os_printf("_CONTENT_LENGTH: %u\n", request->contentLength());
     }
 
     int headers = request->headers();
     int i;
-    for(i=0;i<headers;i++){
+    for (i = 0; i < headers; i++) {
       AsyncWebHeader* h = request->getHeader(i);
       os_printf("_HEADER[%s]: %s\n", h->name().c_str(), h->value().c_str());
     }
 
     int params = request->params();
-    for(i=0;i<params;i++){
+    for (i = 0; i < params; i++) {
       AsyncWebParameter* p = request->getParam(i);
-      if(p->isFile()){
+      if (p->isFile()) {
         os_printf("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
-      } else if(p->isPost()){
+      } else if (p->isPost()) {
         os_printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
       } else {
         os_printf("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
@@ -426,23 +429,23 @@ void setup()
     request->send(404);
   });
 
-  HTTP.onFileUpload([](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final){
-    if(!index)
+  HTTP.onFileUpload([](AsyncWebServerRequest * request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+    if (!index)
       os_printf("UploadStart: %s\n", filename.c_str());
     os_printf("%s", (const char*)data);
-    if(final)
-      os_printf("UploadEnd: %s (%u)\n", filename.c_str(), index+len);
+    if (final)
+      os_printf("UploadEnd: %s (%u)\n", filename.c_str(), index + len);
   });
-  HTTP.onRequestBody([](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total){
-    if(!index)
+  HTTP.onRequestBody([](AsyncWebServerRequest * request, uint8_t *data, size_t len, size_t index, size_t total) {
+    if (!index)
       os_printf("BodyStart: %u\n", total);
     os_printf("%s", (const char*)data);
-    if(index + len == total)
+    if (index + len == total)
       os_printf("BodyEnd: %u\n", total);
   });
 
 
-HTTP.begin();
+  HTTP.begin();
 
 }
 
@@ -455,7 +458,7 @@ void loop()
 
   // request->handleClient();
 
- // settings.handle();
+// settings.handle();
 
   lights.Loop();
 
@@ -471,6 +474,12 @@ void loop()
   }
 
 
+  if (_global_page.length() > 0 && client) {
+    send_data(_global_page);
+    client = nullptr; 
+    _global_page = "";
+
+  }
 
   // if (millis() - _tick > 1000 ) {
   //   Serial.printf("Loop >1S %u\n", millis() - _tick);
@@ -568,17 +577,17 @@ void print_args(AsyncWebServerRequest *request)
   }
 
 
-      int params = request->params();
-    for(int i=0;i<params;i++){
-      AsyncWebParameter* p = request->getParam(i);
-      if(p->isFile()){
-        Serial.printf("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
-      } else if(p->isPost()){
-        Serial.printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
-      } else {
-        Serial.printf("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
-      }
+  int params = request->params();
+  for (int i = 0; i < params; i++) {
+    AsyncWebParameter* p = request->getParam(i);
+    if (p->isFile()) {
+      Serial.printf("_FILE[%s]: %s, size: %u\n", p->name().c_str(), p->value().c_str(), p->size());
+    } else if (p->isPost()) {
+      Serial.printf("_POST[%s]: %s\n", p->name().c_str(), p->value().c_str());
+    } else {
+      Serial.printf("_GET[%s]: %s\n", p->name().c_str(), p->value().c_str());
     }
+  }
 
 
 }
@@ -622,19 +631,19 @@ void handle_data(AsyncWebServerRequest *request)
 
 {
   uint32_t start_time = millis();
-  String page = "homepage"; 
+  String page = "homepage";
   //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
   if (check_duplicate_req(request)) { request->send(200); return; }
 
   Serial.println();
   print_args(request);
 
-    if (request->hasArg("mode")) {
-      Serial.println("[handle] HAS MODE PARAM");
-    } else {
-      Serial.println("[handle] FAIL NO MODE PARAM");
+  if (request->hasArg("mode")) {
+    Serial.println("[handle] HAS MODE PARAM");
+  } else {
+    Serial.println("[handle] FAIL NO MODE PARAM");
 
-    }
+  }
 
 
 
@@ -670,8 +679,8 @@ void handle_data(AsyncWebServerRequest *request)
   if (request->hasArg("preset")) {
     uint8_t preset = request->arg("preset").toInt();
     if (lights.newLoad(preset)) {
-    //  try to switch current effect to preset...
-    Serial.printf("[handle] Loaded preset %u\n", preset);
+      //  try to switch current effect to preset...
+      Serial.printf("[handle] Loaded preset %u\n", preset);
     }
 
   }
@@ -693,13 +702,13 @@ void handle_data(AsyncWebServerRequest *request)
 
   if (request->hasArg("nopixels") && request->arg("nopixels").length() != 0) {
     lights.setPixels(request->arg("nopixels").toInt());
-    page = "layout"; 
+    page = "layout";
 
   }
 
   if (request->hasArg("palette")) {
     lights.palette().mode(request->arg("palette").c_str());
-    page = "layout"; 
+    page = "layout";
 
   }
 
@@ -732,11 +741,11 @@ void handle_data(AsyncWebServerRequest *request)
 
   if (request->hasArg("grid_x") && request->hasArg("grid_y")) {
     lights.grid(request->arg("grid_x").toInt(), request->arg("grid_y").toInt() );
-    page = "layout"; 
+    page = "layout";
   }
 
   if (request->hasArg("matrixmode")) {
-    page = "layout"; 
+    page = "layout";
     uint8_t matrixvar = 0;
     if (request->arg("matrixmode") == "singlematrix") { lights.multiplematrix = false; }
     if (request->arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
@@ -774,7 +783,7 @@ void handle_data(AsyncWebServerRequest *request)
   // }
 
   if (request->hasArg("flashfirst")) {
-    page = "layout"; 
+    page = "layout";
     lights.Start("Off");
     lights.Stop();
     strip->ClearTo(0);
@@ -789,7 +798,7 @@ void handle_data(AsyncWebServerRequest *request)
   }
 
   if (request->hasArg("revealorder")) {
-    page = "layout"; 
+    page = "layout";
     lights.Start("Off");
     lights.Stop();
     strip->ClearTo(0);
@@ -813,30 +822,31 @@ void handle_data(AsyncWebServerRequest *request)
 
   if (request->hasArg("palette-random")) {
     lights.palette().randommode(request->arg("palette-random").c_str());
-    page = "palette"; 
+    page = "palette";
 
   }
 
 
   if (request->hasArg("palette-spread")) {
     lights.palette().range(request->arg("palette-spread").toFloat());
-    page = "palette"; 
+    page = "palette";
   }
 
   if (request->hasArg("palette-delay")) {
     lights.palette().delay(request->arg("palette-delay").toInt());
-    page = "palette"; 
+    page = "palette";
 
   }
 
 
   if (request->hasArg("data")) {
-    send_data(request, request->arg("data")); // sends JSON data for whatever page is currently being viewed
+    //send_data(request, request->arg("data")); // sends JSON data for whatever page is currently being viewed
+    _global_page = request->arg("data");
     return;
   }
 
   if (request->hasArg("enabletimer")) {
-    page = "timer"; 
+    page = "timer";
     if (request->arg("enabletimer") == "on") {
 
       if (request->hasArg("timer") && request->hasArg("timercommand")) {
@@ -855,7 +865,20 @@ void handle_data(AsyncWebServerRequest *request)
 
   //request->setContentLength(0);
   //request->send(200); // sends OK if were just receiving data...
-  send_data(request, page);
+  //send_data(request, page);
+  _global_page = page;
+
+  //int len = send_data(page, true);
+
+  if (client == NULL) {
+    client = request;
+  } else {
+    client->send(500);    
+    // AsyncWebServerRequest *c = client;
+    // while (c->next != NULL) c = c->next;
+    // c->next = request;
+  }
+
 
 
   save_flag = millis();
@@ -869,8 +892,10 @@ void handle_data(AsyncWebServerRequest *request)
 
 
 
-void send_data(AsyncWebServerRequest *request, String page)
+int send_data(String page)
 {
+  Serial.println("[send_data] hit");
+
   DynamicJsonBuffer jsonBuffer;
   JsonObject& root = jsonBuffer.createObject();
 
@@ -892,14 +917,14 @@ void send_data(AsyncWebServerRequest *request, String page)
       if (!lights.Current()->addJson(settings)) {
         settings["effect"] = lights.Current()->name();
       }
-    
 
-    if (lights._numberofpresets) {
-      JsonObject& currentpresets = root.createNestedObject("currentpresets");
-      for (uint8_t i = 0; i < lights._numberofpresets; i++ ) {
-        currentpresets[ String(lights._presets[i])] = lights._preset_names[i];
+
+      if (lights._numberofpresets) {
+        JsonObject& currentpresets = root.createNestedObject("currentpresets");
+        for (uint8_t i = 0; i < lights._numberofpresets; i++ ) {
+          currentpresets[ String(lights._presets[i])] = lights._preset_names[i];
+        }
       }
-    }
     }
 
 
@@ -1005,28 +1030,31 @@ void send_data(AsyncWebServerRequest *request, String page)
 
 
 //  ESPmanager::sendJsontoHTTP(root, HTTP);
- // sendJsontoHTTPnew(root,request);
+// sendJsontoHTTPnew(root,request);
 
 
-  File f = SPIFFS.open("/senddata.tmp","w+"); 
+  File f = SPIFFS.open("/senddata.txt", "w+");
   if (f) {
-//    Serial.println("1");
-
     root.printTo(f);
-    root.printTo(Serial); 
-      Serial.println();
-
-    f.close(); 
-//      Serial.println("3");
-
-    request->send(SPIFFS, "/senddata.tmp", "text/json");
-//        Serial.println("4");
-
-
+    f.close();
+    client->send(SPIFFS, "/senddata.txt", "text/json");
+    SPIFFS.remove("/senddata.txt"); 
   }
+
+
+  // while (client != NULL) {
+  //   Serial.println("[loop] Send Json");
+  //   AsyncResponseStream *stream = client->getResponseStream("text/json", root.measureLength());
+  //   root.printTo(*stream);
+  //   client = client->next;
+  // }
+
+
+
+
 //        void send(FS &fs, String path, String contentType=String(), bool download=false);
 
-  
+
 
 
 }

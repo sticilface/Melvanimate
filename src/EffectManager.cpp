@@ -91,7 +91,7 @@ bool EffectManager::Start(const char * name)
 
 	if (handler) {
 		_NextInLine = handler;
-		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
+//		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
 
 		Serial.printf("[Start] %u presets found for %s\n", _numberofpresets, _NextInLine->name());
 
@@ -225,7 +225,8 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 
 				}
 				// time for network streams
-				delay(0);
+				//delay(0); // can't call from inturrupt...
+
 			}
 
 
@@ -326,7 +327,7 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 
 		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
-			delay(0);
+			//delay(0);
 
 			if (root) { // avoid nullptr errors...
 
@@ -377,7 +378,6 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 								} else {
 									preset_names[count] = nullptr;
 								}
-
 
 								count++;
 							}
