@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>Melvide</title>
+    <title>NODEMCU</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--
@@ -608,10 +608,18 @@
                         if ($(this).hasClass(mode)) $(this).show();
                     });
 
-
+                    $("#status").empty().append("Waiting...").css("color", "blue");;
+                    
                     $.post("data.esp", $(this).serialize(), function() {
-                        GetData();
-                    });
+                        //GetData();
+                    }).success(function(e) {
+                      processJSON(e);
+                        $("#status").empty().append("Success").css("color", "green");;
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
 
                 });
 
@@ -1057,7 +1065,7 @@
                                 if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
                                 }
                                   
-                                $("#currentpresetslist").append('<option value=' + key + " " + isconnected + '>['+key+'] ' + value + '</option>');
+                                $("#currentpresetslist").append('<option value=' + key + " " + isconnected + '>' + value + '</option>');
                             }); 
                         $('#currentpresetslist').selectmenu('refresh');
 

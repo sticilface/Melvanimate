@@ -447,10 +447,18 @@ void setup()
 
   HTTP.begin();
 
+    // Start OTA server.
+  //ArduinoOTA.setHostname("nodemcu");
+
+  ArduinoOTA.begin();
+
+
 }
 
 void loop()
 {
+  ArduinoOTA.handle();
+
   uint32_t _tick = millis();
   uint32_t _arrays[10] = {0};
   uint8_t poss = 0;
@@ -842,7 +850,6 @@ void handle_data(AsyncWebServerRequest *request)
   if (request->hasArg("data")) {
     //send_data(request, request->arg("data")); // sends JSON data for whatever page is currently being viewed
     _global_page = request->arg("data");
-    return;
   }
 
   if (request->hasArg("enabletimer")) {
@@ -871,9 +878,12 @@ void handle_data(AsyncWebServerRequest *request)
   //int len = send_data(page, true);
 
   if (client == NULL) {
+    Serial.println("[handle] client = request"); 
     client = request;
   } else {
+    Serial.println("[handle] 500 sent"); 
     client->send(500);    
+    client= nullptr; 
     // AsyncWebServerRequest *c = client;
     // while (c->next != NULL) c = c->next;
     // c->next = request;
@@ -1033,12 +1043,13 @@ int send_data(String page)
 // sendJsontoHTTPnew(root,request);
 
 
-  File f = SPIFFS.open("/senddata.txt", "w+");
+  File f = SPIFFS.open("/senddata.txt", "w");
   if (f) {
+    Serial.println("[send_data] Json file written"); 
     root.printTo(f);
     f.close();
     client->send(SPIFFS, "/senddata.txt", "text/json");
-    SPIFFS.remove("/senddata.txt"); 
+    //SPIFFS.remove("/senddata.txt"); 
   }
 
 
