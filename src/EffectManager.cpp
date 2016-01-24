@@ -49,7 +49,6 @@ bool EffectManager::SetToggle(const char * name)
 
 	if (handler) {
 		_toggleHandle = handler;
-		//getPresets(_toggleHandle, _numberofpresets, _presets);
 		return true;
 	}
 	return false;
@@ -91,7 +90,7 @@ bool EffectManager::Start(const char * name)
 
 	if (handler) {
 		_NextInLine = handler;
-//		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
+		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
 
 		Serial.printf("[Start] %u presets found for %s\n", _numberofpresets, _NextInLine->name());
 
@@ -219,7 +218,7 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 					// get new position in buffer
 					char * buf = &data[position];
 					// read data
-					int bytesread = f.readBytes(buf, readBytes);
+					int bytesread = f.read((uint8_t*)buf, readBytes);
 					bytesleft -= bytesread;
 					position += bytesread;
 

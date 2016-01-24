@@ -52,6 +52,14 @@ String _global_page = "";
 //AsyncResponseStream *stream = nullptr;
 
 //#include <cbuf.h>
+extern "C" void system_set_os_print(uint8 onoff);
+extern "C" void ets_install_putc1(void* routine);
+
+//Use the internal hardware buffer
+static void _u0_putc(char c){
+  while(((U0S >> USTXC) & 0x7F) == 0x7F);
+  U0F = c;
+}
 
 #include "misc.h"
 
@@ -198,6 +206,9 @@ void setup()
 {
 
   Serial.begin(115200);
+  ets_install_putc1((void *) &_u0_putc);
+  system_set_os_print(1);
+
   Serial.println("");
   //Serial.setDebugOutput(true);
 
@@ -484,7 +495,7 @@ void loop()
 
   if (_global_page.length() > 0 && client) {
     send_data(_global_page);
-    client = nullptr; 
+    //client = nullptr; 
     _global_page = "";
 
   }
@@ -655,7 +666,7 @@ void handle_data(AsyncWebServerRequest *request)
 
 
 
-  if (request->hasArg("plain")) {
+  if (request->hasArg("json")) {
 
     DynamicJsonBuffer jsonBufferplain;
     JsonObject& root = jsonBufferplain.parseObject(request->arg("plain").c_str());
@@ -873,7 +884,7 @@ void handle_data(AsyncWebServerRequest *request)
   //request->setContentLength(0);
   //request->send(200); // sends OK if were just receiving data...
   //send_data(request, page);
-  _global_page = page;
+  if (_global_page.length() == 0) _global_page = page;
 
   //int len = send_data(page, true);
 
@@ -881,7 +892,7 @@ void handle_data(AsyncWebServerRequest *request)
     Serial.println("[handle] client = request"); 
     client = request;
   } else {
-    Serial.println("[handle] 500 sent"); 
+    Serial.println("[handle] client already.... chaining...."); 
  //   client->send(500);    
 //    client= nullptr; 
     AsyncWebServerRequest *c = client;
