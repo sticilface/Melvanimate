@@ -121,7 +121,7 @@ My async web handler stuff.....
 
 
 /*
- * File Response
+ * Json Response
  * */
 
 class AsyncJsonResponse: public AsyncAbstractResponse
@@ -129,17 +129,14 @@ class AsyncJsonResponse: public AsyncAbstractResponse
 private:
 
   DynamicJsonBuffer _jsonBuffer;
-  //JsonObject ** _out;
-  JsonObject* _root;
+  JsonVariant _root;
+  bool _isValid;
 
   class ChunkPrint : public Print
   {
   public:
     ChunkPrint(uint8_t* destination, size_t from, size_t to)
-      : _destination(destination), _to_skip(from), _to_write(to - from), _pos{0}
-    {
-      //os_printf("[ChunkPrint] ChunkPrint initialised [%u]->[%u]\n", from, to);
-    }
+      : _destination(destination), _to_skip(from), _to_write(to - from), _pos{0} {}
 
     size_t write(uint8_t c)
     {
@@ -162,54 +159,34 @@ private:
 
 public:
 
-  AsyncJsonResponse();
-  ~AsyncJsonResponse();
+  AsyncJsonResponse() : _isValid{false}
+  {
+    _code = 200;
+    _contentType = "text/json";
+  }
+  ~AsyncJsonResponse() {};
 
   DynamicJsonBuffer & getBuffer() { return _jsonBuffer; }
-  bool _sourceValid();
-  template <class T> void SetTarget(  T & root);
-
-  size_t _fillBuffer(uint8_t *buf, size_t len);
+  bool _sourceValid() { return _isValid; }
+  void SetTarget( JsonVariant root)
+  {
+    _root = root;
+    _contentLength = _root.measureLength();
+    if (_contentLength) { _isValid = true; }
+  }
+  size_t _fillBuffer(uint8_t *data, size_t len)
+  {
+    ChunkPrint dest(data, _sentLength, _sentLength + len );
+    _root.printTo( dest ) ;
+    return len;
+  }
 
 };
 
-bool AsyncJsonResponse::_sourceValid()
-{
-  if (_root) {
-    return true; 
-  }
-
-  return false;
-}
 
 
-AsyncJsonResponse::~AsyncJsonResponse()
-{
-  //os_printf("[~AsyncJsonResponse]\n");
-}
 
-template <class T> void AsyncJsonResponse::SetTarget( T & root)
-{
-  _root = &root;
-  _contentLength = _root->measureLength();
 
-}
-
-AsyncJsonResponse::AsyncJsonResponse() : _root{nullptr}
-{
-  _code = 200;
-  _contentType = "text/json";
-}
-
-size_t AsyncJsonResponse::_fillBuffer(uint8_t *data, size_t len)
-{
-//  os_printf("[_fillBuffer] len = %u, heap = %u\n", len, ESP.getFreeHeap() );
-  ChunkPrint dest(data, _sentLength, _sentLength + len );
-//  os_printf("[_fillBuffer] chunk created, start [%u] -> end [%u]\n", _sentLength, _sentLength + len);
-  _root->printTo( dest ) ;
-  return len;
-
-}
 
 
 
