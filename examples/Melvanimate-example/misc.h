@@ -116,36 +116,7 @@ My async web handler stuff.....
 */
 
 
-class ChunkPrint : public Print
-{
-public:
-  ChunkPrint(uint8_t* destination, size_t from, size_t to)
-    : _destination(destination), _to_skip(from), _to_write(to - from), _pos{0}
-  {
-    os_printf("[ChunkPrint] ChunkPrint initialised [%u]->[%u]\n", from, to);
-  }
 
-  size_t write(uint8_t c)
-  {
-    // os_printf("(%u)%u,",_pos++,c);
-    // return 1;
-
-    if (_to_skip > 0) {
-      _to_skip--;
-    } else if (_to_write > 0) {
-      _to_write--;
-      _destination[_pos++] = c;
-      return 1;
-    }
-    return 0;
-  }
-
-private:
-  uint8_t* _destination;
-  size_t _to_skip;
-  size_t _to_write;
-  size_t _pos;
-};
 //  takes print and write chunks of it to buffer...
 
 
@@ -158,33 +129,36 @@ class AsyncJsonResponse: public AsyncAbstractResponse
 private:
 
   DynamicJsonBuffer _jsonBuffer;
-  JsonObject ** _out;
+  //JsonObject ** _out;
   JsonVariant* _root;
-  //JsonObject* _root;
-  //size_t _position;
 
-  // class ChunkPrint : public Print
-  // {
-  // public:
-  //   ChunkPrint(Print& destination, size_t from, size_t to)
-  //     : _destination(destination), _to_skip(from), _to_write(to - from) {}
+  class ChunkPrint : public Print
+  {
+  public:
+    ChunkPrint(uint8_t* destination, size_t from, size_t to)
+      : _destination(destination), _to_skip(from), _to_write(to - from), _pos{0}
+    {
+      //os_printf("[ChunkPrint] ChunkPrint initialised [%u]->[%u]\n", from, to);
+    }
 
-  //   virtual size_t write(uint8_t c)
-  //   {
-  //     if (_to_skip > 0) {
-  //       _to_skip--;
-  //     } else if (_to_write > 0) {
-  //       _to_write--;
-  //       return _destination.write(c);
-  //     }
-  //     return 0;
-  //   }
+    size_t write(uint8_t c)
+    {
+      if (_to_skip > 0) {
+        _to_skip--;
+      } else if (_to_write > 0) {
+        _to_write--;
+        _destination[_pos++] = c;
+        return 1;
+      }
+      return 0;
+    }
 
-  // private:
-  //   Print& _destination;
-  //   size_t _to_skip;
-  //   size_t _to_write;
-  // };
+  private:
+    uint8_t* _destination;
+    size_t _to_skip;
+    size_t _to_write;
+    size_t _pos;
+  };
 
 public:
 
@@ -193,20 +167,13 @@ public:
 
   DynamicJsonBuffer & getBuffer() { return _jsonBuffer; }
 
-  bool _sourceValid() { return 1; }
+  bool _sourceValid() { return _root;  }
 
   //void dump();
-  template <class T> void SetTarget( const T & root); 
+  template <class T> void SetTarget( const T & root);
 
-  //bool _sourceValid() { return 0; }
   size_t _fillBuffer(uint8_t *buf, size_t len);
-  //void end() { delete this; }
 
-  // JsonObject& createObject()
-  // {
-  //   _root = &_jsonBuffer.createObject();
-  //   return *_root;
-  // }
 };
 
 
@@ -215,65 +182,25 @@ AsyncJsonResponse::~AsyncJsonResponse()
   os_printf("[~AsyncJsonResponse]\n");
 }
 
-// void AsyncJsonResponse::dump()
-// {
-//   if (_root) {
-//     //(_root)->prettyPrintTo(Serial);
-//   } else {
-//     os_printf("[dump] nullptr");
-//   }
-//   os_printf("\n");
-//   _contentLength = (_root)->measureLength();
-// }
-
 template <class T> void AsyncJsonResponse::SetTarget( const T & root)
 {
   _contentLength = root.measureLength();
-  _root = (JsonVariant*) &root; 
-
-
+  _root = (JsonVariant*) &root;
 }
 
-
-
-
-AsyncJsonResponse::AsyncJsonResponse()
+AsyncJsonResponse::AsyncJsonResponse() : _root{nullptr}
 {
   _code = 200;
   _contentType = "text/json";
-  //_out = out;
-  // _path = path;
-  // if(!download && !fs.exists(_path) && fs.exists(_path+".gz")){
-  //   _path = _path+".gz";
-  //   addHeader("Content-Encoding", "gzip");
-  // }
-
-  // if(download)
-  //   _contentType = "application/octet-stream";
-  // else
-  //   _setContentType(path);
-  // _content = fs.open(_path, "r");
-  // _contentLength = _content.size();
 }
 
 size_t AsyncJsonResponse::_fillBuffer(uint8_t *data, size_t len)
 {
-  os_printf("[_fillBuffer] len = %u, heap = %u\n", len, ESP.getFreeHeap() );
+//  os_printf("[_fillBuffer] len = %u, heap = %u\n", len, ESP.getFreeHeap() );
 
   ChunkPrint dest(data, _sentLength, _sentLength + len );
-  os_printf("[_fillBuffer] chunk created, start [%u] -> end [%u]\n", _sentLength, _sentLength + len);
-  //JsonObject& test = **_out;
-
+//  os_printf("[_fillBuffer] chunk created, start [%u] -> end [%u]\n", _sentLength, _sentLength + len);
   _root->printTo( dest ) ;
-
-  // os_printf("[_fillBuffer] data =");
-
-  // for (size_t i = 0; i < len; i ++) {
-  //   os_printf("%u",data[i]);
-  // }
-  // os_printf("  - END\n");
-
-
   return len;
 
 }

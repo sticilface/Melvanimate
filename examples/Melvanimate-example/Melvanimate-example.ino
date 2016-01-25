@@ -564,7 +564,7 @@ void Show_pixels(bool override)
 {
   static uint32_t tick = 0;
   if (override) { tick = 0; }
-  if ( millis() - tick < 30) { return; }
+  if ( millis() - tick < 10) { return; }
   if (lights.animations()) {
     if ( animator->IsAnimating() ) { animator->UpdateAnimations(100); }
   }
