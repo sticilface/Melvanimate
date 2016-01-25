@@ -116,36 +116,37 @@ My async web handler stuff.....
 */
 
 
-  class ChunkPrint : public Print
+class ChunkPrint : public Print
+{
+public:
+  ChunkPrint(uint8_t* destination, size_t from, size_t to)
+    : _destination(destination), _to_skip(from), _to_write(to - from), _pos{0}
   {
-  public:
-    ChunkPrint(uint8_t* destination, size_t from, size_t to)
-      : _destination(destination), _to_skip(from), _to_write(to - from), _pos{0} {
-        os_printf("[ChunkPrint] ChunkPrint initialised [%u]->[%u]\n", from, to);
-      }
+    os_printf("[ChunkPrint] ChunkPrint initialised [%u]->[%u]\n", from, to);
+  }
 
-     size_t write(uint8_t c)  
-    {
-      // os_printf("(%u)%u,",_pos++,c); 
-      // return 1;
+  size_t write(uint8_t c)
+  {
+    // os_printf("(%u)%u,",_pos++,c);
+    // return 1;
 
-      if (_to_skip > 0) {
-        _to_skip--;
-      } else if (_to_write > 0) {
-        _to_write--;
-        _destination[_pos++] = c;
-        return 1;
-      }
-      return 0;
+    if (_to_skip > 0) {
+      _to_skip--;
+    } else if (_to_write > 0) {
+      _to_write--;
+      _destination[_pos++] = c;
+      return 1;
     }
+    return 0;
+  }
 
-  private:
-    uint8_t* _destination;
-    size_t _to_skip;
-    size_t _to_write;
-    size_t _pos; 
-  };
-  //  takes print and write chunks of it to buffer...
+private:
+  uint8_t* _destination;
+  size_t _to_skip;
+  size_t _to_write;
+  size_t _pos;
+};
+//  takes print and write chunks of it to buffer...
 
 
 /*
@@ -158,8 +159,8 @@ private:
 
   DynamicJsonBuffer _jsonBuffer;
   JsonObject ** _out;
- // JsonVariant* _root;
-  JsonObject* _root; 
+  JsonVariant* _root;
+  //JsonObject* _root;
   //size_t _position;
 
   // class ChunkPrint : public Print
@@ -187,47 +188,60 @@ private:
 
 public:
 
-  AsyncJsonResponse( JsonObject ** out );
+  AsyncJsonResponse();
   ~AsyncJsonResponse();
 
   DynamicJsonBuffer & getBuffer() { return _jsonBuffer; }
-  
-  bool _sourceValid(){ return 1; }
 
-  void dump();
+  bool _sourceValid() { return 1; }
+
+  //void dump();
+  template <class T> void SetTarget( const T & root); 
 
   //bool _sourceValid() { return 0; }
   size_t _fillBuffer(uint8_t *buf, size_t len);
   //void end() { delete this; }
-  JsonObject& createObject() { 
-    _root = &_jsonBuffer.createObject(); 
-    return *_root; 
-  }
+
+  // JsonObject& createObject()
+  // {
+  //   _root = &_jsonBuffer.createObject();
+  //   return *_root;
+  // }
 };
 
 
 AsyncJsonResponse::~AsyncJsonResponse()
 {
-  os_printf("[~AsyncJsonResponse]\n"); 
+  os_printf("[~AsyncJsonResponse]\n");
 }
 
-void AsyncJsonResponse::dump()
+// void AsyncJsonResponse::dump()
+// {
+//   if (_root) {
+//     //(_root)->prettyPrintTo(Serial);
+//   } else {
+//     os_printf("[dump] nullptr");
+//   }
+//   os_printf("\n");
+//   _contentLength = (_root)->measureLength();
+// }
+
+template <class T> void AsyncJsonResponse::SetTarget( const T & root)
 {
-  if (_root) {
-  //(_root)->prettyPrintTo(Serial);
-  } else {
-    os_printf("[dump] nullptr");
-  } 
-  os_printf("\n"); 
-  _contentLength = (_root)->measureLength(); 
+  _contentLength = root.measureLength();
+  _root = (JsonVariant*) &root; 
+
+
 }
 
 
-AsyncJsonResponse::AsyncJsonResponse(JsonObject ** out)
+
+
+AsyncJsonResponse::AsyncJsonResponse()
 {
   _code = 200;
   _contentType = "text/json";
-  _out = out;
+  //_out = out;
   // _path = path;
   // if(!download && !fs.exists(_path) && fs.exists(_path+".gz")){
   //   _path = _path+".gz";
@@ -246,9 +260,9 @@ size_t AsyncJsonResponse::_fillBuffer(uint8_t *data, size_t len)
 {
   os_printf("[_fillBuffer] len = %u, heap = %u\n", len, ESP.getFreeHeap() );
 
-  ChunkPrint dest(data, _sentLength, _sentLength + len ); 
+  ChunkPrint dest(data, _sentLength, _sentLength + len );
   os_printf("[_fillBuffer] chunk created, start [%u] -> end [%u]\n", _sentLength, _sentLength + len);
-  //JsonObject& test = **_out; 
+  //JsonObject& test = **_out;
 
   _root->printTo( dest ) ;
 
@@ -257,7 +271,7 @@ size_t AsyncJsonResponse::_fillBuffer(uint8_t *data, size_t len)
   // for (size_t i = 0; i < len; i ++) {
   //   os_printf("%u",data[i]);
   // }
-  // os_printf("  - END\n"); 
+  // os_printf("  - END\n");
 
 
   return len;

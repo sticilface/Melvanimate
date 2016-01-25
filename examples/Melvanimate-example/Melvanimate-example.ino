@@ -250,14 +250,12 @@ void setup()
     Serial.println();
     Serial.printf("New Json request: heap = %u\n", ESP.getFreeHeap()); 
 
-    JsonObject * out = nullptr; 
 
-    AsyncJsonResponse * responce = new AsyncJsonResponse(&out); 
+    AsyncJsonResponse * responce = new AsyncJsonResponse(); 
     DynamicJsonBuffer buffer = responce->getBuffer(); 
-
-     //out = &buffer.createObject(); 
-
-    JsonObject& test = responce->createObject(); 
+    JsonObject& root = buffer.createObject(); 
+    JsonObject& sub1 = root.createNestedObject("nested1");
+    JsonObject& test = sub1.createNestedObject("nested2");
 
     //(*out)["1"] = "blah";
      test["2"] = "blahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
@@ -282,8 +280,9 @@ void setup()
      test["21"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
      test["22"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
 
+    responce->SetTarget(root);
 
-     responce->dump();
+     //responce->dump();
 
      request->send(responce); 
 
