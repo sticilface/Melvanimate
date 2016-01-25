@@ -35,6 +35,8 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 #include "AsyncWebServerResponseImpl.h"
+
+//#include <print.h>
 //AsyncResponseStream *stream;
 AsyncWebServerRequest *client;
 
@@ -56,8 +58,9 @@ extern "C" void system_set_os_print(uint8 onoff);
 extern "C" void ets_install_putc1(void* routine);
 
 //Use the internal hardware buffer
-static void _u0_putc(char c){
-  while(((U0S >> USTXC) & 0x7F) == 0x7F);
+static void _u0_putc(char c)
+{
+  while (((U0S >> USTXC) & 0x7F) == 0x7F);
   U0F = c;
 }
 
@@ -241,6 +244,56 @@ void setup()
     //request->setContentLength(0);
     request->send(200); // sends OK if were just receiving data...
   });
+
+  HTTP.on("/json", HTTP_ANY, [](AsyncWebServerRequest * request) {
+
+    Serial.println();
+    Serial.printf("New Json request: heap = %u\n", ESP.getFreeHeap()); 
+
+    JsonObject * out = nullptr; 
+
+    AsyncJsonResponse * responce = new AsyncJsonResponse(&out); 
+    DynamicJsonBuffer buffer = responce->getBuffer(); 
+
+     //out = &buffer.createObject(); 
+
+    JsonObject& test = responce->createObject(); 
+
+    //(*out)["1"] = "blah";
+     test["2"] = "blahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["3"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["4"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["5"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["6"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["7"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["8"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["9"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["10"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["11"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["12"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["13"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["14"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["15"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["16"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["17"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["18"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["19"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["20"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["21"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+     test["22"] = "blahblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[bblahrerqjvnrjnvqerjkvnqerjkvnq;rjvnqrkjvnqerjvbqer[jvbqer[jvbqer[vjbqrv[b";
+
+
+     responce->dump();
+
+     request->send(responce); 
+
+      //uint8_t _data[100];
+      //ChunkPrint dest( _data , 0, test.measureLength() ); 
+      //test.printTo( dest ) ;
+
+
+  });
+
 
   HTTP.on("/command", HTTP_ANY, [](AsyncWebServerRequest * request) {
     if (request->hasArg("save")) {
@@ -458,7 +511,7 @@ void setup()
 
   HTTP.begin();
 
-    // Start OTA server.
+  // Start OTA server.
   //ArduinoOTA.setHostname("nodemcu");
 
   ArduinoOTA.begin();
@@ -495,7 +548,7 @@ void loop()
 
   if (_global_page.length() > 0 && client) {
     send_data(_global_page);
-    //client = nullptr; 
+    //client = nullptr;
     _global_page = "";
 
   }
@@ -889,12 +942,12 @@ void handle_data(AsyncWebServerRequest *request)
   //int len = send_data(page, true);
 
   if (client == NULL) {
-    Serial.println("[handle] client = request"); 
+    Serial.println("[handle] client = request");
     client = request;
   } else {
-    Serial.println("[handle] client already.... chaining...."); 
- //   client->send(500);    
-//    client= nullptr; 
+    Serial.println("[handle] client already.... chaining....");
+//   client->send(500);
+//    client= nullptr;
     AsyncWebServerRequest *c = client;
     while (c->next != NULL) c = c->next;
     c->next = request;
@@ -1063,18 +1116,22 @@ int send_data(String page)
 
   // File f = SPIFFS.open("/senddata.txt", "w");
   // if (f) {
-  //   Serial.println("[send_data] Json file written"); 
+  //   Serial.println("[send_data] Json file written");
   //   root.printTo(f);
   //   f.close();
   //   client->send(SPIFFS, "/senddata.txt", "text/json");
-  //   //SPIFFS.remove("/senddata.txt"); 
+  //   //SPIFFS.remove("/senddata.txt");
   // }
 
 
   while (client != NULL) {
     Serial.println("[loop] Send Json");
-    AsyncResponseStream *stream = client->getResponseStream("text/json", root.measureLength());
+    AsyncResponseStream *stream = client->beginResponseStream("text/json", root.measureLength());
     root.printTo(*stream);
+ //   char * data[100];
+
+ //   root.printTo( ChunkPrint(data[0], 0, 100 ) ) ;
+
     client = client->next;
   }
 
