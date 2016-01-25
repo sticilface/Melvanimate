@@ -130,7 +130,7 @@ private:
 
   DynamicJsonBuffer _jsonBuffer;
   //JsonObject ** _out;
-  JsonVariant* _root;
+  JsonObject* _root;
 
   class ChunkPrint : public Print
   {
@@ -166,26 +166,33 @@ public:
   ~AsyncJsonResponse();
 
   DynamicJsonBuffer & getBuffer() { return _jsonBuffer; }
-
-  bool _sourceValid() { return _root;  }
-
-  //void dump();
-  template <class T> void SetTarget( const T & root);
+  bool _sourceValid();
+  template <class T> void SetTarget(  T & root);
 
   size_t _fillBuffer(uint8_t *buf, size_t len);
 
 };
 
+bool AsyncJsonResponse::_sourceValid()
+{
+  if (_root) {
+    return true; 
+  }
+
+  return false;
+}
+
 
 AsyncJsonResponse::~AsyncJsonResponse()
 {
-  os_printf("[~AsyncJsonResponse]\n");
+  //os_printf("[~AsyncJsonResponse]\n");
 }
 
-template <class T> void AsyncJsonResponse::SetTarget( const T & root)
+template <class T> void AsyncJsonResponse::SetTarget( T & root)
 {
-  _contentLength = root.measureLength();
-  _root = (JsonVariant*) &root;
+  _root = &root;
+  _contentLength = _root->measureLength();
+
 }
 
 AsyncJsonResponse::AsyncJsonResponse() : _root{nullptr}
@@ -197,7 +204,6 @@ AsyncJsonResponse::AsyncJsonResponse() : _root{nullptr}
 size_t AsyncJsonResponse::_fillBuffer(uint8_t *data, size_t len)
 {
 //  os_printf("[_fillBuffer] len = %u, heap = %u\n", len, ESP.getFreeHeap() );
-
   ChunkPrint dest(data, _sentLength, _sentLength + len );
 //  os_printf("[_fillBuffer] chunk created, start [%u] -> end [%u]\n", _sentLength, _sentLength + len);
   _root->printTo( dest ) ;
