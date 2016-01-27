@@ -127,7 +127,6 @@ My async web handler stuff.....
 class AsyncJsonResponse: public AsyncAbstractResponse
 {
 private:
-
   DynamicJsonBuffer _jsonBuffer;
   JsonVariant _root;
   bool _isValid;
@@ -163,6 +162,7 @@ public:
   {
     _code = 200;
     _contentType = "text/json";
+    //_jsonBuffer = DynamicJsonBuffer(4096);
   }
   ~AsyncJsonResponse() {};
 
@@ -172,13 +172,14 @@ public:
   {
     _root = root;
     _contentLength = _root.measureLength();
+    os_printf("[SetTarget] buffer size = %u\n", _root.size());
     if (_contentLength) { _isValid = true; }
   }
   size_t _fillBuffer(uint8_t *data, size_t len)
   {
+    os_printf("[_fillBuffer] heap = %u\n",ESP.getFreeHeap()); 
     ChunkPrint dest(data, _sentLength, _sentLength + len );
-    _root.printTo( dest ) ;
-    return len;
+    return _root.printTo( dest ) ;
   }
 
 };

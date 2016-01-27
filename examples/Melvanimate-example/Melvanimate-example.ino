@@ -186,6 +186,7 @@ const char * http_username = "andrew";
 const char * http_password = "test";
 
 static const char rubbish[] = "abcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefgeabcdefge";
+bool flag = false; 
 
 struct XY_t {
   int x;
@@ -253,29 +254,19 @@ void setup()
     Serial.printf("New Json request: heap = %u\n", ESP.getFreeHeap()); 
 
 
-    AsyncJsonResponse * responce = new AsyncJsonResponse(); 
-    DynamicJsonBuffer buffer = responce->getBuffer(); 
+    AsyncJsonResponse * response = new AsyncJsonResponse(); 
+    DynamicJsonBuffer buffer = response->getBuffer(); 
     JsonObject& root = buffer.createObject(); 
-    JsonObject& sub1 = root.createNestedObject("nested1");
-    JsonObject& test = sub1.createNestedObject("nested2");
-    JsonArray& array = root.createNestedArray("array");
 
-
-    root["key1"] = rubbish; 
-    sub1["key2"] = rubbish; 
-
-
-    const char * filler = "This is some randome text to fill the array"; 
-    for (uint8_t i = 0; i < 20; i++) {
-      array.add(filler); 
-    }
-
-  
-    responce->SetTarget(root);
-    request->send(responce); 
+    addjson(root); 
+    response->SetTarget(root);
+    request->send(response); 
 
   });
 
+  HTTP.on("/jsonprint", HTTP_ANY, [](AsyncWebServerRequest * request) {
+        flag = true; 
+  });
 
   HTTP.on("/command", HTTP_ANY, [](AsyncWebServerRequest * request) {
     if (request->hasArg("save")) {
@@ -539,8 +530,79 @@ void loop()
   //   Serial.printf("Loop >1S %u\n", millis() - _tick);
   // }
 
+  if (flag) { flagfunction() ; flag = false; }
+
+}
 
 
+void addjson(JsonObject& root) {
+      JsonObject& sub1 = root.createNestedObject("nested1");
+    JsonObject& test = sub1.createNestedObject("nested2");
+    JsonArray& array = root.createNestedArray("array");
+
+
+    root["key1"] = rubbish; 
+    sub1["key2"] = rubbish; 
+
+
+    sub1["key3"] = rubbish; 
+    sub1["key4"] = rubbish; 
+    sub1["key5"] = rubbish; 
+    sub1["key6"] = rubbish; 
+    sub1["key7"] = rubbish; 
+    sub1["key8"] = rubbish; 
+    sub1["key9"] = rubbish; 
+    sub1["key10"] = rubbish; 
+    sub1["key11"] = rubbish; 
+    sub1["key12"] = rubbish; 
+    sub1["key13"] = rubbish; 
+    sub1["key14"] = rubbish; 
+    sub1["key15"] = rubbish; 
+    sub1["key16"] = rubbish; 
+    sub1["key17"] = rubbish; 
+    sub1["key18"] = rubbish; 
+    sub1["key19"] = rubbish; 
+    sub1["key20"] = rubbish; 
+    sub1["key21"] = rubbish; 
+    sub1["key22"] = rubbish; 
+    sub1["key23"] = rubbish; 
+    sub1["key24"] = rubbish; 
+    sub1["key25"] = rubbish; 
+    sub1["key26"] = rubbish; 
+    sub1["key27"] = rubbish; 
+    sub1["key28"] = rubbish; 
+    sub1["key29"] = rubbish; 
+
+    test["akey1"] = rubbish; 
+    test["akey2"] = rubbish; 
+    test["akey3"] = rubbish; 
+    test["akey4"] = rubbish; 
+    test["akey5"] = rubbish; 
+    test["akey6"] = rubbish; 
+    test["akey7"] = rubbish; 
+    test["akey8"] = rubbish; 
+    test["akey9"] = rubbish; 
+    test["akey10"] = rubbish; 
+    test["akey11"] = rubbish; 
+    test["akey12"] = rubbish; 
+    
+    test["akey13"] = "straw that broke the camels back"; 
+    test["akey14"] = "straw that broke the camels back"; 
+    test["akey15"] = "straw that broke the camels back"; 
+    test["akey16"] = "straw that broke the camels back"; 
+}
+
+void flagfunction() {
+
+    DynamicJsonBuffer buffer; 
+    JsonObject& root = buffer.createObject(); 
+
+
+    addjson(root); 
+
+
+
+    root.printTo(Serial); 
 }
 
 void Show_pixels(bool override)
