@@ -88,6 +88,17 @@ void TimingFn(effectState& state)
   }
 }
 */
+
+void DummyFn(effectState& state, EffectHandler* ptr)
+{
+  static uint32_t tick = 0;
+  if (millis() - tick < 1000) return;
+  tick = millis();
+  //Serial.println("Dummy Run");
+
+}
+
+
 /*-----------------------------------------------
 *
 *                 AdaLight
@@ -97,6 +108,7 @@ void TimingFn(effectState& state)
 
 
 void Adalight_function();
+void  Adalight_Flash();
 
 void AdaLightFn(effectState& state, EffectHandler* ptr)
 {
@@ -111,7 +123,7 @@ void AdaLightFn(effectState& state, EffectHandler* ptr)
       if (Serial) {
         Serial.flush();
         delay(500);
-        Serial.end();
+ //       Serial.end();
       }
       uint32_t speed = 115200;
 
@@ -572,13 +584,16 @@ void offFn(effectState &state, EffectHandler* ptr)
 *
 *------------------------------------------------*/
 
+void displaytext(const char * text, uint16_t timeout, RgbColor color);
 
 void MarqueeFn(effectState state, EffectHandler* ptr)
 {
 
+  // cast handler to correct derived class... very handy...
 
   MarqueeEffect* effect = static_cast<MarqueeEffect*> (ptr);
 
+  Palette palette = *effect->getPalette(); 
 
   if (effect) {
 
@@ -587,9 +602,8 @@ void MarqueeFn(effectState state, EffectHandler* ptr)
     case PRE_EFFECT: {
       Serial.println("[MarqueeFn] PRE_EFFECT");
       strip->ClearTo(0);
-      palette_type pal = effect->getPalette();
-      lights.palette().mode(pal);
-      lights.palette().total(255);
+      //lights.palette().mode(pal);
+      //lights.palette().total(255);
 
 
 
@@ -602,9 +616,9 @@ void MarqueeFn(effectState state, EffectHandler* ptr)
       uint8_t speed = effect->getSpeed();
       const char * text = effect->getText();
 
-      lights.palette().input( effect->getColor() );
+      palette.input( effect->getColor() );
 
-      RgbColor dimmedcolor = lights.dim( lights.palette().next() , effect->getBrightness());
+      RgbColor dimmedcolor = lights.dim( palette.next() , effect->getBrightness());
 
       lights.SetTimeout( speed * 10);
 

@@ -79,7 +79,7 @@ public:
 	const uint8_t getmatrix() { return _matrixconfig; }
 	Melvtrix *  matrix() { return _matrix; } //  returns pointer to the GFX melvtrix
 
-	Palette & palette() { return *_palette; }
+//	Palette * palette() { return *_palette; }
 
 	const uint16_t    getX() {  return _grid_x ; }
 	const uint16_t    getY() {  return _grid_y; }
@@ -114,11 +114,11 @@ private:
 	bool _settings_changed;
 	bool _animations;
 	File _settings = File();
-	
+
 	uint8_t _waiting;
 	uint32_t _waiting_timeout = 0;
 
-	Palette * _palette;
+//	Palette * _palette;
 	int _timer = -1;
 
 

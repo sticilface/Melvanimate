@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>Melvide</title>
+    <title>NODEMCU-new</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--
@@ -60,9 +60,12 @@
         }
     </style>
 
+
 </head>
 
 <body>
+  
+  
 
     <div data-role="header" data-theme="a" data-position="fixed">
         <h1 id='myheader'>WS2812-ESPWiFi</h1>
@@ -122,7 +125,7 @@
 
 <div id="effectoptions">
   
-                <div class="ui-field-contain complex ObjectManagerexample BobblySquares Marquee">
+                <div class="ui-field-contain complex ObjectManagerexample BobblySquares Marquee Dummy">
                     <label for="select-palettes">Palette:</label>
                     <select name="palette" id="select-palettes" class='mysubmitthis'>
                         <option value="off" selected="selected">Off</option>
@@ -332,6 +335,7 @@
                         <option value="randomafterloop">Random After Loop</option>
                     </select>
                 </div>
+                
                 <div class="ui-field-contain">
                     <label for="input-palette-spread">Spread:</label>
                     <input type="text" name="palette-spread" id="input-palette-spread" value="">
@@ -413,7 +417,7 @@
 
     </div>
 
-    <script>
+     <script>
         function loadcss(url, callback) {
             var link = document.createElement("link");
             link.setAttribute("rel", "stylesheet");
@@ -457,7 +461,7 @@
                 });
             });
         });
-    </script>
+     </script>
 
 
     <script>
@@ -608,10 +612,18 @@
                         if ($(this).hasClass(mode)) $(this).show();
                     });
 
-
+                    $("#status").empty().append("Waiting...").css("color", "blue");;
+                    
                     $.post("data.esp", $(this).serialize(), function() {
-                        GetData();
-                    });
+                        //GetData();
+                    }).success(function(e) {
+                      processJSON(e);
+                        $("#status").empty().append("Success").css("color", "green");;
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
 
                 });
 
@@ -792,7 +804,8 @@
                             };
                             console.log(JSON.stringify(data));
                             $("#status").empty().append("Waiting...").css("color", "blue");;
-                            $.post("data.esp", JSON.stringify(data),
+                            
+                            $.post("data.esp", "json=" + JSON.stringify(data),
                                 function(data) {
                                     console.log(data);
                                 }
@@ -804,9 +817,9 @@
                             $("#status").empty().append("Error").css("color", "red");;
                         })
                         .complete(function() {});
+                        
                             $elm.css('color', "rgb(" + colors.RND.rgb.r + "," + colors.RND.rgb.g + "," + colors.RND.rgb.b + ")");
                             $elm.css('text-shadow', 'none');
-                            //SendColor(); 
                         }
                     },
                     buildCallback: function($elm) {
@@ -1030,9 +1043,16 @@
                             $('#input_marqueetext').val(settings.marqueetext);
                         }
 
-                        if (settings.hasOwnProperty('palette')) {
-                            $('#select-palettes').val(settings.palette).selectmenu('refresh');
+                        // OLD METHOD
+                        // if (settings.hasOwnProperty('palette')) {
+                        //     $('#select-palettes').val(settings.palette).selectmenu('refresh');
+                        // }
+
+                        // NEW METHOD
+                        if (settings.hasOwnProperty('Palette')) {
+                            $('#select-palettes').val(settings.Palette.name).selectmenu('refresh');
                         }
+                        
 
                         $('#effectoptions').children('div').each(function(index) {
                             $(this).hide();
@@ -1057,7 +1077,7 @@
                                 if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
                                 }
                                   
-                                $("#currentpresetslist").append('<option value=' + key + " " + isconnected + '>['+key+'] ' + value + '</option>');
+                                $("#currentpresetslist").append('<option value=' + key + " " + isconnected + '>' + value + '</option>');
                             }); 
                         $('#currentpresetslist').selectmenu('refresh');
 
@@ -1122,20 +1142,42 @@
                     }
 
                     if ($.mobile.activePage.attr('id') == 'palette') {
-
-                        if (result.hasOwnProperty('palette')) {
-                            $("#select-palettes2").val(result.palette).selectmenu("refresh");
+                      
+                       if (result.hasOwnProperty('settings') && result.settings.hasOwnProperty('Palette'))
+                       {
+                         
+                        palettevars = result.settings.Palette;
+                      
+                      //console.log(result);
+                      
+                        if (palettevars.hasOwnProperty('name')) {
+                            $("#select-palettes2").val(palettevars.name).selectmenu("refresh");
+                        } else {
+                          $("#select-palettes2").val("off").selectmenu("refresh");
                         }
 
-                        if (result.hasOwnProperty('paletterandom')) {
-                            $("#select-palettes-randomness").val(result.paletterandom).selectmenu("refresh");
+                        if (palettevars.hasOwnProperty('randmodeString')) {
+                            $("#select-palettes-randomness").val(palettevars.randmodeString).selectmenu("refresh");
+                            console.log("randmodeString = " + palettevars.randmodeString); 
+                        } else {
+                            console.log("randmodeString not found in palettevars");
+                            $("#select-palettes-randomness").val("off").selectmenu("refresh");
+                          
                         }
-                        if (result.hasOwnProperty('palettespread')) {
-                            $("#input-palette-spread").val(result.palettespread);
+                        if (palettevars.hasOwnProperty('range')) {
+                            $("#input-palette-spread").val(palettevars.range);
                         }
-                        if (result.hasOwnProperty('palettedelay')) {
-                            $("#input-palette-delay").val(result.palettedelay);
+                        
+                        if (palettevars.hasOwnProperty('delay')) {
+                            $("#input-palette-delay").val(palettevars.delay);
                         }
+                        
+                       } else {
+                         console.log("NO PALETTE");
+                         $("#select-palettes2").val("off").selectmenu("refresh");
+                         $("#select-palettes-randomness").val("off").selectmenu("refresh");
+                         
+                       }
                     }
     }
 

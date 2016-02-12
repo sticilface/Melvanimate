@@ -12,8 +12,8 @@
 
 extern const char * PRESETS_FILE;
 /* ------------------------------------------------------------------------
-					Effect Mangager
-					This is the base class for managing effects
+	Effect Mangager
+	This is the base class for managing effects
 --------------------------------------------------------------------------*/
 
 class EffectHandler;
@@ -42,9 +42,10 @@ public:
 
 	void setWaitFn(std::function<bool()> Fn ) { _waitFn = Fn; } //  allow effects to wait until triggering next...
 
-	EffectHandler* Current() const { 
-		if (_NextInLine) { 
-			return _NextInLine; 
+	EffectHandler* Current() const
+	{
+		if (_NextInLine) {
+			return _NextInLine;
 		} else {
 			return _currentHandle;
 		}
@@ -65,7 +66,7 @@ public:
 
 	uint8_t _numberofpresets = 0;
 	uint8_t * _presets = nullptr;
-	char ** _preset_names = nullptr; 
+	char ** _preset_names = nullptr;
 
 protected:
 
@@ -100,7 +101,7 @@ public:
 	virtual void Refresh() {}
 	virtual void SetTimeout(uint32_t) {}
 
-	virtual bool args(JsonObject & root) { return false;} // use json so it can be used with MQTT etc... 
+	virtual bool args(JsonObject & root) { return false;} // use json so it can be used with MQTT etc...
 
 	// experimental
 	virtual bool load(JsonObject& root, const char *& ID) { return false ; };
@@ -108,6 +109,8 @@ public:
 	// save does NOT have to be overridden.  it calls addJson instead.
 	virtual bool save(JsonObject& root, const char *& ID);
 	virtual uint8_t getPreset() { return _preset; }
+
+	virtual Palette * getPalette() { return nullptr; }
 
 	EffectHandler* next() { return _next; } //  ASK what is next
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
@@ -117,7 +120,7 @@ private:
 	EffectHandler* _next = nullptr;
 	const char * _name;
 protected:
-	uint8_t _preset = 255; 
+	uint8_t _preset = 255;
 
 
 };
@@ -126,12 +129,12 @@ protected:
 					Effect Handler
 					Dummy implementation (required)
 --------------------------------------------------------------------------*/
+typedef std::function<void(void)> EffectHandlerFunction;
 
 class Effect : public EffectHandler
 {
 
 public:
-	typedef std::function<void(void)> EffectHandlerFunction;
 	Effect(EffectHandlerFunction Fn) : _Fn(Fn) {};
 	bool Run() override { _Fn();};
 private:
@@ -173,7 +176,7 @@ public:
 	{
 		_state = EFFECT_REFRESH;
 		_Fn(_state, this) ;
-		if ( _state == EFFECT_REFRESH ) _state = RUN_EFFECT;
+		if ( _state == EFFECT_REFRESH ) { _state = RUN_EFFECT; }
 	}
 
 
@@ -217,8 +220,8 @@ public:
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override;
 	bool addJson(JsonObject& settings) override;
-	//bool args(ESP8266WebServer& HTTP) override; 
-	bool args(JsonObject& root) override; 
+	//bool args(ESP8266WebServer& HTTP) override;
+	bool args(JsonObject& root) override;
 
 	void setBrightness(uint8_t bri)   {   _brightness = bri; Refresh(); }
 	uint8_t getBrightness()  { return _brightness; }
@@ -237,7 +240,7 @@ class MarqueeEffect : public SwitchEffect
 {
 
 public:
-	MarqueeEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _brightness(255), _speed(5), _palette(OFF), _rotation(0)
+	MarqueeEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _brightness(255), _speed(5), _rotation(0)
 	{
 		_color = RgbColor(0, 0, 0);
 		_marqueeText = strdup("MELVANIMATE");
@@ -251,7 +254,7 @@ public:
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override ;
 	bool addJson(JsonObject& settings) override;
-	bool args(JsonObject& root) override; 
+	bool args(JsonObject& root) override;
 
 	//  Specific Variables
 	void setBrightness(uint8_t bri)   {   _brightness = bri;  }
@@ -269,18 +272,18 @@ public:
 	void setText(const char * text)   {   free(_marqueeText); _marqueeText = strdup(text);  }
 	const char * getText()  { return _marqueeText; }
 
-	void setPalette(palette_type palette)   {   _palette = palette;  }
-	palette_type getPalette()  {   return _palette;  }
+	//void setPalette(palette_type palette)   {   _palette = palette;  }
+	Palette * getPalette() override {   return &_palette;  }
 
 
 private:
 	char * _marqueeText;
 	uint32_t _speed;
 	uint8_t _brightness;
-	palette_type _palette;
+	//palette_type _palette;
 	uint8_t _rotation;
 	RgbColor _color;
-
+	Palette _palette;
 };
 
 class AdalightEffect : public SwitchEffect
@@ -290,9 +293,9 @@ public:
 	AdalightEffect(EffectHandlerFunction Fn);
 
 	//  These functions just need to add and retrieve preset values from the json.
-	bool load(JsonObject& root, const char *& ID) override; 
-	bool addJson(JsonObject& settings) override; 
-	bool args(JsonObject& root) override; 
+	bool load(JsonObject& root, const char *& ID) override;
+	bool addJson(JsonObject& settings) override;
+	bool args(JsonObject& root) override;
 
 	bool setSerialspeed(uint32_t speed)  {  _serialspeed = speed; Refresh(); return true; }
 	bool getSerialspeed(uint32_t& speed)  {  speed = _serialspeed; return true; }
@@ -304,5 +307,19 @@ private:
 
 
 
+class DummyEffect : public SwitchEffect
+{
 
+public:
+	DummyEffect(EffectHandlerFunction Fn);
+
+	//  These functions just need to add and retrieve preset values from the json.
+	bool load(JsonObject& root, const char *& ID) override;
+	bool addJson(JsonObject& settings) override;
+	bool args(JsonObject& root) override;
+
+private:
+	Palette _palette;
+
+};
 

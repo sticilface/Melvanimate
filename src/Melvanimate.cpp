@@ -15,11 +15,11 @@ SimpleTimer timer;
 
 Melvanimate::Melvanimate(): _pixels(TOTALPIXELS)
 	, _grid_x(8), _grid_y(8), _matrixconfig(0), _matrix(nullptr)
-	, _settings_changed(false), timeoutvar(0), _palette(nullptr)
+	, _settings_changed(false), timeoutvar(0)
 {
 	_matrixconfig = ( NEO_MATRIX_TOP + NEO_MATRIX_LEFT +  NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE );
 	setWaitFn ( std::bind (&Melvanimate::returnWaiting, this)  );   //  this callback gives bool to Effectmanager... "am i waiting..."
-	_palette = new Palette;
+	//_palette = new Palette;
 }
 
 
@@ -214,7 +214,17 @@ bool        Melvanimate::load()
 		}
 	}
 
-	char * data = new char[_settings.size()];
+	char * data = nullptr; 
+
+	if (_settings.size()) {
+	
+	data = new char[_settings.size()];
+
+	} else {
+		Serial.printf("[Melvanimate::load] Fail: buffer size 0\n");
+		return false; 
+	}
+
 	// prevent nullptr exception if can't allocate
 	if (data) {
 		Serial.printf("[Melvanimate::load] buffer size %u\n", _settings.size());

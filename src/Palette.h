@@ -10,6 +10,8 @@
 #include <HslColor.h>
 #include <HsbColor.h>
 
+#include <ArduinoJson.h>
+
 
 union storedColor {
 	RgbColor rgb;
@@ -19,6 +21,9 @@ union storedColor {
 
 enum palette_type { OFF = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
 enum random_mode { NOT_RANDOM = 0 , TOTAL_RANDOM, TIME_BASED_RANDOM, RANDOM_AFTER_LOOP};
+
+#define NUMBER_OF_RANDOM_MODES 4 
+#define NUMBER_OF_PALETTE_TYPES 9
 
 extern const char * random_mode_strings[]; 
 extern const char * palettes_strings[]; 
@@ -51,10 +56,14 @@ public:
 	void mode(const char *); 
 	palette_type mode() {return _mode;};
 	const char * getModeString(); 
+
 	static inline const char * enumToString(palette_type mode) { return palettes_strings[mode] ;  }
 	static palette_type stringToEnum(const char *); 
 
 	random_mode randommode() { return _random; };
+	
+	static random_mode randommodeStringtoEnum(const char * mode); 
+
 	const char * randommodeAsString() { return random_mode_strings[_random]; }
 	void randommode(random_mode random) { _random = random;}
 	void randommode(const char *); 
@@ -73,6 +82,9 @@ public:
 	void range (uint8_t range) { _range = float( range / 255 ); }
 
 	RgbColor get(uint8_t position) {};
+
+	bool addJson(JsonObject& root); 
+	bool parseJson(JsonObject& root); 
 
 	static RgbColor comlementary(RgbColor input, uint16_t position);
 	static RgbColor monochromatic(RgbColor input, uint16_t position);

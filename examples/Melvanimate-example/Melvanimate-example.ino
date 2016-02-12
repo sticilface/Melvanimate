@@ -23,7 +23,7 @@
 
 #include <ArduinoJson.h>
 #include <NeoPixelBus.h>
-#include <pubsubclient.h>
+//#include <pubsubclient.h>
 #include <Adafruit_GFX.h>
 
 #include <ESPmanager.h>
@@ -31,6 +31,10 @@
 #include <Melvanimate.h>
 #include "SimpleTimer/_SimpleTimer.h"
 
+
+//  this is the native SDK json lib.  
+//#include <json/json.h>
+  
 // #include <cont.h>
 // #include <stddef.h>
 // #include <ets_sys.h>
@@ -58,8 +62,8 @@ struct XY_t {
 
 IPAddress mqtt_server_ip(192, 168, 1, 1);
 
-WiFiClient mqtt_wclient;
-PubSubClient mqtt(mqtt_wclient, mqtt_server_ip);
+//WiFiClient mqtt_wclient;
+//PubSubClient mqtt(mqtt_wclient, mqtt_server_ip);
 
 //  This initialises everything.
 
@@ -67,6 +71,30 @@ Melvanimate lights;
 
 uint32_t save_flag = 0;
 bool modechange = false;
+
+
+// foreward dec for arudino 
+void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdate);
+void FadeTo(RgbColor color);
+void FadeTo( uint16_t time, RgbColor color);
+void crashfunc();
+void handle_data();
+void Show_pixels(bool override);
+void FadeToAndBack(uint16_t pixel, RgbColor color, uint16_t time);
+void send_data(String page);
+
+
+
+// void MarqueeFn(effectState state, EffectHandler* ptr);
+// void offFn(effectState state, EffectHandler* ptr);
+// void SimpleColorFn(effectState state, EffectHandler* ptr);
+// void AdaLightFn(effectState state, EffectHandler* ptr);
+
+
+  // class SwitchEffect;
+  // class GeneralEffect;
+  // class AdalightEffect;
+  // class MarqueeEffect;
 
 
 void setup()
@@ -166,14 +194,19 @@ void setup()
 
 // -------------------------------------------------------- //
 
-  lights.Add("Off", new SwitchEffect(offFn));                              // working
+
+
+
+  lights.Add("Off", new SwitchEffect( offFn));                              // working
   lights.Add("SimpleColor", new GeneralEffect(SimpleColorFn));              // working
 
   lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
 
-  // lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
+  lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
   // lights.Add("DMX", new SwitchEffect(DMXfn));                              // need to test - requires custom libs included
   lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
+
+  lights.Add("Dummy", new DummyEffect(DummyFn)); 
   // lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
   // lights.Add("Rainbow", new SwitchEffect(RainbowFn));
   // lights.Add("BobblySquares", new SwitchEffect(BobblySquaresFn));
@@ -375,7 +408,7 @@ bool check_duplicate_req()
 {
   static uint32_t last_time = 0;
   static char last_request[16] = {0};
-  if (HTTP.hasArg("data")) return false;
+  if (HTTP.hasArg("data")) { return false; }
 
   MD5Builder md5;
   md5.begin();
@@ -407,7 +440,7 @@ bool check_duplicate_req()
 void handle_data()
 {
   uint32_t start_time = millis();
-  String page = "homepage"; 
+  String page = "homepage";
   //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
   if (check_duplicate_req()) { HTTP.setContentLength(0); HTTP.send(200); return; }
 
@@ -446,40 +479,89 @@ void handle_data()
   if (HTTP.hasArg("preset")) {
     uint8_t preset = HTTP.arg("preset").toInt();
     if (lights.newLoad(preset)) {
-    //  try to switch current effect to preset...
-    Serial.printf("[handle] Loaded preset %u\n", preset);
+      //  try to switch current effect to preset...
+      Serial.printf("[handle] Loaded preset %u\n", preset);
     }
 
   }
 
 
-  DynamicJsonBuffer jsonBuffer;
 
+  // puts all the args into json...
+  // might be better to send pallette by json instead.. 
+
+  DynamicJsonBuffer jsonBuffer;
   JsonObject & root = jsonBuffer.createObject();
 
   for (uint8_t i = 0; i < HTTP.args(); i++) {
     root[HTTP.argName(i)] = HTTP.arg(i);
   }
 
+
+
+  if (HTTP.hasArg("nopixels") && HTTP.arg("nopixels").length() != 0) {
+    lights.setPixels(HTTP.arg("nopixels").toInt());
+    page = "layout";
+
+  }
+
+  if (HTTP.hasArg("palette")) {
+    //lights.palette().mode(HTTP.arg("palette").c_str());
+    page = "palette"; //  this line might not be needed... palette details are now handled entirely by the effect for which they belong
+
+/*
+[ARG:0] palette = complementary
+[ARG:1] palette-random = timebased
+[ARG:2] palette-spread = 
+[ARG:3] palette-delay = 
+
+  palette["mode"] = (uint8_t)_mode;
+  palette["total"] = _total;
+  palette["available"] = _available;
+  palette["randmode"] = (uint8_t)_random;
+  palette["range"] = _range;
+  palette["delay"] = _delay;
+*/
+
+
+  //  this is a bit of a bodge...  Capital P for object with all parameters... 
+  JsonObject & palettenode = root.createNestedObject("Palette");
+
+    palettenode["mode"] = (uint8_t)Palette::stringToEnum(HTTP.arg("palette").c_str()); 
+
+
+  if (HTTP.hasArg("palette-random")) {
+    palettenode["randmode"] = (uint8_t)Palette::randommodeStringtoEnum(HTTP.arg("palette-random").c_str()); 
+//    const char * temp = HTTP.arg("palette-random").c_str(); 
+//    palettenode["randmodeString"] = jsonBuffer.strdup(temp); 
+//    Serial.printf("[handle_data]randmodeString = %s/n", temp);
+
+  }
+
+  if (HTTP.hasArg("palette-spread")) {
+    palettenode["range"] = HTTP.arg("palette-spread"); 
+
+  }
+
+  if (HTTP.hasArg("palette-delay")) {
+    palettenode["delay"] = HTTP.arg("palette-delay"); 
+
+  }
+  Serial.println("[handle_data] JSON dump");
+  root.prettyPrintTo(Serial); 
+  Serial.println(); 
+
+  }
+
+
+
+
+//  this has to go last for the JSON to be passed to the current effect
   if (lights.Current()) {
     if (lights.Current()->args(root)) {
       Serial.println("[handle] JSON Setting applied");
     }
   }
-
-  if (HTTP.hasArg("nopixels") && HTTP.arg("nopixels").length() != 0) {
-    lights.setPixels(HTTP.arg("nopixels").toInt());
-    page = "layout"; 
-
-  }
-
-  if (HTTP.hasArg("palette")) {
-    lights.palette().mode(HTTP.arg("palette").c_str());
-    page = "layout"; 
-
-  }
-
-
 
 // matrixmode stuff
 // #define NEO_MATRIX_TOP         0x00 // Pixel 0 is at top of matrix
@@ -508,11 +590,11 @@ void handle_data()
 
   if (HTTP.hasArg("grid_x") && HTTP.hasArg("grid_y")) {
     lights.grid(HTTP.arg("grid_x").toInt(), HTTP.arg("grid_y").toInt() );
-    page = "layout"; 
+    page = "layout";
   }
 
   if (HTTP.hasArg("matrixmode")) {
-    page = "layout"; 
+    page = "layout";
     uint8_t matrixvar = 0;
     if (HTTP.arg("matrixmode") == "singlematrix") { lights.multiplematrix = false; }
     if (HTTP.arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
@@ -543,14 +625,8 @@ void handle_data()
   }
 
 
-  // if (HTTP.hasArg("serialspeed")) {
-  //   if (lights.Current()) {
-  //     lights.Current()->setSerialspeed(HTTP.arg("serialspeed").toInt());
-  //   }
-  // }
-
   if (HTTP.hasArg("flashfirst")) {
-    page = "layout"; 
+    page = "layout";
     lights.Start("Off");
     lights.Stop();
     strip->ClearTo(0);
@@ -565,7 +641,7 @@ void handle_data()
   }
 
   if (HTTP.hasArg("revealorder")) {
-    page = "layout"; 
+    page = "layout";
     lights.Start("Off");
     lights.Stop();
     strip->ClearTo(0);
@@ -587,23 +663,23 @@ void handle_data()
 
   }
 
-  if (HTTP.hasArg("palette-random")) {
-    lights.palette().randommode(HTTP.arg("palette-random").c_str());
-    page = "palette"; 
-
-  }
 
 
-  if (HTTP.hasArg("palette-spread")) {
-    lights.palette().range(HTTP.arg("palette-spread").toFloat());
-    page = "palette"; 
-  }
+  // if (HTTP.hasArg("palette-random")) {
+  //   lights.palette().randommode(HTTP.arg("palette-random").c_str());
+  //   page = "palette";
+  // }
 
-  if (HTTP.hasArg("palette-delay")) {
-    lights.palette().delay(HTTP.arg("palette-delay").toInt());
-    page = "palette"; 
 
-  }
+  // if (HTTP.hasArg("palette-spread")) {
+  //   lights.palette().range(HTTP.arg("palette-spread").toFloat());
+  //   page = "palette";
+  // }
+
+  // if (HTTP.hasArg("palette-delay")) {
+  //   lights.palette().delay(HTTP.arg("palette-delay").toInt());
+  //   page = "palette";
+  // }
 
 
   if (HTTP.hasArg("data")) {
@@ -612,7 +688,7 @@ void handle_data()
   }
 
   if (HTTP.hasArg("enabletimer")) {
-    page = "timer"; 
+    page = "timer";
     if (HTTP.arg("enabletimer") == "on") {
 
       if (HTTP.hasArg("timer") && HTTP.hasArg("timercommand")) {
@@ -654,7 +730,7 @@ void send_data(String page)
         Home page
   */
 
-  if (page == "homepage" || page == "all") {
+  if (page == "homepage" || page == "palette" || page == "all") {
     JsonArray& modes = root.createNestedArray("modes");
     //Serial.printf("Total effects: %u\n", lights.total());
     for (uint8_t i = 0; i < lights.total(); i++) {
@@ -665,21 +741,33 @@ void send_data(String page)
     // adds minimum current effect name, if there if addJson returns false.
     if (lights.Current()) {
       settings["currentpreset"] = lights.Current()->getPreset();
+
       if (!lights.Current()->addJson(settings)) {
         settings["effect"] = lights.Current()->name();
       }
-    
 
-    if (lights._numberofpresets) {
-      JsonObject& currentpresets = root.createNestedObject("currentpresets");
-      for (uint8_t i = 0; i < lights._numberofpresets; i++ ) {
-        currentpresets[ String(lights._presets[i])] = lights._preset_names[i];
+      if (!settings.containsKey("effect")) {
+        settings["effect"] = lights.Current()->name();
+      }
+
+      if (lights._numberofpresets) {
+        JsonObject& currentpresets = root.createNestedObject("currentpresets");
+        for (uint8_t i = 0; i < lights._numberofpresets; i++ ) {
+          currentpresets[ String(lights._presets[i])] = lights._preset_names[i];
+        }
       }
     }
-    }
 
 
-    root["palette"] = String(lights.palette().getModeString());
+
+// *  Not needed as palette is added within the add of a secific effect.. 
+
+    // Palette * palette = lights.Current()->getPalette();
+    // if (palette) {
+    //   root["palettename"] = String(palette->getModeString());
+    // }
+
+
 
   }
   /*
@@ -754,15 +842,27 @@ void send_data(String page)
         palette page
   */
 
+        // Palette is now handled by each effect handler... WICKED
 
-  if (page == "palette" || page == "all") {
+  // if (page == "palette" || page == "all") {
 
-    if (page != "all") root["palette"] = String(lights.palette().getModeString()); // ignore if already sent
-    root["paletterandom"] = String(lights.palette().randommodeAsString());
-    root["palettespread"] = String(lights.palette().range());
-    root["palettedelay"] = String(lights.palette().delay());
+  //   Palette * palette = lights.Current()->getPalette();
 
-  }
+  //   if (palette) {
+
+  //     if (page != "all") { root["palette"] = String(palette->getModeString()); } // ignore if already sent
+  //     root["paletterandom"] = String(palette->randommodeAsString());
+  //     root["palettespread"] = String(palette->range());
+  //     root["palettedelay"] = String(palette->delay());
+
+  //     if (palette->addJson( root)) {
+  //       Serial.println("[send_data] palette data added");
+  //       JsonObject& Palette = root["Palette"];
+  //       Palette["modeString"] = String(palette->getModeString()); //  This adds it as string.. saves having it saved to SPIFFS.
+  //     }
+
+  //   }
+  // }
 
   if (page == "timer" || page == "all") {
 
@@ -779,6 +879,7 @@ void send_data(String page)
 
   }
 
+//  root.prettyPrintTo(Serial);
 
   ESPmanager::sendJsontoHTTP(root, HTTP);
 

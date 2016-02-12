@@ -34,14 +34,33 @@ void Palette::mode(palette_type mode)
 
 void Palette::randommode(const char * mode)
 {
-	Serial.println("Random mode called");
-	for (uint8_t i = 0; i < 4; i++) {
-		if (strcmp(mode, random_mode_strings[i]) == 0) {
-			randommode( (random_mode)i );
-			Serial.printf("Found: %u, %s\n", i, random_mode_strings[i]);
+	Serial.println("[Palette::randommode] Random mode called");
+	if (mode) {
+		for (uint8_t i = 0; i < NUMBER_OF_RANDOM_MODES; i++) {
+			Serial.printf("[Palette::randommode] comparing %s\n", random_mode_strings[i] );
+			if (strcmp(mode, random_mode_strings[i]) == 0) {
+				randommode( (random_mode)i );
+				Serial.printf("Found: %u, %s\n", i, random_mode_strings[i]);
+			}
 		}
+	} else {
+		Serial.println("[Palette::randommode] NULL POINTER PASSED");
 	}
 }
+
+random_mode Palette::randommodeStringtoEnum(const char * mode)
+{
+	if (mode) {
+		for (uint8_t i = 0; i < NUMBER_OF_RANDOM_MODES; i++) {
+			if (strcmp(mode, random_mode_strings[i]) == 0) {
+				return (random_mode)i ;
+			}
+		}
+	}
+
+	return NOT_RANDOM;
+}
+
 
 
 void Palette::mode(const char * in)
@@ -62,7 +81,7 @@ palette_type Palette::stringToEnum(const char * in)
 		}
 	}
 
-	return OFF; 
+	return OFF;
 
 }
 
@@ -143,7 +162,7 @@ const char * Palette::getModeString()
 RgbColor Palette::next()
 {
 	// _position++;
-	if (_mode == OFF) return _input;
+	if (_mode == OFF) { return _input; }
 	uint16_t jump_size = (_total < _available) ?  _available / _total : 1;
 	_position += jump_size;
 
@@ -162,37 +181,37 @@ RgbColor Palette::previous()
 
 RgbColor Palette::comlementary(RgbColor Value, uint16_t position)
 {
-	if (position == 0) return Value;
+	if (position == 0) { return Value; }
 	HslColor original = HslColor(Value);
 	original.H += 0.5;
-	if (original.H > 1.0) original.H -= 1.0;
+	if (original.H > 1.0) { original.H -= 1.0; }
 	return RgbColor(original);
 }
 
 // 3 colors..
 RgbColor Palette::splitcomplements(RgbColor Input, uint16_t position, float range)
 {
-	if (position == 0) return Input;
+	if (position == 0) { return Input; }
 	HslColor original = HslColor(Input);
 	float HUE = original.H + 0.5;
 	HUE = HUE - (range / 2.0);
 	HUE = HUE + ( float(position) * range );
-	if (HUE < 0) HUE += 1;
-	if (HUE > 1) HUE -= 1;
+	if (HUE < 0) { HUE += 1; }
+	if (HUE > 1) { HUE -= 1; }
 	original.H = HUE;
 	return RgbColor(original);
 }
 
 RgbColor Palette::analogous(RgbColor Value, uint16_t position, uint16_t total, float range)
 {
-	if (position == 0) return Value;
+	if (position == 0) { return Value; }
 	HslColor original = HslColor(Value);
 	float HUE = original.H;
 	float HUE_lower = HUE - (range / 2.0);
 	float steps = range / float(total);
 	HUE = HUE_lower + ( float(position) * float(steps) );
-	if (HUE < 0) HUE += 1;
-	if (HUE > 1) HUE -= 1;
+	if (HUE < 0) { HUE += 1; }
+	if (HUE > 1) { HUE -= 1; }
 	original.H = HUE;
 	return RgbColor(original);
 }
@@ -204,7 +223,7 @@ RgbColor  Palette::multi(RgbColor Value, uint16_t position, uint16_t total)
 	float HUE = original.H;
 	float HUE_gap = 1.0 / float(total); // HUE - (range / 2.0);
 	HUE = HUE + (position * HUE_gap);
-	if (HUE > 1) HUE -= 1;
+	if (HUE > 1) { HUE -= 1; }
 	original.H = HUE;
 	return RgbColor(original);
 
@@ -226,4 +245,79 @@ RgbColor Palette::wheel (uint8_t position)
 		position -= 170;
 		return  RgbColor(position * 3, 255 - position * 3, 0);
 	}
+}
+/*
+	RgbColor _last;
+	uint16_t _position;
+	uint16_t _total; 		// sets number of colours in palette.  not always used.
+	uint16_t _available;	// some palettes have fixed number of colours available
+	palette_type _mode;
+	//bool _random = false;
+	random_mode _random;
+	RgbColor _input;
+	float _range = 0.2f; // spread of palettes...
+	uint32_t _delay;
+*/
+
+bool Palette::addJson(JsonObject& root)
+{
+	//JsonObject& root = in;
+	JsonObject& palette = root.createNestedObject("Palette");
+	palette["name"] = getModeString();
+	palette["mode"] = (uint8_t)_mode;
+	palette["total"] = _total;
+	palette["available"] = _available;
+	palette["randmode"] = (uint8_t)_random;
+	palette["randmodeString"] = randommodeAsString();
+
+	JsonArray& incol = palette.createNestedArray("inputcolor");
+	incol.add(_input.R);
+	incol.add(_input.G);
+	incol.add(_input.B);
+	palette["range"] = _range;
+	palette["delay"] = _delay;
+	//palette["last"] = _last;  //RgbColor
+	return true;
+
+}
+
+bool Palette::parseJson(JsonObject& root)
+{
+	Serial.println("[Palette::parseJson] Func HIT");
+
+	if (!root.containsKey("Palette")) { return false; }
+
+	JsonObject& palette = root["Palette"];
+
+	if (palette.containsKey("mode")) {
+		_mode = (palette_type)palette["mode"].as<long>();
+		Serial.printf("[Palette::parseJson] mode = %u\n", palette["mode"].as<long>() );
+
+	}
+	if (palette.containsKey("total")) {
+		_total = palette["total"];
+	}
+	if (palette.containsKey("available")) {
+		_available = palette["available"];
+	}
+	if (palette.containsKey("randmode")) {
+		random_mode mode = (random_mode)palette["randmode"].as<long>();
+		if (mode) {
+			randommode(mode);
+		}
+	}
+	if (palette.containsKey("inputcolor")) {
+		_input.R = palette["inputcolor"][0];
+		_input.G = palette["inputcolor"][1];
+		_input.B = palette["inputcolor"][2];
+	}
+	if (palette.containsKey("range")) {
+		_range = palette["range"];
+	}
+	if (palette.containsKey("delay")) {
+		_delay = palette["delay"];
+	}
+
+	return true;
+
 }
