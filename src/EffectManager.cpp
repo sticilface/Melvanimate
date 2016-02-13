@@ -759,20 +759,121 @@ bool GeneralEffect::addJson(JsonObject & settings)
 
 // }
 
+bool EffectManager::convertcolor(JsonObject & root, String colorstring)
+{
+
+	 Serial.printf("[EffectManager::convertcolor] bcolorstring = %s\n", colorstring.c_str());
+	// String colorstring = root["color1"].asString();
+
+	root["R"] = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+	colorstring = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length());
+	root["G"] = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+	root["B"] = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length()).toInt();
+
+	Serial.println("[EffectManager::convertcolor] root" );
+	root.prettyPrintTo(Serial);
+	Serial.println();
+
+	return true; 
+}
+
 bool GeneralEffect::args(JsonObject & root)
 {
 	bool found = false;
+	Serial.println("[GeneralEffect::args] root");
+	root.prettyPrintTo(Serial);
+	Serial.println();
 
-	if (root.containsKey("color")) {
-		JsonObject& color = root["color"];
-		RgbColor input;
-		input.R = color["R"];
-		input.G = color["G"];
-		input.B = color["B"];
-		setColor(input);
+
+	if (root.containsKey("color1")) {
+		// cache string
+		String colorstring = root["color1"];
+		//create json object
+		JsonObject& colorroot = root.createNestedObject("color1");
+
+		RgbColor color;
+
+		if (EffectManager::convertcolor(colorroot, colorstring)) {
+			color.R = colorroot["R"];
+			color.G = colorroot["G"];
+			color.B = colorroot["B"];
+		}
+
+		// String colorstring = root["color1"].asString();
+
+		// color.R = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+		// colorstring = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length());
+		// color.G = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+		// color.B = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length()).toInt();
+
+		Serial.printf("[GeneralEffect::args] color1 (%u,%u,%u)\n", color.R, color.G, color.B);
+		setColor(color);
 		found = true;
-
 	}
+
+	// if (root.containsKey("json")) {
+
+	// 	DynamicJsonBuffer tempjsonBuffer;
+
+	// 	int len = strlen(root["json"]);
+
+	// 	Serial.printf("[GeneralEffect::args] json length %u\n", len);
+
+	// 	char * data = new char(len+100);
+
+	// 	if (data) {
+	// 	Serial.printf("[GeneralEffect::args] data made\n");
+
+	// 		strcpy(data, root["json"].asString());
+
+	// 	Serial.printf("[GeneralEffect::args] data copied\n");
+
+
+	// 		JsonObject& json = tempjsonBuffer.parseObject(data);
+
+	// 		if (json.success()) {
+	// 			Serial.println("[GeneralEffect::args] json parsed");
+
+	// 			if (json.containsKey("color")) {
+	// 				JsonObject& color = json["color"];
+	// 				if (color.containsKey("name")) {
+	// 					String name = color["name"].asString();
+	// 					if (name == "color1") {
+	// 						RgbColor input;
+	// 						input.R = color["R"];
+	// 						input.G = color["G"];
+	// 						input.B = color["B"];
+	// 						setColor(input);
+	// 						found = true;
+	// 					}
+	// 				}
+	// 			}
+
+	// 		}
+	// 	} else {
+	// 		Serial.println("[GeneralEffect::args] malloc failed");
+	// 	}
+
+	// 	if (data) { delete data; }
+
+	// }
+
+
+// old method...  now try to parse JSON direct...
+	// if (root.containsKey("color")) {
+	// 	JsonObject& color = root["color"];
+	// 	if (color.containsKey("name")) {
+	// 		String name = color["name"].asString();
+	// 		if (name == "color1") {
+	// 			RgbColor input;
+	// 			input.R = color["R"];
+	// 			input.G = color["G"];
+	// 			input.B = color["B"];
+	// 			setColor(input);
+	// 			found = true;
+	// 		}
+	// 	}
+	// }
 
 	if (root.containsKey("brightness")) {
 		setBrightness( root["brightness"] );
@@ -812,8 +913,7 @@ bool MarqueeEffect::load(JsonObject& root, const char *& ID)
 	}
 
 	//  load palette settings...
-	if (current.containsKey("Palette")) 
-	{
+	if (current.containsKey("Palette")) {
 		Serial.println("[MarqueeEffect::load] Palette key foung in settings");
 		// Parse the whole object to palette to retrieve settings
 		if (_palette.parseJson(current)) {
@@ -1009,11 +1109,10 @@ bool DummyEffect::load(JsonObject& root, const char *& ID)
 
 	Serial.println("[DummyEffect::load] JSON Loaded");
 	current.prettyPrintTo(Serial);
-	Serial.println(); 
+	Serial.println();
 
 	//  load palette settings...
-	if (current.containsKey("Palette")) 
-	{
+	if (current.containsKey("Palette")) {
 		Serial.println("[DummyEffect::load] Palette key foung in settings");
 		// Parse the whole object to palette to retrieve settings
 		if (_palette.parseJson(current)) {
@@ -1056,8 +1155,7 @@ bool DummyEffect::addJson(JsonObject& settings)
 {
 	settings["effect"] = name();
 
-	if(_palette.addJson(settings))
-	{
+	if (_palette.addJson(settings)) {
 		Serial.println("[DummyEffect::addJson] Palette Settings Added");
 	}
 
@@ -1078,7 +1176,7 @@ bool DummyEffect::addJson(JsonObject& settings)
 
 	Serial.println("[DummyEffect::addJson] JSON Added");
 	settings.prettyPrintTo(Serial);
-	Serial.println(); 
+	Serial.println();
 
 }
 
@@ -1088,7 +1186,7 @@ bool DummyEffect::args(JsonObject& root)
 
 	Serial.println("[DummyEffect::args] JSON parsed:");
 	root.prettyPrintTo(Serial);
-	Serial.println(); 
+	Serial.println();
 
 	// need to add color... but change the JS to send normal POST not JSON...
 

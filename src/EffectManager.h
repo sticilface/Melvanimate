@@ -64,6 +64,9 @@ public:
 
 	bool SetToggle(const char * name);
 
+	static bool convertcolor(JsonObject & root, String colorstring); 
+
+
 	uint8_t _numberofpresets = 0;
 	uint8_t * _presets = nullptr;
 	char ** _preset_names = nullptr;
@@ -274,7 +277,6 @@ public:
 
 	//void setPalette(palette_type palette)   {   _palette = palette;  }
 	Palette * getPalette() override {   return &_palette;  }
-
 
 private:
 	char * _marqueeText;
