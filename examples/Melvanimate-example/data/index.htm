@@ -140,12 +140,12 @@
                     </select>
                 </div>
 
-                <div class="ui-field-contain form-group SimpleColor complex Marquee">
+                <div class="ui-field-contain form-group SimpleColor complex Marquee Dummy">
                     <label for="color1">Color One</label>
                     <input type="text" name="color1" id="color1" class="color no-alpha" data-control="hue" display="none" value="">
                 </div>
 
-                <div class="ui-field-contain form-group color2 complex">
+                <div class="ui-field-contain form-group color2 complex Dummy">
                     <label for="color2">Color Two</label>
                     <input type="text" name="color2" id="color2" class="color no-alpha" display="none" data-control="hue" value="">
                 </div>
@@ -805,7 +805,8 @@
                             console.log(JSON.stringify(data));
                             $("#status").empty().append("Waiting...").css("color", "blue");;
                             
-                            $.post("data.esp", "json=" + JSON.stringify(data),
+                            $.post("data.esp", inputName + "=" + rgb.r + "," + rgb.g + "," + rgb.b, 
+                           // $.post("data.esp", "json=" + JSON.stringify(data),
                                 function(data) {
                                     console.log(data);
                                 }
