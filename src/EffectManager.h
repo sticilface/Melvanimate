@@ -17,6 +17,7 @@ extern const char * PRESETS_FILE;
 --------------------------------------------------------------------------*/
 
 class EffectHandler;
+class PropertyHandler;
 
 class EffectManager
 {
@@ -64,7 +65,7 @@ public:
 
 	bool SetToggle(const char * name);
 
-	static bool convertcolor(JsonObject & root, String colorstring); 
+	static bool convertcolor(JsonObject & root, const char * colorstring);
 
 
 	uint8_t _numberofpresets = 0;
@@ -91,6 +92,10 @@ private:
 
 };
 
+/* ------------------------------------------------------------------------
+					Effect Handler
+					Dummy implementation (required)
+--------------------------------------------------------------------------*/
 
 class EffectHandler
 {
@@ -115,12 +120,18 @@ public:
 
 	virtual Palette * getPalette() { return nullptr; }
 
+//  Properties stuff
+
+	bool installProperty(PropertyHandler* ptr); 
+
+//  Very important... 
 	EffectHandler* next() { return _next; } //  ASK what is next
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
 	void name (const char * name) { _name = name; }
 	const char * name() {return _name; };
 private:
 	EffectHandler* _next = nullptr;
+	PropertyHandler * _propertyPtr = nullptr; 
 	const char * _name;
 protected:
 	uint8_t _preset = 255;
@@ -129,20 +140,66 @@ protected:
 };
 
 /* ------------------------------------------------------------------------
-					Effect Handler
-					Dummy implementation (required)
---------------------------------------------------------------------------*/
-typedef std::function<void(void)> EffectHandlerFunction;
+					Property Classes
 
-class Effect : public EffectHandler
+--------------------------------------------------------------------------*/
+
+class PropertyHandler
+{
+public:
+	virtual bool addJson(JsonObject & root) { return false; }
+	virtual bool parseJson(JsonObject & root) { return false; }
+	virtual const char * name() = 0; 
+
+	PropertyHandler* next() { return _next; }
+	void next (PropertyHandler* next) { _next = next; }
+	PropertyHandler* get() { return this; }
+private:
+	PropertyHandler* _next = nullptr;
+};
+
+
+class Color_property : public PropertyHandler
 {
 
 public:
-	Effect(EffectHandlerFunction Fn) : _Fn(Fn) {};
-	bool Run() override { _Fn();};
+	Color_property(EffectHandler* ptr) {
+		if (ptr) {
+			ptr->installProperty(this); 
+		}
+	}
+	const char * name() { return "color"; }
 private:
-	EffectHandlerFunction _Fn;
+	RgbColor _color; 
 };
+
+class Brightness_property : public PropertyHandler
+{
+
+public:
+	Brightness_property(EffectHandler* ptr) {
+		if (ptr) {
+			ptr->installProperty(this); 
+		}
+	}
+	const char * name() { return "brightness"; }
+
+private:
+	uint8_t _brightness; 
+};
+
+
+// typedef std::function<void(void)> EffectHandlerFunction;
+
+// class Effect : public EffectHandler
+// {
+
+// public:
+// 	Effect(EffectHandlerFunction Fn) : _Fn(Fn) {};
+// 	bool Run() override { _Fn();};
+// private:
+// 	EffectHandlerFunction _Fn;
+// };
 
 /* ------------------------------------------------------------------------
 					Effect Handler SWITCH - MAIN effect handler....
@@ -309,7 +366,7 @@ private:
 
 
 
-class DummyEffect : public SwitchEffect
+class DummyEffect : public SwitchEffect 
 {
 
 public:
@@ -324,4 +381,26 @@ private:
 	Palette _palette;
 
 };
+
+
+class CascadeEffect : public SwitchEffect, public Color_property, public Brightness_property
+{
+
+public:
+	CascadeEffect(EffectHandlerFunction Fn): SwitchEffect(Fn), Color_property(this), Brightness_property(this)  {
+
+	}; 
+
+	//  These functions just need to add and retrieve preset values from the json.
+//	bool load(JsonObject& root, const char *& ID) override;
+//	bool addJson(JsonObject& settings) override;
+//	bool args(JsonObject& root) override;
+
+private:
+//	Palette _palette;
+
+};
+
+
+
 

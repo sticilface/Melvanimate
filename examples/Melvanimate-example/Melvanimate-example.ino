@@ -207,6 +207,10 @@ void setup()
   lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
 
   lights.Add("Dummy", new DummyEffect(DummyFn)); 
+  lights.Add("PropertyTester", new CascadeEffect(CascadeEffectFn)); 
+
+
+
   // lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
   // lights.Add("Rainbow", new SwitchEffect(RainbowFn));
   // lights.Add("BobblySquares", new SwitchEffect(BobblySquaresFn));

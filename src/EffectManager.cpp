@@ -519,6 +519,36 @@ bool EffectHandler::save(JsonObject& root, const char *& ID)
 };
 
 
+bool EffectHandler::installProperty(PropertyHandler* ptr)
+{
+	if (ptr) {
+
+		if (!_propertyPtr) {
+			_propertyPtr = ptr; 
+			ptr->next(nullptr); 
+			Serial.printf("[EffectHandler::installProperty] installed property 1: %s\n", ptr->name());
+		} else {
+			
+			PropertyHandler* handler = nullptr; 
+			PropertyHandler* lasthandler = nullptr; 
+			uint8_t count = 1; 
+			for (handler = _propertyPtr; handler; handler = handler->next()) {
+				lasthandler = handler; 
+				count++; 
+			}
+
+			lasthandler->next(ptr); 
+
+			Serial.printf("[EffectHandler::installProperty] installed property %u: %s\n", count, ptr->name());
+
+		}
+
+
+
+
+	}
+}
+
 
 /*---------------------------------------------
 
@@ -759,121 +789,45 @@ bool GeneralEffect::addJson(JsonObject & settings)
 
 // }
 
-bool EffectManager::convertcolor(JsonObject & root, String colorstring)
+bool EffectManager::convertcolor(JsonObject & root, const char * node)
 {
+	if (root.containsKey(node)) {
 
-	 Serial.printf("[EffectManager::convertcolor] bcolorstring = %s\n", colorstring.c_str());
-	// String colorstring = root["color1"].asString();
+		String colorstring = root[node];
 
-	root["R"] = colorstring.substring(0, colorstring.indexOf(",")).toInt();
-	colorstring = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length());
-	root["G"] = colorstring.substring(0, colorstring.indexOf(",")).toInt();
-	root["B"] = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length()).toInt();
+		Serial.printf("[EffectManager::convertcolor] bcolorstring = %s\n", colorstring.c_str());
+		JsonObject& colorroot = root.createNestedObject(node);
 
-	Serial.println("[EffectManager::convertcolor] root" );
-	root.prettyPrintTo(Serial);
-	Serial.println();
+		colorroot["R"] = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+		colorstring = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length());
+		colorroot["G"] = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+		colorroot["B"] = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length()).toInt();
 
-	return true; 
+		Serial.println("[EffectManager::convertcolor] root" );
+		root.prettyPrintTo(Serial);
+		Serial.println();
+		return true;
+
+	}
+	return false;
 }
 
 bool GeneralEffect::args(JsonObject & root)
 {
 	bool found = false;
-	Serial.println("[GeneralEffect::args] root");
-	root.prettyPrintTo(Serial);
-	Serial.println();
-
 
 	if (root.containsKey("color1")) {
-		// cache string
-		String colorstring = root["color1"];
-		//create json object
-		JsonObject& colorroot = root.createNestedObject("color1");
+		if (EffectManager::convertcolor(root, "color1")) {
+			RgbColor color;
+			color.R = root["color1"]["R"].as<long>();
+			color.G = root["color1"]["G"].as<long>();
+			color.B = root["color1"]["B"].as<long>();
+			Serial.printf("[GeneralEffect::args] color1 (%u,%u,%u)\n", color.R, color.G, color.B);
+			setColor(color);
+			found = true;
 
-		RgbColor color;
-
-		if (EffectManager::convertcolor(colorroot, colorstring)) {
-			color.R = colorroot["R"];
-			color.G = colorroot["G"];
-			color.B = colorroot["B"];
 		}
-
-		// String colorstring = root["color1"].asString();
-
-		// color.R = colorstring.substring(0, colorstring.indexOf(",")).toInt();
-		// colorstring = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length());
-		// color.G = colorstring.substring(0, colorstring.indexOf(",")).toInt();
-		// color.B = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length()).toInt();
-
-		Serial.printf("[GeneralEffect::args] color1 (%u,%u,%u)\n", color.R, color.G, color.B);
-		setColor(color);
-		found = true;
 	}
-
-	// if (root.containsKey("json")) {
-
-	// 	DynamicJsonBuffer tempjsonBuffer;
-
-	// 	int len = strlen(root["json"]);
-
-	// 	Serial.printf("[GeneralEffect::args] json length %u\n", len);
-
-	// 	char * data = new char(len+100);
-
-	// 	if (data) {
-	// 	Serial.printf("[GeneralEffect::args] data made\n");
-
-	// 		strcpy(data, root["json"].asString());
-
-	// 	Serial.printf("[GeneralEffect::args] data copied\n");
-
-
-	// 		JsonObject& json = tempjsonBuffer.parseObject(data);
-
-	// 		if (json.success()) {
-	// 			Serial.println("[GeneralEffect::args] json parsed");
-
-	// 			if (json.containsKey("color")) {
-	// 				JsonObject& color = json["color"];
-	// 				if (color.containsKey("name")) {
-	// 					String name = color["name"].asString();
-	// 					if (name == "color1") {
-	// 						RgbColor input;
-	// 						input.R = color["R"];
-	// 						input.G = color["G"];
-	// 						input.B = color["B"];
-	// 						setColor(input);
-	// 						found = true;
-	// 					}
-	// 				}
-	// 			}
-
-	// 		}
-	// 	} else {
-	// 		Serial.println("[GeneralEffect::args] malloc failed");
-	// 	}
-
-	// 	if (data) { delete data; }
-
-	// }
-
-
-// old method...  now try to parse JSON direct...
-	// if (root.containsKey("color")) {
-	// 	JsonObject& color = root["color"];
-	// 	if (color.containsKey("name")) {
-	// 		String name = color["name"].asString();
-	// 		if (name == "color1") {
-	// 			RgbColor input;
-	// 			input.R = color["R"];
-	// 			input.G = color["G"];
-	// 			input.B = color["B"];
-	// 			setColor(input);
-	// 			found = true;
-	// 		}
-	// 	}
-	// }
 
 	if (root.containsKey("brightness")) {
 		setBrightness( root["brightness"] );
@@ -1188,17 +1142,28 @@ bool DummyEffect::args(JsonObject& root)
 	root.prettyPrintTo(Serial);
 	Serial.println();
 
-	// need to add color... but change the JS to send normal POST not JSON...
+	if (root.containsKey("color1")) {
+		if (EffectManager::convertcolor(root, "color1")) {
+			RgbColor color;
+			color.R = root["color1"]["R"].as<long>();
+			color.G = root["color1"]["G"].as<long>();
+			color.B = root["color1"]["B"].as<long>();
+			Serial.printf("[DummyEffect::args] color1 (%u,%u,%u)\n", color.R, color.G, color.B);
+			found = true;
 
-	if (root.containsKey("color")) {
-		JsonObject& color = root["color"];
-		// RgbColor input;
-		// input.R = color["R"];
-		// input.G = color["G"];
-		// input.B = color["B"];
-		// setColor(input);
-		found = true;
+		}
+	}
 
+	if (root.containsKey("color2")) {
+		if (EffectManager::convertcolor(root, "color2")) {
+			RgbColor color;
+			color.R = root["color2"]["R"].as<long>();
+			color.G = root["color2"]["G"].as<long>();
+			color.B = root["color2"]["B"].as<long>();
+			Serial.printf("[DummyEffect::args] color2 (%u,%u,%u)\n", color.R, color.G, color.B);
+			found = true;
+
+		}
 	}
 
 	if (root.containsKey("brightness")) {

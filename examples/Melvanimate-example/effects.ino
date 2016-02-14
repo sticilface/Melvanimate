@@ -98,7 +98,14 @@ void DummyFn(effectState& state, EffectHandler* ptr)
 
 }
 
+void CascadeEffectFn(effectState& state, EffectHandler* ptr)
+{
+  static uint32_t tick = 0;
+  if (millis() - tick < 1000) return;
+  tick = millis();
+  //Serial.println("Dummy Run");
 
+}
 /*-----------------------------------------------
 *
 *                 AdaLight
