@@ -23,7 +23,7 @@
 
 #include <ArduinoJson.h>
 #include <NeoPixelBus.h>
-//#include <pubsubclient.h>
+//#include <pubsubclient.h> //  to be implemented 
 #include <Adafruit_GFX.h>
 
 #include <ESPmanager.h>
@@ -31,6 +31,7 @@
 #include <Melvanimate.h>
 #include "SimpleTimer/_SimpleTimer.h"
 
+#include "class_effects.h"
 
 //  this is the native SDK json lib.  
 //#include <json/json.h>
@@ -74,14 +75,14 @@ bool modechange = false;
 
 
 // foreward dec for arudino 
-void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdate);
-void FadeTo(RgbColor color);
-void FadeTo( uint16_t time, RgbColor color);
-void crashfunc();
-void handle_data();
-void Show_pixels(bool override);
-void FadeToAndBack(uint16_t pixel, RgbColor color, uint16_t time);
-void send_data(String page);
+// void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdate);
+// void FadeTo(RgbColor color);
+// void FadeTo( uint16_t time, RgbColor color);
+// void crashfunc();
+// void handle_data();
+// void Show_pixels(bool override);
+// void FadeToAndBack(uint16_t pixel, RgbColor color, uint16_t time);
+// void send_data(String page);
 
 
 
@@ -196,7 +197,6 @@ void setup()
 
 
 
-
   lights.Add("Off", new SwitchEffect( offFn));                              // working
   lights.Add("SimpleColor", new GeneralEffect(SimpleColorFn));              // working
 
@@ -209,6 +209,9 @@ void setup()
   lights.Add("Dummy", new DummyEffect(DummyFn)); 
   lights.Add("PropertyTester", new CascadeEffect(CascadeEffectFn)); 
 
+
+
+  lights.Add("test", new testclass); 
 
 
   // lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
@@ -452,18 +455,18 @@ void handle_data()
   print_args();
 
   if (HTTP.hasArg("plain")) {
+    //  ABANDONED
+    // DynamicJsonBuffer jsonBufferplain;
+    // JsonObject& root = jsonBufferplain.parseObject(HTTP.arg("plain").c_str());
+    // if (root.success()) {
 
-    DynamicJsonBuffer jsonBufferplain;
-    JsonObject& root = jsonBufferplain.parseObject(HTTP.arg("plain").c_str());
-    if (root.success()) {
+    //   if (lights.Current()) {
+    //     if (lights.Current()->parseJsonArgs(root)) {
+    //       Serial.println("[handle] JSON (via Plain) Setting applied");
+    //     }
+    //   }
 
-      if (lights.Current()) {
-        if (lights.Current()->args(root)) {
-          Serial.println("[handle] JSON (via Plain) Setting applied");
-        }
-      }
-
-    }
+    // }
   }
 
   if (HTTP.hasArg("enable")) {
@@ -562,7 +565,7 @@ void handle_data()
 
 //  this has to go last for the JSON to be passed to the current effect
   if (lights.Current()) {
-    if (lights.Current()->args(root)) {
+    if (lights.Current()->parseJson(root)) {
       Serial.println("[handle] JSON Setting applied");
     }
   }

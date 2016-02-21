@@ -163,5 +163,30 @@ int Melvtrix::getPixel(uint16_t x, uint16_t y)
 
   return tileOffset + pixelOffset;
 
+}
+
+
+
+bool MelvtrixJson::addJson(JsonObject & root)
+{
+    JsonObject& color = root.createNestedObject("Matrix");
 
 }
+
+bool MelvtrixJson::parseJson(JsonObject & root)
+{
+
+  if (!root.containsKey("Matrix") ) 
+  {
+    return false; 
+  }
+
+
+  
+
+}
+
+
+
+
+

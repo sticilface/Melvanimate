@@ -2,6 +2,7 @@
 
 Thanks to Adafruit for their GFX and Matrix libs.  Modified here by Sticilface, aka Andrew Melvin.
 Provides a callback method for pixel location! 
+Creates class to set params using json. 
 
 This is the core graphics library for all our displays, providing a common
 set of graphics primitives (points, lines, circles, etc.).  It needs to be
@@ -40,6 +41,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #pragma once
 #include <functional>
 #include <Adafruit_GFX.h>
+#include <ArduinoJson.h>
 
 
 #define NEO_MATRIX_TOP         0x00 // Pixel 0 is at top of matrix
@@ -102,3 +104,22 @@ private:
   ShapeUpdateCallback ShapeFn;
 
 };
+
+
+//  **  NOT being used yet ** // 
+//  This adds ability to Melvtix_json to use json object to set params. 
+class MelvtrixJson: public Melvtrix
+{
+public:
+   bool addJson(JsonObject & root);
+   bool parseJson(JsonObject & root);
+private:
+  uint8_t _matrixconfig;
+};
+
+
+
+
+
+
+

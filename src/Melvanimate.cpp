@@ -323,12 +323,12 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 			} else if (command.equalsIgnoreCase("brightness")) {
 				if (Current()) {
 					root["brightness"] = option.toInt(); 
-					Current()->args(root);
+					Current()->parseJson(root);
 				}
 			} else if (command.equalsIgnoreCase("speed")) {
 				if (Current()) {
 					root["speed"] = option.toInt(); 
-					Current()->args(root);
+					Current()->parseJson(root);
 				}
 			} else if (command.equalsIgnoreCase("loadpreset")) {
 				Serial.println("[Melvanimate::setTimer] Load preset: not done yet");

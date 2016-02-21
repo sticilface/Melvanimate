@@ -524,20 +524,20 @@ bool EffectHandler::installProperty(PropertyHandler* ptr)
 	if (ptr) {
 
 		if (!_propertyPtr) {
-			_propertyPtr = ptr; 
-			ptr->next(nullptr); 
+			_propertyPtr = ptr;
+			ptr->next(nullptr);
 			Serial.printf("[EffectHandler::installProperty] installed property 1: %s\n", ptr->name());
 		} else {
-			
-			PropertyHandler* handler = nullptr; 
-			PropertyHandler* lasthandler = nullptr; 
-			uint8_t count = 1; 
+
+			PropertyHandler* handler = nullptr;
+			PropertyHandler* lasthandler = nullptr;
+			uint8_t count = 1;
 			for (handler = _propertyPtr; handler; handler = handler->next()) {
-				lasthandler = handler; 
-				count++; 
+				lasthandler = handler;
+				count++;
 			}
 
-			lasthandler->next(ptr); 
+			lasthandler->next(ptr);
 
 			Serial.printf("[EffectHandler::installProperty] installed property %u: %s\n", count, ptr->name());
 
@@ -548,6 +548,41 @@ bool EffectHandler::installProperty(PropertyHandler* ptr)
 
 	}
 }
+
+bool EffectHandler::addJson(JsonObject& settings)
+{
+	bool found = false;
+	PropertyHandler* handler = nullptr;
+	for (handler = getPropertyPtr(); handler; handler = handler->next()) {
+		if (handler->addJsonProperty(settings)) {
+			Serial.printf("[EffectHandler::addJson] Settings added for %s\n", handler->name());
+			found = true;
+		}
+
+	}
+
+	if (addEffectJson(settings)) { found = true; }
+	return found;
+
+};
+
+
+bool EffectHandler::parseJson(JsonObject & root)
+{
+	bool found = false;
+	PropertyHandler* handler = nullptr;
+	for (handler = getPropertyPtr(); handler; handler = handler->next()) {
+		if (handler->parseJsonProperty(root)) {
+			Serial.printf("[EffectHandler::parseJson] Settings parsed for %s\n", handler->name());
+			found = true;
+		}
+
+	}
+
+	if (parseJsonEffect(root)) { found = true; }
+	return found;
+}
+
 
 
 /*---------------------------------------------
@@ -758,7 +793,7 @@ bool GeneralEffect::load(JsonObject & root, const char *& ID)
 
 
 
-bool GeneralEffect::addJson(JsonObject & settings)
+bool GeneralEffect::addEffectJson(JsonObject & settings)
 {
 
 	settings["effect"] = name();
@@ -812,7 +847,7 @@ bool EffectManager::convertcolor(JsonObject & root, const char * node)
 	return false;
 }
 
-bool GeneralEffect::args(JsonObject & root)
+bool GeneralEffect::parseJsonEffect(JsonObject & root)
 {
 	bool found = false;
 
@@ -909,7 +944,7 @@ bool MarqueeEffect::load(JsonObject& root, const char *& ID)
 
 }
 
-bool MarqueeEffect::addJson(JsonObject& settings)
+bool MarqueeEffect::addEffectJson(JsonObject& settings)
 {
 	settings["effect"] = name();
 	settings["brightness"] = _brightness ;
@@ -928,7 +963,7 @@ bool MarqueeEffect::addJson(JsonObject& settings)
 	return true;
 } ;
 
-bool MarqueeEffect::args(JsonObject& root)
+bool MarqueeEffect::parseJsonEffect(JsonObject& root)
 {
 	bool found = false;
 
@@ -1016,14 +1051,14 @@ bool AdalightEffect::load(JsonObject& root, const char *& ID)
 	return true;
 }
 
-bool AdalightEffect::addJson(JsonObject& settings)
+bool AdalightEffect::addEffectJson(JsonObject& settings)
 {
 	settings["effect"] = name();
 	settings["serialspeed"] = _serialspeed;
 	return true;
 }
 
-bool AdalightEffect::args(JsonObject& root)
+bool AdalightEffect::parseJsonEffect(JsonObject& root)
 {
 	bool found = false;
 
@@ -1105,7 +1140,7 @@ bool DummyEffect::load(JsonObject& root, const char *& ID)
 	return true;
 }
 
-bool DummyEffect::addJson(JsonObject& settings)
+bool DummyEffect::addEffectJson(JsonObject& settings)
 {
 	settings["effect"] = name();
 
@@ -1134,7 +1169,7 @@ bool DummyEffect::addJson(JsonObject& settings)
 
 }
 
-bool DummyEffect::args(JsonObject& root)
+bool DummyEffect::parseJsonEffect(JsonObject& root)
 {
 	bool found = false;
 

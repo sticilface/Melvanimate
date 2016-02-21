@@ -60,11 +60,12 @@ public:
 	bool newLoad(uint8_t ID);
 	bool removePreset(uint8_t ID);
 
-	// fetches info from SPIFFS about which presest applies to current
+	// fetches info from SPIFFS valid presests for current effect
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
 
 	bool SetToggle(const char * name);
 
+	// maybe move this into a helper header file....
 	static bool convertcolor(JsonObject & root, const char * colorstring);
 
 
@@ -84,9 +85,8 @@ protected:
 private:
 
 	std::function<bool()>  _waitFn = nullptr;
+
 	// hold a 'new' array of elegible presets for _currenthandler
-
-
 	bool _parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
 	EffectHandler* _findhandle(const char * handle);
 
@@ -109,30 +109,36 @@ public:
 	virtual void Refresh() {}
 	virtual void SetTimeout(uint32_t) {}
 
-	virtual bool args(JsonObject & root) { return false;} // use json so it can be used with MQTT etc...
+	bool parseJson(JsonObject & root);
+	virtual bool parseJsonEffect(JsonObject & root) { return false;} // use json so it can be used with MQTT etc...
 
 	// experimental
 	virtual bool load(JsonObject& root, const char *& ID) { return false ; };
-	virtual bool addJson(JsonObject& settings) { return false; };
+
+	bool addJson(JsonObject& settings); // called first, iterates through 'installed properties' then calls addEffectJson
+	virtual bool addEffectJson(JsonObject& settings) { return false; };
+
 	// save does NOT have to be overridden.  it calls addJson instead.
 	virtual bool save(JsonObject& root, const char *& ID);
 	virtual uint8_t getPreset() { return _preset; }
 
-	virtual Palette * getPalette() { return nullptr; }
-
 //  Properties stuff
 
-	bool installProperty(PropertyHandler* ptr); 
+	bool installProperty(PropertyHandler* ptr);
+	PropertyHandler * getPropertyPtr() { return _propertyPtr; }
 
-//  Very important... 
+//  Core Very important...
 	EffectHandler* next() { return _next; } //  ASK what is next
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
 	void name (const char * name) { _name = name; }
 	const char * name() {return _name; };
 private:
 	EffectHandler* _next = nullptr;
-	PropertyHandler * _propertyPtr = nullptr; 
+	PropertyHandler * _propertyPtr = nullptr;
 	const char * _name;
+
+
+	bool _wait = false; // not implemented yet... might be a much simpler way of doing it.
 protected:
 	uint8_t _preset = 255;
 
@@ -147,13 +153,12 @@ protected:
 class PropertyHandler
 {
 public:
-	virtual bool addJson(JsonObject & root) { return false; }
-	virtual bool parseJson(JsonObject & root) { return false; }
-	virtual const char * name() = 0; 
+	virtual bool addJsonProperty(JsonObject & root) { return false; }
+	virtual bool parseJsonProperty(JsonObject & root) { return false; }
+	virtual const char * name() = 0;
 
 	PropertyHandler* next() { return _next; }
 	void next (PropertyHandler* next) { _next = next; }
-	PropertyHandler* get() { return this; }
 private:
 	PropertyHandler* _next = nullptr;
 };
@@ -163,31 +168,102 @@ class Color_property : public PropertyHandler
 {
 
 public:
-	Color_property(EffectHandler* ptr) {
+	Color_property(EffectHandler* ptr)
+	{
 		if (ptr) {
-			ptr->installProperty(this); 
+			ptr->installProperty(this);
 		}
 	}
-	const char * name() { return "color"; }
+	const char * name() { return _name; }
+
+	bool addJsonProperty(JsonObject & root) override
+	{
+		JsonObject& color = root.createNestedObject(_name);
+		color["R"] = _color.R;
+		color["G"] = _color.G;
+		color["B"] = _color.B;
+		return true;
+	}
+	bool parseJsonProperty(JsonObject & root) override
+	{
+
+		if (root.containsKey(_name)) {
+
+			if (EffectManager::convertcolor(root, _name)) {
+				_color.R = root[_name]["R"].as<long>();
+				_color.G = root[_name]["G"].as<long>();
+				_color.B = root[_name]["B"].as<long>();
+				return true;
+			} else { return false; }
+		} else {
+			return false;
+		}
+	}
+
+	RgbColor _color;
 private:
-	RgbColor _color; 
+	const char * _name = "color1";
 };
 
 class Brightness_property : public PropertyHandler
 {
 
 public:
-	Brightness_property(EffectHandler* ptr) {
+	Brightness_property(EffectHandler* ptr)
+	{
 		if (ptr) {
-			ptr->installProperty(this); 
+			ptr->installProperty(this);
 		}
 	}
-	const char * name() { return "brightness"; }
+	const char * name() { return _name; }
+	bool addJsonProperty(JsonObject & root) override
+	{
+		root[_name] = _brightness;
+		return true;
+	}
+	bool parseJsonProperty(JsonObject & root) override
+	{
+		if (root.containsKey(_name)) {
+			_brightness = root[_name];
+			return true;
+		} else {
+			return false;
+		}
+	}
 
+	uint8_t _brightness;
 private:
-	uint8_t _brightness; 
+	const char * _name = "brightness";
 };
 
+class Palette_property : public PropertyHandler
+{
+
+public:
+	Palette_property(EffectHandler* ptr)
+	{
+		if (ptr) {
+			ptr->installProperty(this);
+		}
+	}
+	const char * name() { return _name; }
+	bool addJsonProperty(JsonObject & root) override
+	{
+		return _palette.addJson(root);
+	}
+	bool parseJsonProperty(JsonObject & root) override
+	{
+		if (root.containsKey(_name)) {
+			return _palette.parseJson(root);
+		} else {
+			return false;
+		}
+	}
+
+	Palette _palette;
+private:
+	const char * _name  = "palette";
+};
 
 // typedef std::function<void(void)> EffectHandlerFunction;
 
@@ -279,9 +355,9 @@ public:
 
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override;
-	bool addJson(JsonObject& settings) override;
+	bool addEffectJson(JsonObject& settings) override;
 	//bool args(ESP8266WebServer& HTTP) override;
-	bool args(JsonObject& root) override;
+	bool parseJsonEffect(JsonObject& root) override;
 
 	void setBrightness(uint8_t bri)   {   _brightness = bri; Refresh(); }
 	uint8_t getBrightness()  { return _brightness; }
@@ -313,8 +389,8 @@ public:
 
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override ;
-	bool addJson(JsonObject& settings) override;
-	bool args(JsonObject& root) override;
+	bool addEffectJson(JsonObject& settings) override;
+	bool parseJsonEffect(JsonObject& root) override;
 
 	//  Specific Variables
 	void setBrightness(uint8_t bri)   {   _brightness = bri;  }
@@ -333,7 +409,7 @@ public:
 	const char * getText()  { return _marqueeText; }
 
 	//void setPalette(palette_type palette)   {   _palette = palette;  }
-	Palette * getPalette() override {   return &_palette;  }
+	Palette * getPalette()  {   return &_palette;  }
 
 private:
 	char * _marqueeText;
@@ -353,8 +429,8 @@ public:
 
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override;
-	bool addJson(JsonObject& settings) override;
-	bool args(JsonObject& root) override;
+	bool addEffectJson(JsonObject& settings) override;
+	bool parseJsonEffect(JsonObject& root) override;
 
 	bool setSerialspeed(uint32_t speed)  {  _serialspeed = speed; Refresh(); return true; }
 	bool getSerialspeed(uint32_t& speed)  {  speed = _serialspeed; return true; }
@@ -366,7 +442,7 @@ private:
 
 
 
-class DummyEffect : public SwitchEffect 
+class DummyEffect : public SwitchEffect
 {
 
 public:
@@ -374,8 +450,8 @@ public:
 
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override;
-	bool addJson(JsonObject& settings) override;
-	bool args(JsonObject& root) override;
+	bool addEffectJson(JsonObject& settings) override;
+	bool parseJsonEffect(JsonObject& root) override;
 
 private:
 	Palette _palette;
@@ -383,18 +459,29 @@ private:
 };
 
 
-class CascadeEffect : public SwitchEffect, public Color_property, public Brightness_property
+class CascadeEffect : public SwitchEffect, public Color_property, public Brightness_property, public Palette_property
 {
 
 public:
-	CascadeEffect(EffectHandlerFunction Fn): SwitchEffect(Fn), Color_property(this), Brightness_property(this)  {
+	CascadeEffect(EffectHandlerFunction Fn): SwitchEffect(Fn), Color_property(this), Brightness_property(this),
+		Palette_property(this)
+	{};
 
-	}; 
+	// bool addEffectJson(JsonObject& settings) override
+	// {
+	// 	Serial.printf("[CascadeEffect::addJson] Called\n");
+	// 	Serial.println("[CascadeEffect::addJson] root");
+	// 	settings.prettyPrintTo(Serial);
+	// 	Serial.println();
+	// }
 
-	//  These functions just need to add and retrieve preset values from the json.
-//	bool load(JsonObject& root, const char *& ID) override;
-//	bool addJson(JsonObject& settings) override;
-//	bool args(JsonObject& root) override;
+//	bool parseJsonEffect(JsonObject& root) override;
+
+	// bool testFn()
+	// {
+	// 	_color = RgbColor(0, 0, 0);
+	// 	_brightness = 255;
+	// }
 
 private:
 //	Palette _palette;

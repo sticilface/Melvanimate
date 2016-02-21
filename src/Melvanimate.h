@@ -1,3 +1,6 @@
+
+
+
 #pragma once
 
 #include "Arduino.h"
@@ -56,10 +59,10 @@ extern SimpleTimer timer;
  * need to tidy..
  *
  * // ToDo
- *	1. Palletes...  including sending and choosing paletes
- *	2. Saving currnet mode / effect  ...  big ask..
+ *	1.
+ *	2.
  *	3. Create Entoopy variable...  Randomness selection...
- *  4. REMOVE VARS... colours, brightness etc... should be managed by effect itself...
+ *  4.
  *
  *
  *
@@ -75,11 +78,8 @@ public:
 
 	void  grid(const uint16_t x, const uint16_t y);
 	void  setmatrix(const uint8_t i);
-
 	const uint8_t getmatrix() { return _matrixconfig; }
 	Melvtrix *  matrix() { return _matrix; } //  returns pointer to the GFX melvtrix
-
-//	Palette * palette() { return *_palette; }
 
 	const uint16_t    getX() {  return _grid_x ; }
 	const uint16_t    getY() {  return _grid_y; }
@@ -102,7 +102,7 @@ public:
 	int getTimer() { return _timer;  }
 
 	bool multiplematrix = false; //
-	int32_t timeoutvar;  //  parameters used by some effects...
+	int32_t timeoutvar;  //  parameter used by some effects...
 
 private:
 	void _init_LEDs();
