@@ -129,9 +129,14 @@ void EffectManager::Loop()
 
 	bool waiting = false;
 
+	// if (_currentHandle)  {
+	// 	waiting = _currentHandle->wait();
+	// }
+
 	if (_waitFn)  {
 		waiting = _waitFn();
 	}
+
 
 	//  This flips over to next effect asyncstyle....
 	if (!waiting && _NextInLine) {
@@ -898,29 +903,29 @@ bool MarqueeEffect::load(JsonObject& root, const char *& ID)
 	const char * effect = current["effect"];
 
 	if (effect) {
-		if ( strcmp( effect , name() ) != 0) { return false; }
+		if ( strcmp( effect , EffectHandler::name() ) != 0) { return false; }
 	}
 
 	//  load palette settings...
-	if (current.containsKey("Palette")) {
-		Serial.println("[MarqueeEffect::load] Palette key foung in settings");
-		// Parse the whole object to palette to retrieve settings
-		if (_palette.parseJson(current)) {
-			Serial.println("[MarqueeEffect::load] Palette Settings Applied!");
-		}
+	// if (current.containsKey("Palette")) {
+	// 	Serial.println("[MarqueeEffect::load] Palette key foung in settings");
+	// 	// Parse the whole object to palette to retrieve settings
+	// 	if (_palette.parseJson(current)) {
+	// 		Serial.println("[MarqueeEffect::load] Palette Settings Applied!");
+	// 	}
 
-	}
+	// }
 
 
-	_brightness = current["brightness"];
-	_speed = current["speed"];
+// 	_brightness = current["brightness"];
+// 	_speed = current["speed"];
 
-//	const char * palette_temp = current["palette"];
+// //	const char * palette_temp = current["palette"];
 
-	JsonObject& jscolor1 = current["color1"];
-	_color.R = jscolor1["R"];
-	_color.G = jscolor1["G"];
-	_color.B = jscolor1["B"];
+// 	JsonObject& jscolor1 = current["color1"];
+// 	_color.R = jscolor1["R"];
+// 	_color.G = jscolor1["G"];
+// 	_color.B = jscolor1["B"];
 
 	if (current.containsKey("rotation")) {
 		_rotation = current["rotation"];
@@ -946,15 +951,15 @@ bool MarqueeEffect::load(JsonObject& root, const char *& ID)
 
 bool MarqueeEffect::addEffectJson(JsonObject& settings)
 {
-	settings["effect"] = name();
-	settings["brightness"] = _brightness ;
-	settings["speed"] = _speed;
+	settings["effect"] = EffectHandler::name();
+	// settings["brightness"] = _brightness ;
+	// settings["speed"] = _speed;
 	//settings["palette"] = String(Palette::enumToString(_palette));
 
-	JsonObject& jscolor1 = settings.createNestedObject("color1");
-	jscolor1["R"] = _color.R;
-	jscolor1["G"] = _color.G;
-	jscolor1["B"] = _color.B;
+	// JsonObject& jscolor1 = settings.createNestedObject("color1");
+	// jscolor1["R"] = _color.R;
+	// jscolor1["G"] = _color.G;
+	// jscolor1["B"] = _color.B;
 
 	settings["rotation"] = _rotation;
 	settings["marqueetext"] = _marqueeText;
@@ -969,26 +974,26 @@ bool MarqueeEffect::parseJsonEffect(JsonObject& root)
 
 	// need to add color... but change the JS to send normal POST not JSON...
 
-	if (root.containsKey("color")) {
-		JsonObject& color = root["color"];
-		RgbColor input;
-		input.R = color["R"];
-		input.G = color["G"];
-		input.B = color["B"];
-		setColor(input);
-		found = true;
+	// if (root.containsKey("color")) {
+	// 	JsonObject& color = root["color"];
+	// 	RgbColor input;
+	// 	input.R = color["R"];
+	// 	input.G = color["G"];
+	// 	input.B = color["B"];
+	// 	setColor(input);
+	// 	found = true;
 
-	}
+	// }
 
-	if (root.containsKey("brightness")) {
-		setBrightness(root["brightness"]);
-		found = true;
-	}
+	// if (root.containsKey("brightness")) {
+	// 	setBrightness(root["brightness"]);
+	// 	found = true;
+	// }
 
-	if (root.containsKey("speed")) {
-		setSpeed(root["speed"]);
-		found = true;
-	}
+	// if (root.containsKey("speed")) {
+	// 	setSpeed(root["speed"]);
+	// 	found = true;
+	// }
 
 	if (root.containsKey("rotation")) {
 		uint8_t rotation = root["rotation"];
@@ -1004,13 +1009,13 @@ bool MarqueeEffect::parseJsonEffect(JsonObject& root)
 		found = true;
 	}
 
-	if (root.containsKey("Palette")) {
-		Serial.println("[MarqueeEffect::args] palette parsed to Effect function");
-		if (_palette.parseJson(root)) {
-			Refresh();
-			found = true;
-		}
-	}
+	// if (root.containsKey("Palette")) {
+	// 	Serial.println("[MarqueeEffect::args] palette parsed to Effect function");
+	// 	if (_palette.parseJson(root)) {
+	// 		Refresh();
+	// 		found = true;
+	// 	}
+	// }
 
 
 

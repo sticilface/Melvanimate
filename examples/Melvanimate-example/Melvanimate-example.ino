@@ -54,6 +54,52 @@ ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometru
 
 
 
+class testclass : public EffectHandler, public Color_property, public Brightness_property, public Palette_property
+{
+
+public:
+  testclass(): Color_property(this), Brightness_property(this), Palette_property(this) {};
+
+
+  bool Run() override {
+    if ( millis() - _timer > 1000) {
+      Serial.printf("[testclass::Run] bri = %u, col = (%u,%u,%u)\n", _brightness, _color.R, _color.G, _color.B); 
+      _timer = millis(); 
+    }
+  };
+  bool Start() override {
+    Serial.println("[testclass::Start]");
+  };
+  bool Stop() override {
+        Serial.println("[testclass::Stop]");
+  };
+  void Refresh() override {
+        Serial.println("[testclass::Refresh]");
+  }; 
+
+  // bool addEffectJson(JsonObject& settings) override
+  // {
+  //  Serial.printf("[CascadeEffect::addJson] Called\n");
+  //  Serial.println("[CascadeEffect::addJson] root");
+  //  settings.prettyPrintTo(Serial);
+  //  Serial.println();
+  // }
+
+//  bool parseJsonEffect(JsonObject& root) override;
+
+  // bool testFn()
+  // {
+  //  _color = RgbColor(0, 0, 0);
+  //  _brightness = 255;
+  // }
+
+private:
+  uint32_t _timer = 0; 
+};
+  
+
+
+
 struct XY_t {
   int x;
   int y;
@@ -220,7 +266,7 @@ void setup()
 
 // experimental and in testing
 
-  // lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
+   lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
@@ -433,7 +479,7 @@ bool check_duplicate_req()
 
   if (memcmp(last_request, this_request, 16) == 0) {
     match = true;
-    //Serial.println("Request ignored: duplicate");
+    Serial.println("Request ignored: duplicate");
   }
 
   memcpy(last_request, this_request, 16);
@@ -539,10 +585,6 @@ void handle_data()
 
   if (HTTP.hasArg("palette-random")) {
     palettenode["randmode"] = (uint8_t)Palette::randommodeStringtoEnum(HTTP.arg("palette-random").c_str()); 
-//    const char * temp = HTTP.arg("palette-random").c_str(); 
-//    palettenode["randmodeString"] = jsonBuffer.strdup(temp); 
-//    Serial.printf("[handle_data]randmodeString = %s/n", temp);
-
   }
 
   if (HTTP.hasArg("palette-spread")) {

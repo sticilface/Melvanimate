@@ -19,7 +19,6 @@ Melvanimate::Melvanimate(): _pixels(TOTALPIXELS)
 {
 	_matrixconfig = ( NEO_MATRIX_TOP + NEO_MATRIX_LEFT +  NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE );
 	setWaitFn ( std::bind (&Melvanimate::returnWaiting, this)  );   //  this callback gives bool to Effectmanager... "am i waiting..."
-	//_palette = new Palette;
 }
 
 
@@ -133,6 +132,7 @@ bool Melvanimate::returnWaiting()
 			return false;
 		}
 	}
+	
 	// saftey, in case of faulty effect
 	if (millis() - _waiting_timeout > EFFECT_WAIT_TIMEOUT) {
 		_waiting = false;

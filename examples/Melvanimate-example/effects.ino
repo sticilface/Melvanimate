@@ -39,8 +39,8 @@ void SnakesFn(SwitchEffect::effectState state)
 *                 Timing Test
 *
 *------------------------------------------------*/
-/*
-void TimingFn(effectState& state)
+
+void TimingFn(effectState& state, EffectHandler* ptr)
 {
 
   switch (state) {
@@ -48,7 +48,7 @@ void TimingFn(effectState& state)
   case PRE_EFFECT: {
     Serial.println("PRE_EFFECT - START");
     tock = millis();
-    lights.setWaiting();
+    lights.setWaiting(true);
     timer.setTimeout(5000, []() {
       lights.setWaiting(false);
       Serial.println("PRE_EFFECT - END");
@@ -77,7 +77,7 @@ void TimingFn(effectState& state)
 
   case POST_EFFECT: {
     Serial.println("POST_EFFECT - START");
-    lights.setWaiting();
+    lights.setWaiting(true);
     timer.setTimeout(5000, []() {
       Serial.println("POST_EFFECT - END");
       lights.setWaiting(false);
@@ -87,7 +87,7 @@ void TimingFn(effectState& state)
   break;
   }
 }
-*/
+
 
 void DummyFn(effectState& state, EffectHandler* ptr)
 {
@@ -600,7 +600,7 @@ void MarqueeFn(effectState state, EffectHandler* ptr)
 
   MarqueeEffect* effect = static_cast<MarqueeEffect*> (ptr);
 
-  Palette palette = *effect->getPalette(); 
+  Palette palette = effect->_palette; 
 
   if (effect) {
 
@@ -609,6 +609,8 @@ void MarqueeFn(effectState state, EffectHandler* ptr)
     case PRE_EFFECT: {
       Serial.println("[MarqueeFn] PRE_EFFECT");
       strip->ClearTo(0);
+      lights.matrix()->setRotation(effect->getRotation()); 
+
       //lights.palette().mode(pal);
       //lights.palette().total(255);
 
@@ -619,13 +621,14 @@ void MarqueeFn(effectState state, EffectHandler* ptr)
     break;
     case RUN_EFFECT: {
 
+      
 
-      uint8_t speed = effect->getSpeed();
+      uint8_t speed = effect->_speed;
       const char * text = effect->getText();
 
-      palette.input( effect->getColor() );
+      palette.input( effect->_color );
 
-      RgbColor dimmedcolor = lights.dim( palette.next() , effect->getBrightness());
+      RgbColor dimmedcolor = lights.dim( palette.next() , effect->_brightness);
 
       lights.SetTimeout( speed * 10);
 
@@ -643,6 +646,7 @@ void MarqueeFn(effectState state, EffectHandler* ptr)
     case EFFECT_REFRESH: {
       Serial.println("Refresh called");
       lights.timeoutvar = lights.getX();
+      lights.matrix()->setRotation(effect->getRotation()); 
       strip->ClearTo(0);
       break;
     }
@@ -1283,4 +1287,5 @@ void displaytext(const char * text, uint16_t timeout, RgbColor color)
 //   }
 
 // }
+
 

@@ -1,36 +1,13 @@
 // test class effects....
 
+// Color_property gives acces to RgbColor _color
+// Brightness_property gives acces to uint8_t _brightness
+// Palette_property gives access to   Palette _palette;
 
+// you can then use directly in your effect, or in your callback.... 
 #pragma once
 
 
+//  add properties that you want to access...
 
-class testclass : public EffectHandler, public Color_property, public Brightness_property, public Palette_property
-{
-
-public:
-  testclass(): Color_property(this), Brightness_property(this), Palette_property(this) {};
-
-
-  bool Run() override {};
-  bool Start() override {};
-  bool Stop() override {};
-  void Refresh() override {}; 
-
-  // bool addEffectJson(JsonObject& settings) override
-  // {
-  //  Serial.printf("[CascadeEffect::addJson] Called\n");
-  //  Serial.println("[CascadeEffect::addJson] root");
-  //  settings.prettyPrintTo(Serial);
-  //  Serial.println();
-  // }
-
-//  bool parseJsonEffect(JsonObject& root) override;
-
-  // bool testFn()
-  // {
-  //  _color = RgbColor(0, 0, 0);
-  //  _brightness = 255;
-  // }
-};
 

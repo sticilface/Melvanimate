@@ -132,15 +132,30 @@ public:
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
 	void name (const char * name) { _name = name; }
 	const char * name() {return _name; };
+
+//  New waits handled in handler... 
+	//   NOT in use.. as it makes it hard for isAnimating to be used.  Callback is defo better.... it is not possible to 
+	//    know in the effect when the effect is about to finish.  Doing it this way makes it compatible with things like FadeTo... 
+	//		Alternatively i just make the effects handler dependent on neopixelbus which is currently is not. 
+
+	// void wait(bool wait) { _wait = wait; }
+	// bool wait() { return _wait; }
+	// void autoWait() {
+	// 	_wait = true;
+	// 	_autowait = true; 
+	// }
+
+
 private:
 	EffectHandler* _next = nullptr;
 	PropertyHandler * _propertyPtr = nullptr;
 	const char * _name;
 
 
-	bool _wait = false; // not implemented yet... might be a much simpler way of doing it.
+	// bool _wait = false; 
+	// bool _autowait = false; 
 protected:
-	uint8_t _preset = 255;
+	uint8_t _preset = 255;  // no current preset 
 
 
 };
@@ -265,6 +280,38 @@ private:
 	const char * _name  = "palette";
 };
 
+
+class Speed_property : public PropertyHandler
+{
+
+public:
+	Speed_property(EffectHandler* ptr)
+	{
+		if (ptr) {
+			ptr->installProperty(this);
+		}
+	}
+	const char * name() { return _name; }
+	bool addJsonProperty(JsonObject & root) override
+	{
+		root[_name] = _speed;
+		return true;
+	}
+	bool parseJsonProperty(JsonObject & root) override
+	{
+		if (root.containsKey(_name)) {
+			_speed = root[_name];
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	uint32_t _speed;
+private:
+	const char * _name = "speed";
+};
+
 // typedef std::function<void(void)> EffectHandlerFunction;
 
 // class Effect : public EffectHandler
@@ -372,11 +419,11 @@ private:
 };
 
 
-class MarqueeEffect : public SwitchEffect
+class MarqueeEffect : public SwitchEffect, public Color_property, public Brightness_property, public Palette_property, public Speed_property
 {
 
 public:
-	MarqueeEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _brightness(255), _speed(5), _rotation(0)
+	MarqueeEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _rotation(0), Color_property(this), Brightness_property(this), Palette_property(this), Speed_property(this)
 	{
 		_color = RgbColor(0, 0, 0);
 		_marqueeText = strdup("MELVANIMATE");
@@ -389,15 +436,16 @@ public:
 
 	//  These functions just need to add and retrieve preset values from the json.
 	bool load(JsonObject& root, const char *& ID) override ;
+
 	bool addEffectJson(JsonObject& settings) override;
 	bool parseJsonEffect(JsonObject& root) override;
 
 	//  Specific Variables
-	void setBrightness(uint8_t bri)   {   _brightness = bri;  }
-	uint8_t getBrightness()  {    return _brightness;  }
+//	void setBrightness(uint8_t bri)   {   _brightness = bri;  }
+//	uint8_t getBrightness()  {    return _brightness;  }
 
-	void setColor(RgbColor color)   { _color = color;  }
-	RgbColor getColor()  {  return  _color;}
+//	void setColor(RgbColor color)   { _color = color;  }
+//	RgbColor getColor()  {  return  _color;}
 
 	void setSpeed(uint8_t speed)   {   _speed = speed; }
 	uint8_t getSpeed()  {   return _speed;  }
@@ -410,15 +458,15 @@ public:
 
 	//void setPalette(palette_type palette)   {   _palette = palette;  }
 	Palette * getPalette()  {   return &_palette;  }
+	//uint32_t _speed;
 
 private:
 	char * _marqueeText;
-	uint32_t _speed;
-	uint8_t _brightness;
+	//uint8_t _brightness;
 	//palette_type _palette;
 	uint8_t _rotation;
-	RgbColor _color;
-	Palette _palette;
+//	RgbColor _color;
+	//Palette _palette;
 };
 
 class AdalightEffect : public SwitchEffect
