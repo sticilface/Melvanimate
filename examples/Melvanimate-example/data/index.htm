@@ -125,7 +125,7 @@
 
 <div id="effectoptions">
   
-                <div class="ui-field-contain complex ObjectManagerexample BobblySquares Marquee Dummy">
+                <div class="ui-field-contain Palette">
                     <label for="select-palettes">Palette:</label>
                     <select name="palette" id="select-palettes" class='mysubmitthis'>
                         <option value="off" selected="selected">Off</option>
@@ -140,36 +140,35 @@
                     </select>
                 </div>
 
-                <div class="ui-field-contain form-group SimpleColor complex Marquee Dummy">
+                <div class="ui-field-contain form-group color1">
                     <label for="color1">Color One</label>
                     <input type="text" name="color1" id="color1" class="color no-alpha" data-control="hue" display="none" value="">
                 </div>
 
-                <div class="ui-field-contain form-group color2 complex Dummy">
+                <div class="ui-field-contain form-group color2">
                     <label for="color2">Color Two</label>
                     <input type="text" name="color2" id="color2" class="color no-alpha" display="none" data-control="hue" value="">
                 </div>
-
-                <div class="ui-field-contain form-group SimpleColor Marquee RainbowCycle complex Rainbow ObjectManagerexample BobblySquares">
+                <div class="ui-field-contain form-group brightness">
                     <label for="brightness">Brightness:</label>
                     <input class="myslider" type="range" name="brightness" id="brightness" min="0" max="255" step="1" value="0">
                 </div>
 
-                <div class="ui-field-contain form-group Marquee RainbowCycle complex Rainbow ObjectManagerexample BobblySquares">
+                <div class="ui-field-contain form-group speed">
                     <label for="speed">Speed:</label>
                     <input class="myslider" type="range" name="speed" id="speed" min="0" max="255" step="1" value="0">
                 </div>
-                <div class="ui-field-contain form-group RainbowCycle  ObjectManagerexample ">
+                <div class="ui-field-contain form-group randomness ">
                     <label for="randomness">Randomness:</label>
                     <input class="myslider" type="range" name="randomness" id="randomness" min="0" max="8" step="1" value="0">
                 </div>
 
-                <div class="ui-field-contain mysubmittext Marquee">
+                <div class="ui-field-contain mysubmittext marquee">
                     <label for="input_marqueetext">Text:</label>
                     <input type="text" name="marqueetext" id="input_marqueetext" value="">
                 </div>
 
-                <div class="ui-field-contain Marquee RainbowCycle Rainbow">
+                <div class="ui-field-contain rotation">
                     <label for="input-rotation">Rotation:</label>
                     <select name="rotation" id="input-rotation" class="mysubmitthis">
                         <option value="0" selected="selected">0</option>
@@ -179,7 +178,7 @@
                     </select>
                 </div>
 
-                <div class="ui-field-contain Adalight">
+                <div class="ui-field-contain serialspeed">
                     <label for="adalight-serialspeed">Serial Speed:</label>
                     <select name="serialspeed" id="adalight-serialspeed" class="mysubmitthis">
                         <option value="115200" selected="selected">115200</option>
@@ -467,6 +466,7 @@
     <script>
         var currentmode;
         var globaldata = {};
+        var settings = {}; 
 
 
         var plot1;
@@ -601,23 +601,49 @@
                 $('#modeslist').change(function() {
 
                     console.log("mode change");
+                    //var mode = $(this).val();
 
-                    var mode = $(this).val();
+                    // $('#effectoptions').children('div').each(function(index) {
+                    //     $(this).hide();
+                    // });
 
-                    $('#effectoptions').children('div').each(function(index) {
-                        $(this).hide();
-                    });
-
-                    $('#effectoptions').children('div').each(function(index) {
-                        if ($(this).hasClass(mode)) $(this).show();
-                    });
+                    // $('#effectoptions').children('div').each(function(index) {
+                    //     //if ($(this).hasClass(mode)) $(this).show();
+                    //     $.each(settings, function(index, element) {
+                    //       if ($(this).hasClass(element)) $(this).show();
+                    //     });
+                        
+                    // });
+                    
+                    
+                    // if (settings.hasOwnProperty('brightness')) {
+                    //   console.log("brightness present in global settings"); 
+                    //   $('#brightness').parent().show(); 
+                    //   console.log("Parent ID = " + $('#brightness').parent().)
+                      
+                    // }
 
                     $("#status").empty().append("Waiting...").css("color", "blue");;
                     
                     $.post("data.esp", $(this).serialize(), function() {
                         //GetData();
                     }).success(function(e) {
-                      processJSON(e);
+                      
+                        processJSON(e);
+                        
+                        //console.log("Settings var = ");
+                        //console.log(settings);
+                    
+                        // $('#effectoptions').children('div').each(function(index) {
+                        // //if ($(this).hasClass(mode)) $(this).show();
+                        // current = $(this); 
+                        // $.each(settings, function(key, value) {
+                        //   //console.log("[" + key + "] " + value); 
+                        //   if (current.hasClass(key)) current.show();
+                        // });
+                        
+                        // });
+                                          
                         $("#status").empty().append("Success").css("color", "green");;
                     })
                     .error(function() {
@@ -957,6 +983,12 @@
     
     function processJSON(result) {
       
+                      // trying to get the json for settings in before
+                      if (result.hasOwnProperty('settings')) {
+                          settings = result.settings; 
+                          console.log("Settings Allocated");
+                      }
+      
                   if (!pagevar) { pagevar = $.mobile.activePage.attr('id'); } 
                 
                     console.log("RESULT:")
@@ -1016,8 +1048,23 @@
                         
                         if (result.hasOwnProperty('settings')) {
                           
-                          settings = result.settings; 
+                        $('#effectoptions').children('div').each(function(index) {
+                          $(this).hide();
+                        });
+                    
+
+                        $('#effectoptions').children('div').each(function(index) {
+                        //if ($(this).hasClass(mode)) $(this).show();
+                        currentdiv = $(this); 
+                        $.each(result.settings, function(key, value) {
+                          //console.log("[" + key + "] " + value); 
+                          if (currentdiv.hasClass(key)) { 
+                            currentdiv.show();
+                            console.log("SHOW: " + key); 
+                          }; 
+                        });
                         
+                        });
                         
                         if (settings.hasOwnProperty('brightness')) {
                             $("#brightness").val(settings.brightness).slider("refresh");
@@ -1055,13 +1102,13 @@
                         }
                         
 
-                        $('#effectoptions').children('div').each(function(index) {
-                            $(this).hide();
-                        });
+                        // $('#effectoptions').children('div').each(function(index) {
+                        //     $(this).hide();
+                        // });
 
-                        $('#effectoptions').children('div').each(function(index) {
-                            if ($(this).hasClass(settings.effect)) $(this).show();
-                        });
+                        // $('#effectoptions').children('div').each(function(index) {
+                        //     if ($(this).hasClass(settings.effect)) $(this).show();
+                        // });
                         
                       }
                       
