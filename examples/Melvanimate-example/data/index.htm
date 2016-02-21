@@ -508,6 +508,8 @@
 
         function RUNDOCUMENT() {
 
+      $(document).on( "pagechange", function( event ) { GetData($.mobile.activePage.attr('id'));  } ); 
+
 
             $(document).on("pageshow", "#layout", function() {
 
