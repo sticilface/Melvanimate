@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>NODEMCU-new</title>
+    <title>SQUARE</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--
@@ -508,8 +508,6 @@
 
         function RUNDOCUMENT() {
 
-      $(document).on( "pagechange", function( event ) { GetData($.mobile.activePage.attr('id'));  } ); 
-
 
             $(document).on("pageshow", "#layout", function() {
 
@@ -657,7 +655,7 @@
 
             });
 
-            $(document).on('click', '#myheader', function() {
+            $(document).on('touchstart click', '#myheader', function() {
                 GetData($.mobile.activePage.attr('id'));
             });
 
