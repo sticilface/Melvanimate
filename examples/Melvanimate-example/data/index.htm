@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>SQUARE</title>
+    <title>NODEMCU-new</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--
@@ -163,7 +163,7 @@
                     <input class="myslider" type="range" name="randomness" id="randomness" min="0" max="8" step="1" value="0">
                 </div>
 
-                <div class="ui-field-contain mysubmittext marquee">
+                <div class="ui-field-contain mysubmittext marqueetext">
                     <label for="input_marqueetext">Text:</label>
                     <input type="text" name="marqueetext" id="input_marqueetext" value="">
                 </div>
@@ -508,6 +508,8 @@
 
         function RUNDOCUMENT() {
 
+      $(document).on( "pagechange", function( event ) { GetData($.mobile.activePage.attr('id'));  } ); 
+
 
             $(document).on("pageshow", "#layout", function() {
 
@@ -809,33 +811,33 @@
 
                             // ... like a close callback
                             //var nameof = $(this).attr("name"); 
-                            var $form = $(this).closest('input');
+                            //var $form = $(this).closest('input');
 
-                            console.log($form.attr('name'));
+                            //console.log($form.attr('name'));
                             var colors = this.color.colors,
                                 rgb = colors.RND.rgb;
-                            console.log(rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + colors.alpha);
+                            //console.log(rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + colors.alpha);
 
                             var $form = $elm.closest('form');
                             var inputName = $elm.attr('name');
-                            var inputValue = $elm.attr('value');
+                            //var inputValue = $elm.attr('value');
 
-                            var data = {
-                                color: {
-                                    name: inputName,
-                                    R: rgb.r,
-                                    G: rgb.g,
-                                    B: rgb.b,
-                                }
-                            };
-                            console.log(JSON.stringify(data));
+                            // var data = {
+                            //     color: {
+                            //         name: inputName,
+                            //         R: rgb.r,
+                            //         G: rgb.g,
+                            //         B: rgb.b,
+                            //     }
+                            // };
+                            // console.log(JSON.stringify(data));
+                            
                             $("#status").empty().append("Waiting...").css("color", "blue");;
                             
-                            $.post("data.esp", inputName + "=" + rgb.r + "," + rgb.g + "," + rgb.b, 
-                           // $.post("data.esp", "json=" + JSON.stringify(data),
-                                function(data) {
-                                    console.log(data);
-                                }
+                            $.post("data.esp", inputName + "=" + rgb.r + "," + rgb.g + "," + rgb.b 
+                                // function(data) {
+                                //     console.log(data);
+                                // }
                             ).success(function(e) {
                             processJSON(e); 
                             $("#status").empty().append("Success").css("color", "green");;
@@ -983,6 +985,9 @@
     
     function processJSON(result) {
       
+      console.log("              DUMP         ");
+      console.log(result);
+      console.log("              DUMP END"); 
                       // trying to get the json for settings in before
                       if (result.hasOwnProperty('settings')) {
                           settings = result.settings; 
