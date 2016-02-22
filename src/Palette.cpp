@@ -284,40 +284,74 @@ bool Palette::addJson(JsonObject& root)
 bool Palette::parseJson(JsonObject& root)
 {
 	Serial.println("[Palette::parseJson] Func HIT");
+	bool changed = false;
 
 	if (!root.containsKey("Palette")) { return false; }
 
 	JsonObject& palette = root["Palette"];
 
 	if (palette.containsKey("mode")) {
-		_mode = (palette_type)palette["mode"].as<long>();
-		Serial.printf("[Palette::parseJson] mode = %u\n", palette["mode"].as<long>() );
+		palette_type mode = (palette_type)palette["mode"].as<long>();
 
+		if (_mode != mode ) {
+
+			_mode = mode;
+			changed = true;
+			Serial.printf("[Palette::parseJson] mode = %u\n", palette["mode"].as<long>() );
+		}
 	}
 	if (palette.containsKey("total")) {
-		_total = palette["total"];
+		if (_total != palette["total"]) {
+			_total = palette["total"];
+			changed = true;
+		}
+
 	}
 	if (palette.containsKey("available")) {
-		_available = palette["available"];
+		if (_available != palette["available"]) {
+			_available = palette["available"];
+			changed = true;
+		}
+
 	}
 	if (palette.containsKey("randmode")) {
 		random_mode mode = (random_mode)palette["randmode"].as<long>();
-		if (mode) {
+		if (mode && mode != randommode()) {
 			randommode(mode);
+			changed = true;
 		}
 	}
 	if (palette.containsKey("inputcolor")) {
-		_input.R = palette["inputcolor"][0];
-		_input.G = palette["inputcolor"][1];
-		_input.B = palette["inputcolor"][2];
+
+		uint8_t R = palette["inputcolor"][0];
+		uint8_t G = palette["inputcolor"][1];
+		uint8_t B = palette["inputcolor"][2];
+
+		if (_input.R != R) {
+			_input.R = R;
+			changed = true;
+		}
+		if (_input.G != G) {
+			_input.G = G;
+			changed = true;
+		}
+		if (_input.B != B) {
+			_input.B = B;
+			changed = true;
+		}
 	}
 	if (palette.containsKey("range")) {
-		_range = palette["range"];
+		if (_range != palette["range"]) {
+			_range = palette["range"];
+			changed = true;
+		}
 	}
 	if (palette.containsKey("delay")) {
-		_delay = palette["delay"];
+		if (_delay != palette["delay"]) {
+			_delay = palette["delay"];
+		}
 	}
 
-	return true;
+	return changed;
 
 }

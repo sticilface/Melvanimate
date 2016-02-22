@@ -204,7 +204,7 @@ public:
 
 	bool parseJsonProperty(JsonObject & root) override
 	{
-
+		bool changed = false;
 		if (root.containsKey(_name)) {
 
 
@@ -213,20 +213,29 @@ public:
 				EffectManager::convertcolor(root, _name);
 			}
 
-			_color.R = root[_name]["R"].as<long>();
-			_color.G = root[_name]["G"].as<long>();
-			_color.B = root[_name]["B"].as<long>();
+			uint8_t R = root[_name]["R"].as<long>();
+			uint8_t G = root[_name]["G"].as<long>();
+			uint8_t B = root[_name]["B"].as<long>();
+
+			if (_color.R != R) {
+				_color.R = R;
+				changed = true;
+			}
+			if (_color.G != G) {
+				_color.G = G;
+				changed = true;
+			}
+			if (_color.B != B) {
+				_color.B = B;
+				changed = true;
+			}
 
 			Serial.printf("[Color_property::parseJsonProperty] color1 (%u,%u,%u)\n", _color.R, _color.G, _color.B);
 
-			return true;
-
 		}
 
-		return false;
+		return changed;
 	}
-
-
 
 	RgbColor _color;
 private:
@@ -252,11 +261,12 @@ public:
 	bool parseJsonProperty(JsonObject & root) override
 	{
 		if (root.containsKey(_name)) {
-			_brightness = root[_name];
-			return true;
-		} else {
-			return false;
+			if (_brightness != root[_name] ) {
+				_brightness = root[_name];
+				return true;
+			}
 		}
+		return false;
 	}
 
 	uint8_t _brightness;
@@ -313,11 +323,12 @@ public:
 	bool parseJsonProperty(JsonObject & root) override
 	{
 		if (root.containsKey(_name)) {
-			_speed = root[_name];
-			return true;
-		} else {
-			return false;
+			if (_speed != root[_name] ) {
+				_speed = root[_name];
+				return true;
+			}
 		}
+		return false;
 	}
 
 	uint32_t _speed;

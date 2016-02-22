@@ -937,9 +937,9 @@ void send_data(String page)
 
   }
 
-  Serial.println("JSON REPLY"); 
-  root.prettyPrintTo(Serial);
-  Serial.println(); 
+  // Serial.println("JSON REPLY"); 
+  // root.prettyPrintTo(Serial);
+  // Serial.println(); 
 
   ESPmanager::sendJsontoHTTP(root, HTTP);
 
