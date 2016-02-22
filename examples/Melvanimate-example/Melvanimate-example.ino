@@ -23,7 +23,7 @@
 
 #include <ArduinoJson.h>
 #include <NeoPixelBus.h>
-//#include <pubsubclient.h> //  to be implemented 
+//#include <pubsubclient.h> //  to be implemented
 #include <Adafruit_GFX.h>
 
 #include <ESPmanager.h>
@@ -33,9 +33,9 @@
 
 #include "class_effects.h"
 
-//  this is the native SDK json lib.  
+//  this is the native SDK json lib.
 //#include <json/json.h>
-  
+
 // #include <cont.h>
 // #include <stddef.h>
 // #include <ets_sys.h>
@@ -53,7 +53,7 @@ FSBrowser fsbrowser(HTTP);
 ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 
-
+/*
 class testclass : public EffectHandler, public Color_property, public Brightness_property, public Palette_property
 {
 
@@ -61,21 +61,25 @@ public:
   testclass(): Color_property(this), Brightness_property(this), Palette_property(this) {};
 
 
-  bool Run() override {
+  bool Run() override
+  {
     if ( millis() - _timer > 1000) {
-      Serial.printf("[testclass::Run] bri = %u, col = (%u,%u,%u)\n", _brightness, _color.R, _color.G, _color.B); 
-      _timer = millis(); 
+      Serial.printf("[testclass::Run] bri = %u, col = (%u,%u,%u)\n", _brightness, _color.R, _color.G, _color.B);
+      _timer = millis();
     }
   };
-  bool Start() override {
+  bool Start() override
+  {
     Serial.println("[testclass::Start]");
   };
-  bool Stop() override {
-        Serial.println("[testclass::Stop]");
+  bool Stop() override
+  {
+    Serial.println("[testclass::Stop]");
   };
-  void Refresh() override {
-        Serial.println("[testclass::Refresh]");
-  }; 
+  void Refresh() override
+  {
+    Serial.println("[testclass::Refresh]");
+  };
 
   // bool addEffectJson(JsonObject& settings) override
   // {
@@ -94,9 +98,9 @@ public:
   // }
 
 private:
-  uint32_t _timer = 0; 
+  uint32_t _timer = 0;
 };
-  
+*/
 
 
 
@@ -120,7 +124,7 @@ uint32_t save_flag = 0;
 bool modechange = false;
 
 
-// foreward dec for arudino 
+// foreward dec for arudino
 // void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdate);
 // void FadeTo(RgbColor color);
 // void FadeTo( uint16_t time, RgbColor color);
@@ -138,10 +142,10 @@ bool modechange = false;
 // void AdaLightFn(effectState state, EffectHandler* ptr);
 
 
-  // class SwitchEffect;
-  // class GeneralEffect;
-  // class AdalightEffect;
-  // class MarqueeEffect;
+// class SwitchEffect;
+// class GeneralEffect;
+// class AdalightEffect;
+// class MarqueeEffect;
 
 
 void setup()
@@ -180,7 +184,12 @@ void setup()
 
   HTTP.on("/command", HTTP_ANY, []() {
     if (HTTP.hasArg("save")) {
-      lights.newSave(HTTP.arg("save").toInt());
+      if (HTTP.hasArg("name")) {
+        lights.newSave(HTTP.arg("save").toInt(), HTTP.arg("name").c_str());
+      } else {
+        lights.newSave(HTTP.arg("save").toInt(), "No Name");
+
+      }
       Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
       HTTP.setContentLength(0);
       HTTP.send(200); // sends OK if were just receiving data...
@@ -244,20 +253,20 @@ void setup()
 
 
   lights.Add("Off", new SwitchEffect( offFn));                              // working
-  lights.Add("SimpleColor", new GeneralEffect(SimpleColorFn));              // working
+  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn));              // working
 
-  lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
+  // lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
 
-  lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
-  // lights.Add("DMX", new SwitchEffect(DMXfn));                              // need to test - requires custom libs included
-  lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
+  // lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
+  // // lights.Add("DMX", new SwitchEffect(DMXfn));                              // need to test - requires custom libs included
+  // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
 
-  lights.Add("Dummy", new DummyEffect(DummyFn)); 
-  lights.Add("PropertyTester", new CascadeEffect(CascadeEffectFn)); 
+  // lights.Add("Dummy", new DummyEffect(DummyFn));
+  // lights.Add("PropertyTester", new CascadeEffect(CascadeEffectFn));
 
 
 
-  lights.Add("test", new testclass); 
+ // lights.Add("test", new testclass);
 
 
   // lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
@@ -266,7 +275,7 @@ void setup()
 
 // experimental and in testing
 
-   lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
+ // lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
@@ -541,7 +550,7 @@ void handle_data()
 
 
   // puts all the args into json...
-  // might be better to send pallette by json instead.. 
+  // might be better to send pallette by json instead..
 
   DynamicJsonBuffer jsonBuffer;
   JsonObject & root = jsonBuffer.createObject();
@@ -562,43 +571,43 @@ void handle_data()
     //lights.palette().mode(HTTP.arg("palette").c_str());
     page = "palette"; //  this line might not be needed... palette details are now handled entirely by the effect for which they belong
 
-/*
-[ARG:0] palette = complementary
-[ARG:1] palette-random = timebased
-[ARG:2] palette-spread = 
-[ARG:3] palette-delay = 
+    /*
+    [ARG:0] palette = complementary
+    [ARG:1] palette-random = timebased
+    [ARG:2] palette-spread =
+    [ARG:3] palette-delay =
 
-  palette["mode"] = (uint8_t)_mode;
-  palette["total"] = _total;
-  palette["available"] = _available;
-  palette["randmode"] = (uint8_t)_random;
-  palette["range"] = _range;
-  palette["delay"] = _delay;
-*/
-
-
-  //  this is a bit of a bodge...  Capital P for object with all parameters... 
-  JsonObject & palettenode = root.createNestedObject("Palette");
-
-    palettenode["mode"] = (uint8_t)Palette::stringToEnum(HTTP.arg("palette").c_str()); 
+      palette["mode"] = (uint8_t)_mode;
+      palette["total"] = _total;
+      palette["available"] = _available;
+      palette["randmode"] = (uint8_t)_random;
+      palette["range"] = _range;
+      palette["delay"] = _delay;
+    */
 
 
-  if (HTTP.hasArg("palette-random")) {
-    palettenode["randmode"] = (uint8_t)Palette::randommodeStringtoEnum(HTTP.arg("palette-random").c_str()); 
-  }
+    //  this is a bit of a bodge...  Capital P for object with all parameters...
+    JsonObject & palettenode = root.createNestedObject("Palette");
 
-  if (HTTP.hasArg("palette-spread")) {
-    palettenode["range"] = HTTP.arg("palette-spread"); 
+    palettenode["mode"] = (uint8_t)Palette::stringToEnum(HTTP.arg("palette").c_str());
 
-  }
 
-  if (HTTP.hasArg("palette-delay")) {
-    palettenode["delay"] = HTTP.arg("palette-delay"); 
+    if (HTTP.hasArg("palette-random")) {
+      palettenode["randmode"] = (uint8_t)Palette::randommodeStringtoEnum(HTTP.arg("palette-random").c_str());
+    }
 
-  }
-  Serial.println("[handle_data] JSON dump");
-  root.prettyPrintTo(Serial); 
-  Serial.println(); 
+    if (HTTP.hasArg("palette-spread")) {
+      palettenode["range"] = HTTP.arg("palette-spread");
+
+    }
+
+    if (HTTP.hasArg("palette-delay")) {
+      palettenode["delay"] = HTTP.arg("palette-delay");
+
+    }
+    Serial.println("[handle_data] JSON dump");
+    root.prettyPrintTo(Serial);
+    Serial.println();
 
   }
 
@@ -809,7 +818,7 @@ void send_data(String page)
 
 
 
-// *  Not needed as palette is added within the add of a secific effect.. 
+// *  Not needed as palette is added within the add of a secific effect..
 
     // Palette * palette = lights.Current()->getPalette();
     // if (palette) {
@@ -891,7 +900,7 @@ void send_data(String page)
         palette page
   */
 
-        // Palette is now handled by each effect handler... WICKED
+  // Palette is now handled by each effect handler... WICKED
 
   // if (page == "palette" || page == "all") {
 
@@ -928,7 +937,9 @@ void send_data(String page)
 
   }
 
-//  root.prettyPrintTo(Serial);
+  Serial.println("JSON REPLY"); 
+  root.prettyPrintTo(Serial);
+  Serial.println(); 
 
   ESPmanager::sendJsontoHTTP(root, HTTP);
 

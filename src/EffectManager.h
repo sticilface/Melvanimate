@@ -30,9 +30,9 @@ public:
 	void SetTimeout(uint32_t time);
 	void SetTimeout(const char * name, uint32_t time);
 
-	bool Start();
-	bool Start(const char * name);
-	bool Start(const String name) { Start(name.c_str()); };
+	EffectHandler* Start();
+	EffectHandler* Start(const char * name);
+	EffectHandler* Start(const String name) { Start(name.c_str()); };
 	void Refresh() ;
 	bool Next() ;
 	bool Previous() {}; //  need to think about how to imlement this... store previous like next maybe...
@@ -56,9 +56,10 @@ public:
 	const char* getName(uint8_t i);
 	//const char* getName();
 
-	bool newSave(uint8_t ID);
+	bool newSave(uint8_t ID, const char * name, bool overwrite = false);
 	bool newLoad(uint8_t ID);
 	bool removePreset(uint8_t ID);
+	uint8_t nextFree(JsonObject & root);
 
 	// fetches info from SPIFFS valid presests for current effect
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
@@ -112,14 +113,14 @@ public:
 	bool parseJson(JsonObject & root);
 	virtual bool parseJsonEffect(JsonObject & root) { return false;} // use json so it can be used with MQTT etc...
 
-	// experimental
-	virtual bool load(JsonObject& root, const char *& ID) { return false ; };
+	// needs to NOT be virtual... call parsejson instead... but then call a virtual member..
+	bool load(JsonObject& root, const char *& ID) { return false ; };
 
 	bool addJson(JsonObject& settings); // called first, iterates through 'installed properties' then calls addEffectJson
 	virtual bool addEffectJson(JsonObject& settings) { return false; };
 
 	// save does NOT have to be overridden.  it calls addJson instead.
-	virtual bool save(JsonObject& root, const char *& ID);
+	virtual bool save(JsonObject& root, const char *& ID, const char * name);
 	virtual uint8_t getPreset() { return _preset; }
 
 //  Properties stuff
@@ -133,18 +134,19 @@ public:
 	void name (const char * name) { _name = name; }
 	const char * name() {return _name; };
 
-//  New waits handled in handler... 
-	//   NOT in use.. as it makes it hard for isAnimating to be used.  Callback is defo better.... it is not possible to 
-	//    know in the effect when the effect is about to finish.  Doing it this way makes it compatible with things like FadeTo... 
-	//		Alternatively i just make the effects handler dependent on neopixelbus which is currently is not. 
+//  New waits handled in handler...
+	//   NOT in use.. as it makes it hard for isAnimating to be used.  Callback is defo better.... it is not possible to
+	//    know in the effect when the effect is about to finish.  Doing it this way makes it compatible with things like FadeTo...
+	//		Alternatively i just make the effects handler dependent on neopixelbus which is currently is not.
 
 	// void wait(bool wait) { _wait = wait; }
 	// bool wait() { return _wait; }
 	// void autoWait() {
 	// 	_wait = true;
-	// 	_autowait = true; 
+	// 	_autowait = true;
 	// }
 
+	uint8_t _preset = 255;  // no current preset
 
 private:
 	EffectHandler* _next = nullptr;
@@ -152,10 +154,9 @@ private:
 	const char * _name;
 
 
-	// bool _wait = false; 
-	// bool _autowait = false; 
+	// bool _wait = false;
+	// bool _autowait = false;
 protected:
-	uint8_t _preset = 255;  // no current preset 
 
 
 };
@@ -199,21 +200,33 @@ public:
 		color["B"] = _color.B;
 		return true;
 	}
+
+
 	bool parseJsonProperty(JsonObject & root) override
 	{
 
 		if (root.containsKey(_name)) {
 
-			if (EffectManager::convertcolor(root, _name)) {
-				_color.R = root[_name]["R"].as<long>();
-				_color.G = root[_name]["G"].as<long>();
-				_color.B = root[_name]["B"].as<long>();
-				return true;
-			} else { return false; }
-		} else {
-			return false;
+
+			if (root[_name].is<const char*>() ) {
+				Serial.printf("[Color_property::parseJsonProperty] Color converted from String\n");
+				EffectManager::convertcolor(root, _name);
+			}
+
+			_color.R = root[_name]["R"].as<long>();
+			_color.G = root[_name]["G"].as<long>();
+			_color.B = root[_name]["B"].as<long>();
+
+			Serial.printf("[Color_property::parseJsonProperty] color1 (%u,%u,%u)\n", _color.R, _color.G, _color.B);
+
+			return true;
+
 		}
+
+		return false;
 	}
+
+
 
 	RgbColor _color;
 private:
@@ -394,30 +407,28 @@ private:
 								Attempt at SUB Template for settings...
 --------------------------------------------------------------------------*/
 
-class GeneralEffect : public SwitchEffect
+class SimpleEffect : public SwitchEffect, public Color_property, public Brightness_property
 {
 
 public:
-	GeneralEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _brightness(255), _color(0) {};
+	SimpleEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), Color_property(this), Brightness_property(this)  {};
 
 	//  These functions just need to add and retrieve preset values from the json.
-	bool load(JsonObject& root, const char *& ID) override;
-	bool addEffectJson(JsonObject& settings) override;
+//	bool load(JsonObject& root, const char *& ID) override;
+	//bool addEffectJson(JsonObject& settings) override;
 	//bool args(ESP8266WebServer& HTTP) override;
-	bool parseJsonEffect(JsonObject& root) override;
+	//bool parseJsonEffect(JsonObject& root) override;
 
-	void setBrightness(uint8_t bri)   {   _brightness = bri; Refresh(); }
-	uint8_t getBrightness()  { return _brightness; }
+	// void setBrightness(uint8_t bri)   {   _brightness = bri; Refresh(); }
+	// uint8_t getBrightness()  { return _brightness; }
 
-	void setColor(RgbColor color)   { _color = color; Refresh(); }
-	RgbColor getColor()  {  return _color;  }
+	// void setColor(RgbColor color)   { _color = color; Refresh(); }
+	// RgbColor getColor()  {  return _color;  }
 
-private:
-	uint8_t _brightness;
-	RgbColor _color;
 
 };
 
+/*
 
 class MarqueeEffect : public SwitchEffect, public Color_property, public Brightness_property, public Palette_property, public Speed_property
 {
@@ -425,7 +436,6 @@ class MarqueeEffect : public SwitchEffect, public Color_property, public Brightn
 public:
 	MarqueeEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _rotation(0), Color_property(this), Brightness_property(this), Palette_property(this), Speed_property(this)
 	{
-		_color = RgbColor(0, 0, 0);
 		_marqueeText = strdup("MELVANIMATE");
 	};
 	~MarqueeEffect()
@@ -447,8 +457,8 @@ public:
 //	void setColor(RgbColor color)   { _color = color;  }
 //	RgbColor getColor()  {  return  _color;}
 
-	void setSpeed(uint8_t speed)   {   _speed = speed; }
-	uint8_t getSpeed()  {   return _speed;  }
+//	void setSpeed(uint8_t speed)   {   _speed = speed; }
+//	uint8_t getSpeed()  {   return _speed;  }
 
 	void setRotation(uint8_t rotation)   {   _rotation = rotation;}
 	uint8_t getRotation()  {   return _rotation; }
@@ -537,5 +547,5 @@ private:
 };
 
 
-
+*/
 

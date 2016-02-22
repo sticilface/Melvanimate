@@ -112,10 +112,11 @@ void CascadeEffectFn(effectState& state, EffectHandler* ptr)
 *
 *------------------------------------------------*/
 // forward declaration
-
+/*
 
 void Adalight_function();
 void  Adalight_Flash();
+
 
 void AdaLightFn(effectState& state, EffectHandler* ptr)
 {
@@ -285,6 +286,7 @@ void Adalight_function ()      //  uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, c
 
 }
 
+*/
 
 /*-----------------------------------------------
 *
@@ -303,7 +305,7 @@ void UDPFn(effectState state, EffectHandler* ptr)
 
     lights.SetTimeout(0);
 
-    if (millis() > 60000) Adalight_Flash();
+//    if (millis() > 60000) Adalight_Flash();
     Udp.beginMulticast(WiFi.localIP(), multicast_ip_addr, UDPlightPort);
 
     break;
@@ -357,6 +359,7 @@ void UDPFn(effectState state, EffectHandler* ptr)
 *
 *------------------------------------------------*/
 
+
 void  DMXfn (effectState state, EffectHandler* ptr)
 {
 
@@ -379,7 +382,7 @@ void  DMXfn (effectState state, EffectHandler* ptr)
     lights.SetTimeout(0);
     e131 = new E131;
     Debugln("DMX Effect Started");
-    if (millis() > 30000) Adalight_Flash();
+//    if (millis() > 30000) Adalight_Flash();
 
     count = strip->PixelCount() * 3;
     bounds = ppu * 3;
@@ -517,7 +520,7 @@ void  DMXfn (effectState state, EffectHandler* ptr)
 
 void SimpleColorFn(effectState& state, EffectHandler* ptr)
 {
-  GeneralEffect* effect = static_cast<GeneralEffect*>(ptr);
+  SimpleEffect* effect = static_cast<SimpleEffect*>(ptr);
 
   if (effect) {
 
@@ -528,7 +531,7 @@ void SimpleColorFn(effectState& state, EffectHandler* ptr)
       lights.SetTimeout(10000);
       lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state...
       
-        FadeTo( lights.dim(effect->getColor(), effect->getBrightness()));
+        FadeTo( lights.dim(effect->_color, effect->_brightness));
       
     }
 
@@ -590,7 +593,7 @@ void offFn(effectState &state, EffectHandler* ptr)
 *                      Marquee
 *
 *------------------------------------------------*/
-
+/*
 void displaytext(const char * text, uint16_t timeout, RgbColor color);
 
 void MarqueeFn(effectState state, EffectHandler* ptr)
@@ -693,6 +696,7 @@ void displaytext(const char * text, uint16_t timeout, RgbColor color)
   }
 
 }
+*/
 
 /*-----------------------------------------------
 *
