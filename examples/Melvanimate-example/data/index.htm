@@ -839,7 +839,9 @@
                                 //     console.log(data);
                                 // }
                             ).success(function(e) {
-                            processJSON(e); 
+                              if (e) {
+                                processJSON(e); 
+                              }
                             $("#status").empty().append("Success").css("color", "green");;
                         })
                         .error(function() {
@@ -984,6 +986,8 @@
     }
     
     function processJSON(result) {
+      
+      if (!result) { return; } 
       
       console.log("              DUMP         ");
       console.log(result);
