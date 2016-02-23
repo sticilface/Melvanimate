@@ -578,12 +578,35 @@ bool EffectHandler::installProperty(PropertyHandler* ptr)
 			Serial.printf("[EffectHandler::installProperty] %s property %u: %s\n", name(), count, ptr->name());
 
 		}
-
-
-
-
 	}
 }
+
+// bool EffectHandler::installVariableProperty(PropertyHandlerVariable* ptr)
+// {
+// 	if (ptr) {
+
+// 		if (!_propertyVariablePtr) {
+// 			_propertyVariablePtr = ptr;
+// 			ptr->next(nullptr);
+// 			Serial.printf("[EffectHandler::installProperty] installed property 1: %s\n", ptr->name());
+// 		} else {
+
+// 			PropertyHandlerVariable* handler = nullptr;
+// 			PropertyHandlerVariable* lasthandler = nullptr;
+// 			uint8_t count = 1;
+// 			for (handler = _propertyVariablePtr; handler; handler = handler->next()) {
+// 				lasthandler = handler;
+// 				count++;
+// 			}
+
+// 			lasthandler->next(ptr);
+
+// 			Serial.printf("[EffectHandler::installVariableProperty] %s property %u: %s\n", name(), count, ptr->name());
+
+// 		}
+// 	}
+// }
+
 
 bool EffectHandler::addJson(JsonObject& settings)
 {
@@ -616,6 +639,7 @@ bool EffectHandler::parseJson(JsonObject & root)
 	}
 
 	if (parseJsonEffect(root)) { found = true; }
+
 	if (found) 
 	{
 		_preset = 255; 

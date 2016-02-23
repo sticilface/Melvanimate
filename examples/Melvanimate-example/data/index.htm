@@ -80,6 +80,7 @@
         </div>
         <div>
             <a href="#homepage" data-role="button" class="ui-btn">Home</a>
+            <a href="#savepage" data-role="button" class="ui-btn">Save</a>
             <a href="#presets" data-role="button" class="ui-btn">Presets</a>
             <a href="#palette" data-role="button" class="ui-btn">Palette</a>
             <a href="#timer" data-role="button" class="ui-btn">Timer</a>
@@ -195,12 +196,45 @@
 
         </div>
         <!-- content -->
-
-
-
     </div>
     <!-- homepage -->
 
+    <div data-role="page" data-close-btn="right" data-dialog="true" id="savepage">
+      
+        <div data-role="header">
+        <h1>Save</h1>
+        </div>
+        <div data-role="content">
+            <form id="save_presets_form">
+                    <div class="ui-field-contain ">
+                        <label for="select-saveasnew">Save:</label>
+                        <select name="saveasnew" id="select-saveasnew">
+                            <option value="new" selected="selected">New</option>
+                            <option value="overwrite">Overwrite Existing</option>
+                        </select>
+                    </div>
+                    
+                <div class="ui-field-contain" id="savepage_effects_list_div" style="display: none;">
+                    <label for="savepage_effects_list_select">Effect:</label>
+                    <select name="savepageeffect" id="savepage_effects_list_select" >
+
+                    </select>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="input_savename">Effect Name:</label>
+                    <input type="text" name="savename" id="input_savename" value="">
+                </div>
+
+                <a href="##" data-rel="back" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save</a>
+
+                </form>
+        </div>
+
+    </div>
+    
+    
+    
     <div data-role="page" id="presets">
 
         <div data-role="content">
@@ -345,8 +379,8 @@
                 </div>
 
                 <button id="apply_palette_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
-
             </form>
+            
         </div>
 
     </div>
@@ -659,15 +693,18 @@
 
             $(document).on('touchstart click', '#myheader', function() {
                 GetData($.mobile.activePage.attr('id'));
+                console.log("#myheader click"); 
             });
 
             // $(document).on("mobileinit", function() {
             //     GetData("all");
             // });
+            
 
+          
             $(document).on('click', '.mysubmit', function() {
                 $("#status").empty().append("Waiting...").css("color", "blue");;
-                $.post("data.esp", $(this.form).find('input,select').filter(':visible').serialize(), function(data) {
+                $.post("data.esp", $(this).closest("form").find('input,select').filter(':visible').serialize(), function(data) {
                         console.log("Data Sent");
                     }).success(function(e) {
                       processJSON(e);
@@ -863,6 +900,7 @@
                             '<div></div><div></div><div></div><div></div>' +
                             '<div></div><div></div><div></div><div class="cp-store">S</div>').
                         on('click', '.cp-memory div', function(e) {
+                          console.log("Colour picker click"); 
                             var $this = $(this);
 
                             if (this.className) {

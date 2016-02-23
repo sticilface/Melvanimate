@@ -10,6 +10,9 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 
+//#include "VariablePropertiesHandler.h"
+
+
 extern const char * PRESETS_FILE;
 /* ------------------------------------------------------------------------
 	Effect Mangager
@@ -18,6 +21,9 @@ extern const char * PRESETS_FILE;
 
 class EffectHandler;
 class PropertyHandler;
+
+#include "PropertyManager.h"
+
 
 class EffectManager
 {
@@ -128,6 +134,10 @@ public:
 	bool installProperty(PropertyHandler* ptr);
 	PropertyHandler * getPropertyPtr() { return _propertyPtr; }
 
+//  Template property stuff
+
+//	bool installVariableProperty(PropertyHandlerVariable * ptr);
+
 //  Core Very important...
 	EffectHandler* next() { return _next; } //  ASK what is next
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
@@ -151,6 +161,7 @@ public:
 private:
 	EffectHandler* _next = nullptr;
 	PropertyHandler * _propertyPtr = nullptr;
+//	PropertyHandlerVariable * _propertyVariablePtr = nullptr;
 	const char * _name;
 
 
@@ -179,6 +190,22 @@ private:
 	PropertyHandler* _next = nullptr;
 };
 
+
+
+
+
+
+
+
+
+
+
+/*
+
+-----------------------------------------------------------------------
+
+
+*/
 
 class Color_property : public PropertyHandler
 {
@@ -336,6 +363,11 @@ private:
 	const char * _name = "speed";
 };
 
+
+
+
+
+
 // typedef std::function<void(void)> EffectHandlerFunction;
 
 // class Effect : public EffectHandler
@@ -422,7 +454,7 @@ class SimpleEffect : public SwitchEffect, public Color_property, public Brightne
 {
 
 public:
-	SimpleEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), Color_property(this), Brightness_property(this)  {};
+	SimpleEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), Color_property(this), Brightness_property(this) {};
 
 	//  These functions just need to add and retrieve preset values from the json.
 //	bool load(JsonObject& root, const char *& ID) override;
@@ -559,4 +591,89 @@ private:
 
 
 */
+
+//virtual bool parseJsonEffect(JsonObject & root) { return false;} // use json so it can be used with MQTT etc...
+//virtual bool addEffectJson(JsonObject& settings) { return false; };
+
+//	bool parseJsonEffectM(JsonObject & root) ;  // use json so it can be used with MQTT etc...
+//	bool addEffectJsonM(JsonObject& root) ; 
+
+
+// class Effect2: public EffectHandler
+// {
+// public:
+// 	Effect2()
+// 	{
+// 		_manager.addVar(new Variable<int>("int"));
+// 		_manager.addVar(new Variable<RgbColor>("color1"));
+// 		_manager.addVar(new Variable<RgbColor>("color2"));
+// 		_manager.addVar(new Variable<RgbColor>("color3"));
+// 		_manager.addVar(new Variable<RgbColor>("color4"));
+// 		_manager.addVar(new Variable<RgbColor>("color5"));
+// 	}
+
+// 	//  required as inherited functions do not override 
+// 	bool addEffectJson(JsonObject & root) override  { return _manager.addEffectJsonM(root); }
+// 	bool parseJsonEffect(JsonObject & root) override { return _manager.parseJsonEffectM(root); }
+
+// 	void run()
+// 	{
+// 		int a = _manager.getVar<int>("int");
+// 		RgbColor b = _manager.getVar<RgbColor>("color1");
+// 	}
+// private:
+// 	PropertyManager _manager; 
+// };
+
+class Effect2: public PropertyManager, public EffectHandler
+{
+public:
+	Effect2()
+	{
+		uint32_t heapv = ESP.getFreeHeap(); 
+		addVar(new Variable<int>("int"));
+		addVar(new Variable<uint8_t>("brightness"));
+		addVar(new Variable<uint8_t>("speed"));
+		addVar(new Variable<RgbColor>("color1"));
+		addVar(new Variable<RgbColor>("color2"));
+		addVar(new Variable<RgbColor>("color3"));
+		addVar(new Variable<RgbColor>("color4"));
+		addVar(new Variable<RgbColor>("color5"));
+		heapv = heapv - ESP.getFreeHeap(); 
+		Serial.printf("**[Effect2:init] heap used %u", heapv);
+
+	}
+
+	//  required as inherited functions do not override 
+	bool addEffectJson(JsonObject & root) override  { return PropertyManager::addEffectJson(root); }
+	bool parseJsonEffect(JsonObject & root) override { return PropertyManager::parseJsonEffect(root); }
+
+  bool Run() override
+  {
+    if ( millis() - _timer > 10000) {
+      RgbColor color = getVar<RgbColor>("color1");
+      uint8_t brightness = getVar<uint8_t>("brightness");
+      uint8_t speed = getVar<uint8_t>("speed");
+
+      Serial.printf("[testclass::Run] bri = %u, col = (%u,%u,%u)\n", brightness, color.R, color.G, color.B);
+
+      _timer = millis();
+    }
+  };
+  bool Start() override
+  {
+    Serial.println("[Effect2::Start]");
+  };
+  bool Stop() override
+  {
+    Serial.println("[Effect2::Stop]");
+  };
+  void Refresh() override
+  {
+    Serial.println("[Effect2::Refresh]");
+  };
+private:
+	uint32_t _timer = 0; 
+};
+
 

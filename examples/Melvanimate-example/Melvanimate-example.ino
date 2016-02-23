@@ -41,7 +41,6 @@
 // #include <ets_sys.h>
 
 
-
 ESP8266WebServer HTTP(80);
 FSBrowser fsbrowser(HTTP);
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
@@ -53,7 +52,7 @@ FSBrowser fsbrowser(HTTP);
 ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 
-/*
+
 class testclass : public EffectHandler, public Color_property, public Brightness_property, public Palette_property
 {
 
@@ -100,7 +99,7 @@ public:
 private:
   uint32_t _timer = 0;
 };
-*/
+
 
 
 
@@ -254,7 +253,8 @@ void setup()
 
   lights.Add("Off", new SwitchEffect( offFn));                              // working
   lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn));              // working
-
+  lights.Add("CuriousCat", new Effect2); 
+  
   // lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
 
   // lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
@@ -266,7 +266,7 @@ void setup()
 
 
 
- // lights.Add("test", new testclass);
+  lights.Add("test", new testclass);
 
 
   // lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
