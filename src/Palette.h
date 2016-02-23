@@ -12,6 +12,13 @@
 
 #include <ArduinoJson.h>
 
+//#define DebugPalette
+
+#ifdef DebugPalette
+#define PaletteDebugf(...) Serial.printf(__VA_ARGS__)
+#else
+#define PaletteDebugf(...) {}
+#endif
 
 union storedColor {
 	RgbColor rgb;

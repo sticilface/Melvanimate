@@ -10,9 +10,6 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 
-//#include "VariablePropertiesHandler.h"
-
-
 extern const char * PRESETS_FILE;
 /* ------------------------------------------------------------------------
 	Effect Mangager
@@ -104,7 +101,7 @@ private:
 					Dummy implementation (required)
 --------------------------------------------------------------------------*/
 
-class EffectHandler
+class EffectHandler: public PropertyManager
 {
 
 public:
@@ -129,15 +126,6 @@ public:
 	virtual bool save(JsonObject& root, const char *& ID, const char * name);
 	virtual uint8_t getPreset() { return _preset; }
 
-//  Properties stuff
-
-	bool installProperty(PropertyHandler* ptr);
-	PropertyHandler * getPropertyPtr() { return _propertyPtr; }
-
-//  Template property stuff
-
-//	bool installVariableProperty(PropertyHandlerVariable * ptr);
-
 //  Core Very important...
 	EffectHandler* next() { return _next; } //  ASK what is next
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
@@ -160,225 +148,12 @@ public:
 
 private:
 	EffectHandler* _next = nullptr;
-	PropertyHandler * _propertyPtr = nullptr;
-//	PropertyHandlerVariable * _propertyVariablePtr = nullptr;
 	const char * _name;
-
-
-	// bool _wait = false;
-	// bool _autowait = false;
 protected:
 
 
 };
 
-/* ------------------------------------------------------------------------
-					Property Classes
-
---------------------------------------------------------------------------*/
-
-class PropertyHandler
-{
-public:
-	virtual bool addJsonProperty(JsonObject & root) { return false; }
-	virtual bool parseJsonProperty(JsonObject & root) { return false; }
-	virtual const char * name() = 0;
-
-	PropertyHandler* next() { return _next; }
-	void next (PropertyHandler* next) { _next = next; }
-private:
-	PropertyHandler* _next = nullptr;
-};
-
-
-
-
-
-
-
-
-
-
-
-/*
-
------------------------------------------------------------------------
-
-
-*/
-
-class Color_property : public PropertyHandler
-{
-
-public:
-	Color_property(EffectHandler* ptr)
-	{
-		if (ptr) {
-			ptr->installProperty(this);
-		}
-	}
-	const char * name() { return _name; }
-
-	bool addJsonProperty(JsonObject & root) override
-	{
-		JsonObject& color = root.createNestedObject(_name);
-		color["R"] = _color.R;
-		color["G"] = _color.G;
-		color["B"] = _color.B;
-		return true;
-	}
-
-
-	bool parseJsonProperty(JsonObject & root) override
-	{
-		bool changed = false;
-		if (root.containsKey(_name)) {
-
-
-			if (root[_name].is<const char*>() ) {
-				Serial.printf("[Color_property::parseJsonProperty] Color converted from String\n");
-				EffectManager::convertcolor(root, _name);
-			}
-
-			uint8_t R = root[_name]["R"].as<long>();
-			uint8_t G = root[_name]["G"].as<long>();
-			uint8_t B = root[_name]["B"].as<long>();
-
-			if (_color.R != R) {
-				_color.R = R;
-				changed = true;
-			}
-			if (_color.G != G) {
-				_color.G = G;
-				changed = true;
-			}
-			if (_color.B != B) {
-				_color.B = B;
-				changed = true;
-			}
-
-			Serial.printf("[Color_property::parseJsonProperty] color1 (%u,%u,%u)\n", _color.R, _color.G, _color.B);
-
-		}
-
-		return changed;
-	}
-
-	RgbColor _color;
-private:
-	const char * _name = "color1";
-};
-
-class Brightness_property : public PropertyHandler
-{
-
-public:
-	Brightness_property(EffectHandler* ptr)
-	{
-		if (ptr) {
-			ptr->installProperty(this);
-		}
-	}
-	const char * name() { return _name; }
-	bool addJsonProperty(JsonObject & root) override
-	{
-		root[_name] = _brightness;
-		return true;
-	}
-	bool parseJsonProperty(JsonObject & root) override
-	{
-		if (root.containsKey(_name)) {
-			if (_brightness != root[_name] ) {
-				_brightness = root[_name];
-				return true;
-			}
-		}
-		return false;
-	}
-
-	uint8_t _brightness;
-private:
-	const char * _name = "brightness";
-};
-
-class Palette_property : public PropertyHandler
-{
-
-public:
-	Palette_property(EffectHandler* ptr)
-	{
-		if (ptr) {
-			ptr->installProperty(this);
-		}
-	}
-	const char * name() { return _name; }
-	bool addJsonProperty(JsonObject & root) override
-	{
-		return _palette.addJson(root);
-	}
-	bool parseJsonProperty(JsonObject & root) override
-	{
-		if (root.containsKey(_name)) {
-			return _palette.parseJson(root);
-		} else {
-			return false;
-		}
-	}
-
-	Palette _palette;
-private:
-	const char * _name  = "palette";
-};
-
-
-class Speed_property : public PropertyHandler
-{
-
-public:
-	Speed_property(EffectHandler* ptr)
-	{
-		if (ptr) {
-			ptr->installProperty(this);
-		}
-	}
-	const char * name() { return _name; }
-	bool addJsonProperty(JsonObject & root) override
-	{
-		root[_name] = _speed;
-		return true;
-	}
-	bool parseJsonProperty(JsonObject & root) override
-	{
-		if (root.containsKey(_name)) {
-			if (_speed != root[_name] ) {
-				_speed = root[_name];
-				return true;
-			}
-		}
-		return false;
-	}
-
-	uint32_t _speed;
-private:
-	const char * _name = "speed";
-};
-
-
-
-
-
-
-// typedef std::function<void(void)> EffectHandlerFunction;
-
-// class Effect : public EffectHandler
-// {
-
-// public:
-// 	Effect(EffectHandlerFunction Fn) : _Fn(Fn) {};
-// 	bool Run() override { _Fn();};
-// private:
-// 	EffectHandlerFunction _Fn;
-// };
 
 /* ------------------------------------------------------------------------
 					Effect Handler SWITCH - MAIN effect handler....
@@ -426,50 +201,49 @@ private:
 	uint32_t _timeout = 0;
 };
 
-/* ------------------------------------------------------------------------
-								Unused Empty Handler
---------------------------------------------------------------------------*/
 
-class ComplexEffect : public EffectHandler
-{
-
-public:
-	typedef std::function<void(char *, char*, double)> EffectHandlerFunction;
-	ComplexEffect(EffectHandlerFunction Fn): _Fn(Fn) {};
-	bool Run() override {};
-	bool Start() override { Serial.println("Starting Complex effect"); };
-	bool Stop() override {};
-	bool Pause() override {};
-
-private:
-	const char * _name;
-	EffectHandlerFunction _Fn;
-};
 
 /* ------------------------------------------------------------------------
 								Attempt at SUB Template for settings...
 --------------------------------------------------------------------------*/
 
-class SimpleEffect : public SwitchEffect, public Color_property, public Brightness_property
+class SimpleEffect : public SwitchEffect
 {
 
 public:
-	SimpleEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), Color_property(this), Brightness_property(this) {};
+	SimpleEffect(EffectHandlerFunction Fn): SwitchEffect(Fn)  {
+		addVar(new Variable<uint8_t>("brightness"));
+		addVar(new Variable<RgbColor>("color1"));
+		//addVar(new Variable<Palette*>("Palette")); 
+	};
 
-	//  These functions just need to add and retrieve preset values from the json.
-//	bool load(JsonObject& root, const char *& ID) override;
-	//bool addEffectJson(JsonObject& settings) override;
-	//bool args(ESP8266WebServer& HTTP) override;
-	//bool parseJsonEffect(JsonObject& root) override;
-
-	// void setBrightness(uint8_t bri)   {   _brightness = bri; Refresh(); }
-	// uint8_t getBrightness()  { return _brightness; }
-
-	// void setColor(RgbColor color)   { _color = color; Refresh(); }
-	// RgbColor getColor()  {  return _color;  }
-
+	RgbColor color() { return getVar<RgbColor>("color1"); }
+	uint8_t brightness() { return getVar<uint8_t>("brightness"); }
+	//Palette palette() { return *(getVar<Palette*>("Palette")); }
 
 };
+
+
+class DMXEffect : public EffectHandler
+{
+
+public:
+	DMXEffect()
+	{
+		addVar(new Variable<uint8_t>("universe"));
+		addVar(new Variable<uint8_t>("ppu"));
+		addVar(new Variable<uint8_t>("channel_start"));
+
+		addVar(new Variable<const char *>("marqueetext"));
+		//addVar(new Variable<Palette*>("Palette")); 
+	};
+
+	RgbColor color() { return getVar<RgbColor>("color1"); }
+	uint8_t brightness() { return getVar<uint8_t>("brightness"); }
+	//Palette palette() { return *(getVar<Palette*>("Palette")); }
+
+};
+
 
 /*
 
@@ -625,7 +399,7 @@ private:
 // 	PropertyManager _manager; 
 // };
 
-class Effect2: public PropertyManager, public EffectHandler
+class Effect2: public EffectHandler
 {
 public:
 	Effect2()
@@ -640,13 +414,9 @@ public:
 		addVar(new Variable<RgbColor>("color4"));
 		addVar(new Variable<RgbColor>("color5"));
 		heapv = heapv - ESP.getFreeHeap(); 
-		Serial.printf("**[Effect2:init] heap used %u", heapv);
+		Serial.printf("**[Effect2:init] heap used %u\n", heapv);
 
 	}
-
-	//  required as inherited functions do not override 
-	bool addEffectJson(JsonObject & root) override  { return PropertyManager::addEffectJson(root); }
-	bool parseJsonEffect(JsonObject & root) override { return PropertyManager::parseJsonEffect(root); }
 
   bool Run() override
   {

@@ -2,14 +2,12 @@
 
 #include <arduinojson.h>
 #include <RgbColor.h>
-#include <functional>
-//#include "EffectManager.h"
+#include "palette.h"
 
 
 class AbstractPropertyHandler
 {
 public:
-//   `AbstractPropertyHandler::addJsonProperty(ArduinoJson::JsonObject&)'
 	virtual bool addJsonProperty(JsonObject & root) {return false; };
 	virtual bool parseJsonProperty(JsonObject & root) { return false; } ;
 
@@ -88,9 +86,7 @@ private:
 
 
 
-
-
-// specialisation for Rgbcolor
+// specialisations for Variable
 template <>
 class Variable<RgbColor>: public AbstractPropertyHandler
 {
@@ -108,23 +104,52 @@ private:
 	RgbColor _var;
 };
 
+template <>
+class Variable<const char *>: public AbstractPropertyHandler
+{
+public:
+	Variable(const char * name): _var(nullptr)
+	{
+		_name = name;
+	};
+
+	const char * get() { return _var; }
+	bool addJsonProperty(JsonObject & root) override ;
+	bool parseJsonProperty(JsonObject & root) override ;
+
+private:
+	const char * _var;
+};
+
+template <>
+class Variable<Palette*>: public AbstractPropertyHandler
+{
+public:
+	Variable(const char * name)
+	{
+		_name = name;
+	};
+
+	Palette* get() { return &_var; }
+
+	bool addJsonProperty(JsonObject & root) override
+	{
+		return _var.addJson(root);
+	}
+	bool parseJsonProperty(JsonObject & root) override
+	{
+		if (root.containsKey(_name)) {
+			return _var.parseJson(root);
+		} else {
+			return false;
+		}
+	}
+
+private:
+	Palette _var;
+};
 
 
-
-// class effect
-// {
-// public:
-// 	effect()
-// 	{
-// 		manager.add(new Variable<int>("int"));
-// 	}
-
-// 	void run() {
-// 		int a = manager.get<int>("int");
-// 	}
-// private:
-// 	PropertyManager manager;
-// };
 
 
 

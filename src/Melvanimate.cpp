@@ -24,14 +24,14 @@ Melvanimate::Melvanimate(): _pixels(TOTALPIXELS)
 
 bool        Melvanimate::begin()
 {
-	Debugln("Begin Melvana called");
+	DebugMelvanimatef("Begin Melvana called\n");
 
 	_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
 
 	if (!_settings) {
-		Debugln("ERROR File open for failed!");
+		DebugMelvanimatef("ERROR File open for failed!\n");
 		_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
-		if (!_settings) Debugln("Failed to create empty file too");
+		if (!_settings) DebugMelvanimatef("Failed to create empty file too\n");
 	}
 
 	load();
@@ -62,7 +62,7 @@ void Melvanimate::_init_LEDs()
 
 	// not sure if this bit is working...
 	if (!_pixels) {
-		Debugln("MALLOC failed for pixel bus");
+		DebugMelvanimatef("MALLOC failed for pixel bus\n");
 		return;
 	}
 
@@ -92,7 +92,7 @@ void        Melvanimate::grid(const uint16_t x, const uint16_t y)
 	Start("Off");
 	_grid_x = x;
 	_grid_y = y;
-	Debugf("NEW grids (%u,%u)\n", _grid_x, _grid_y);
+	DebugMelvanimatef("NEW grids (%u,%u)\n", _grid_x, _grid_y);
 	_settings_changed = true;
 	if (_matrix) { delete _matrix; _matrix = nullptr; }
 	_matrix = new Melvtrix(_grid_x, _grid_y, _matrixconfig);
@@ -102,7 +102,7 @@ void        Melvanimate::setmatrix(const uint8_t i)
 	if (_matrixconfig == i && _matrix) { return; } //  allow for first initialisation with params = initialised state.
 	Start("Off");
 	_matrixconfig = i;
-	Debugf("NEW matrix Settings (%u)\n", _matrixconfig);
+	DebugMelvanimatef("NEW matrix Settings (%u)\n", _matrixconfig);
 	_settings_changed = true;
 	_init_matrix();
 }
@@ -110,12 +110,12 @@ void        Melvanimate::setmatrix(const uint8_t i)
 void        Melvanimate::setPixels(const uint16_t pixels)
 {
 	if (pixels == _pixels) { return; }
-	Debugf("NEW Pixels: %u\n", _pixels);
+	DebugMelvanimatef("NEW Pixels: %u\n", _pixels);
 	strip->ClearTo(0);
 	_pixels = pixels;
 	_settings_changed = true;
 	_init_LEDs();
-	Debugf("HEAP: %u\n", ESP.getFreeHeap());
+	DebugMelvanimatef("HEAP: %u\n", ESP.getFreeHeap());
 }
 
 //  This is a callback that when set, checks to see if current animation has ended.
@@ -127,7 +127,7 @@ bool Melvanimate::returnWaiting()
 	if (animator && _waiting == 2) {
 
 		if (!animator->IsAnimating()) {
-			Serial.printf("[Melvanimate::returnWaiting] Autowait END (%u)\n", millis());
+			DebugMelvanimatef("[Melvanimate::returnWaiting] Autowait END (%u)\n", millis());
 			_waiting = false;
 			return false;
 		}
@@ -145,7 +145,7 @@ bool Melvanimate::returnWaiting()
 
 void Melvanimate::autoWait()
 {
-	Serial.printf("[Melvanimate::autoWait] Auto wait set (%u)\n", millis());
+	DebugMelvanimatef("[Melvanimate::autoWait] Auto wait set (%u)\n", millis());
 	_waiting_timeout = millis();
 	_waiting = 2;
 }
@@ -153,11 +153,11 @@ void Melvanimate::autoWait()
 void Melvanimate::setWaiting(bool wait)
 {
 	if (wait) {
-		Serial.printf("[Melvanimate::setWaiting] Set wait true (%u)\n", millis());
+		DebugMelvanimatef("[Melvanimate::setWaiting] Set wait true (%u)\n", millis());
 		_waiting_timeout = millis();
 		_waiting = true;
 	} else {
-		Serial.printf("[Melvanimate::setWaiting] Set wait false (%u)\n", millis());
+		DebugMelvanimatef("[Melvanimate::setWaiting] Set wait false (%u)\n", millis());
 		_waiting = false;
 		_waiting_timeout = 0;
 	}
@@ -182,13 +182,12 @@ bool        Melvanimate::save(bool override)
 	}
 
 
-
 	if (!_settings) {
-		Debugln("ERROR File NOT open!");
+		DebugMelvanimatef("ERROR File NOT open!\n");
 		_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
 		if (!_settings) {
 			_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
-			Debugln("Failed to create empty file too");
+			DebugMelvanimatef("Failed to create empty file too\n");
 			if (_settings) return false;
 		}
 	}
@@ -206,10 +205,10 @@ bool        Melvanimate::load()
 
 	DynamicJsonBuffer jsonBuffer;
 	if (!_settings) {
-		Serial.println("[Melvanimate::load] ERROR File NOT open!");
+		DebugMelvanimatef("[Melvanimate::load] ERROR File NOT open!\n");
 		_settings = SPIFFS.open(MELVANA_SETTINGS, "r");
 		if (!_settings) {
-			Serial.println("[Melvanimate::load] No Settings File Found");
+			DebugMelvanimatef("[Melvanimate::load] No Settings File Found\n");
 			return false;
 		}
 	}
@@ -221,13 +220,13 @@ bool        Melvanimate::load()
 	data = new char[_settings.size()];
 
 	} else {
-		Serial.printf("[Melvanimate::load] Fail: buffer size 0\n");
+		DebugMelvanimatef("[Melvanimate::load] Fail: buffer size 0\n");
 		return false; 
 	}
 
 	// prevent nullptr exception if can't allocate
 	if (data) {
-		Serial.printf("[Melvanimate::load] buffer size %u\n", _settings.size());
+		DebugMelvanimatef("[Melvanimate::load] buffer size %u\n", _settings.size());
 
 		//  This method give a massive improvement in file reading speed for SPIFFS files..
 
@@ -261,9 +260,9 @@ bool        Melvanimate::load()
 		JsonObject& root = jsonBuffer.parseObject(data);
 
 		if (!root.success()) {
-			Debugln(F("[Melvanimate::load] Parsing settings file Failed!"));
+			DebugMelvanimatef("[Melvanimate::load] Parsing settings file Failed!\n");
 			return false;
-		} else { Debugln("[Melvanimate::load] Parse successfull"); }
+		} else { DebugMelvanimatef("[Melvanimate::load] Parse successfull\n"); }
 // global variables
 		if (root.containsKey("globals")) {
 
@@ -275,26 +274,26 @@ bool        Melvanimate::load()
 			_grid_y  = globals["gridy"].as<long>();
 
 
-		} else Debugln("[Melvanimate::load] No Globals");
+		} else DebugMelvanimatef("[Melvanimate::load] No Globals\n");
 // current settings
 		if (root.containsKey("current")) {
 
 			JsonObject& current = root["current"];
 
-		} else Debugln("[Melvanimate::load] No Current");
+		} else DebugMelvanimatef("[Melvanimate::load] No Current\n");
 // effect settings
 		if (root.containsKey("effectsettings")) {
 			JsonObject& effectsettings = root["effectsettings"];
 
 
 
-		} else Debugln("[Melvanimate::load] No effect settings");
+		} else DebugMelvanimatef("[Melvanimate::load] No effect settings\n");
 
 
 		return true;
 
 	} else {
-		Debugln("[Melvanimate::load] Unable to Malloc for settings");
+		DebugMelvanimatef("[Melvanimate::load] Unable to Malloc for settings\n");
 	}
 
 };
@@ -305,7 +304,7 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 	if (_timer != -1) {
 		timer.deleteTimer(_timer);
 		_timer = -1;
-		Serial.println("[Melvanimate::setTimer] Timer Cancelled");
+		DebugMelvanimatef("[Melvanimate::setTimer] Timer Cancelled\n");
 	}
 
 	timeout *= (1000 * 60); // convert timout to milliseconds from minutes...
@@ -331,15 +330,15 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 					Current()->parseJson(root);
 				}
 			} else if (command.equalsIgnoreCase("loadpreset")) {
-				Serial.println("[Melvanimate::setTimer] Load preset: not done yet");
+				DebugMelvanimatef("[Melvanimate::setTimer] Load preset: not done yet\n");
 			}
 			_timer = -1 ; //  get ride of flag to timer!
 		});
 
-		if (_timer > -1 ) { Serial.printf("[Melvanimate::setTimer] Started (%s,%s)\n", command.c_str(), option.c_str()); }
+		if (_timer > -1 ) { DebugMelvanimatef("[Melvanimate::setTimer] Started (%s,%s)\n", command.c_str(), option.c_str()); }
 
 	} else {
-		Serial.println("[Melvanimate::setTimer] No Timeout, so timer cancelled");
+		DebugMelvanimatef("[Melvanimate::setTimer] No Timeout, so timer cancelled\n");
 	}
 
 }

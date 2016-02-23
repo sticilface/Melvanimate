@@ -29,72 +29,36 @@ AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 bool PropertyManager::parseJsonEffect(JsonObject & root)
 {
 
-	Serial.printf("[PropertyManager::parseJsonEffect] called\n");
-	bool success = false; 
+//	Serial.printf("[PropertyManager::parseJsonEffect] called\n");
+	bool success = false;
 
 	AbstractPropertyHandler* handle = nullptr;
 
 	for (handle = _firsthandle; handle; handle = handle->next()) {
-		if (handle->parseJsonProperty(root)) 
-		{
-			success = true; 
+		if (handle->parseJsonProperty(root)) {
+			success = true;
 		}
 	}
-	return success; 
+	return success;
 }
 
 bool PropertyManager::addEffectJson(JsonObject & root)
 {
-	Serial.printf("[PropertyManager::addEffectJson] called\n");
-	bool success = false; 
+//	Serial.printf("[PropertyManager::addEffectJson] called\n");
+	bool success = false;
 
 	AbstractPropertyHandler* handle = nullptr;
 
 	for (handle = _firsthandle; handle; handle = handle->next()) {
-		if (handle->addJsonProperty(root)) 
-		{
-			success = true; 
+		if (handle->addJsonProperty(root)) {
+			success = true;
 		}
 	}
-	return success; 
+	return success;
 }
 
 
-// template<class T>
-// T PropertyManager::getVar(const char * property)
-// {
-// 	AbstractPropertyHandler* handle = nullptr;
-
-// 	for (handle = _firsthandle; handle; handle = handle->next()) {
-// 		if (!strcmp(handle->name(), property)) {
-// 			return (static_cast<Variable<T>*>(handle))->get();
-// 		}
-// 	}
-
-// 	return static_cast<T>(NULL);  // not sure about this... likely
-
-// }
-
-// //template<class T>
-// bool Variable::addJsonProperty(JsonObject & root)
-// {
-// 	root[_name] = _var;
-// 	return true;
-// }
-
-// //template<class T>
-// bool Variable::parseJsonProperty(JsonObject & root)
-// {
-// 	if (root.containsKey(_name)) {
-// 		if (_var != root[_name] ) {
-// 			_var = root[_name];
-// 			return true;
-// 		}
-// 	}
-// 	return false;
-// }
-
-bool Variable<RgbColor>::addJsonProperty(JsonObject & root) 
+bool Variable<RgbColor>::addJsonProperty(JsonObject & root)
 {
 	JsonObject& color = root.createNestedObject(_name);
 	color["R"] = _var.R;
@@ -103,14 +67,14 @@ bool Variable<RgbColor>::addJsonProperty(JsonObject & root)
 	return true;
 }
 
-bool Variable<RgbColor>::parseJsonProperty(JsonObject & root) 
+bool Variable<RgbColor>::parseJsonProperty(JsonObject & root)
 {
 	bool changed = false;
 	if (root.containsKey(_name)) {
 
 
 		if (root[_name].is<const char*>() ) {
-			Serial.printf("[Variable<RgbColor>::parseJsonProperty] Color converted from String\n");
+//			Serial.printf("[Variable<RgbColor>::parseJsonProperty] Color converted from String\n");
 			EffectManager::convertcolor(root, _name);
 		}
 
@@ -131,10 +95,35 @@ bool Variable<RgbColor>::parseJsonProperty(JsonObject & root)
 			changed = true;
 		}
 
-		Serial.printf("[Variable<RgbColor>::parseJsonProperty] color1 (%u,%u,%u)\n", _var.R, _var.G, _var.B);
+//		Serial.printf("[Variable<RgbColor>::parseJsonProperty] color1 (%u,%u,%u)\n", _var.R, _var.G, _var.B);
 
 	}
 
 	return changed;
 }
+
+bool Variable<const char *>::addJsonProperty(JsonObject & root)
+{
+	root[_name] = _var;
+	return true;
+}
+
+bool Variable<const char *>::parseJsonProperty(JsonObject & root)
+{
+	if (root.containsKey(_name)) {
+		if (_var) {
+			if ( strcmp(root[_name], _var)) {
+				free( (void*)_var); 
+				_var = strdup(root[_name]);
+				return true;
+			}
+		} else {
+			_var = strdup(root[_name]);
+			return true; 
+		}
+	}
+	return false;
+}
+
+
 

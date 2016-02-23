@@ -11,6 +11,15 @@ Handler to add / create / run multiple Effect Objects at the same time...
 #include <functional>
 #include "Arduino.h"
 
+//#define DebugObjectman
+
+#ifdef DebugObjectman
+#define Debugobjf(...) Serial.printf(__VA_ARGS__)
+#else
+#define Debugobjf(...) {}
+#endif
+
+
 class EffectObjectHandler;
 
 typedef std::function<void()> ObjectUpdateCallback;
@@ -96,11 +105,11 @@ public:
 		_details = new int16_t[_total];
 		std::fill_n(_details, _total, -1);
 
-		Serial.printf("Created Object size %u \n", _total);
+		Debugobjf("Created Object size %u \n", _total);
 	};
 	~EffectObject() override 
 	{
-		Serial.println("[EffectObject] Deconstructor");
+		Debugobjf("[EffectObject] Deconstructor\n");
 		delete[] _details;
 	}
 

@@ -27,16 +27,12 @@
 #define DEFAULT_WS2812_PIN 2
 
 
-#define DebugMelvanimate
+//#define DebugMelvanimate
 
 #ifdef DebugMelvanimate
-#define Debug(x)    Serial.print(x)
-#define Debugln(x)  Serial.println(x)
-#define Debugf(...) Serial.printf(__VA_ARGS__)
+#define DebugMelvanimatef(...) Serial.printf(__VA_ARGS__)
 #else
-#define Debug(x)    {}
-#define Debugln(x)  {}
-#define Debugf(...) {}
+#define DebugMelvanimatef(...) {}
 #endif
 
 class EffectManager;

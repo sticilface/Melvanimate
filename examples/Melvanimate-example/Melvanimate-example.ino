@@ -33,6 +33,15 @@
 
 #include "class_effects.h"
 
+#define Debug
+
+#ifdef Debug
+#define Debugf(...) Serial.printf(__VA_ARGS__)
+#else
+#define Debugf(...) {}
+#endif
+
+
 //  this is the native SDK json lib.
 //#include <json/json.h>
 
@@ -53,52 +62,52 @@ ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometru
 
 
 
-class testclass : public EffectHandler, public Color_property, public Brightness_property, public Palette_property
-{
+// class testclass : public EffectHandler, public Color_property, public Brightness_property, public Palette_property
+// {
 
-public:
-  testclass(): Color_property(this), Brightness_property(this), Palette_property(this) {};
+// public:
+//   testclass(): Color_property(this), Brightness_property(this), Palette_property(this) {};
 
 
-  bool Run() override
-  {
-    if ( millis() - _timer > 1000) {
-      Serial.printf("[testclass::Run] bri = %u, col = (%u,%u,%u)\n", _brightness, _color.R, _color.G, _color.B);
-      _timer = millis();
-    }
-  };
-  bool Start() override
-  {
-    Serial.println("[testclass::Start]");
-  };
-  bool Stop() override
-  {
-    Serial.println("[testclass::Stop]");
-  };
-  void Refresh() override
-  {
-    Serial.println("[testclass::Refresh]");
-  };
+//   bool Run() override
+//   {
+//     if ( millis() - _timer > 1000) {
+//       Serial.printf("[testclass::Run] bri = %u, col = (%u,%u,%u)\n", _brightness, _color.R, _color.G, _color.B);
+//       _timer = millis();
+//     }
+//   };
+//   bool Start() override
+//   {
+//     Serial.println("[testclass::Start]");
+//   };
+//   bool Stop() override
+//   {
+//     Serial.println("[testclass::Stop]");
+//   };
+//   void Refresh() override
+//   {
+//     Serial.println("[testclass::Refresh]");
+//   };
 
-  // bool addEffectJson(JsonObject& settings) override
-  // {
-  //  Serial.printf("[CascadeEffect::addJson] Called\n");
-  //  Serial.println("[CascadeEffect::addJson] root");
-  //  settings.prettyPrintTo(Serial);
-  //  Serial.println();
-  // }
+//   // bool addEffectJson(JsonObject& settings) override
+//   // {
+//   //  Serial.printf("[CascadeEffect::addJson] Called\n");
+//   //  Serial.println("[CascadeEffect::addJson] root");
+//   //  settings.prettyPrintTo(Serial);
+//   //  Serial.println();
+//   // }
 
-//  bool parseJsonEffect(JsonObject& root) override;
+// //  bool parseJsonEffect(JsonObject& root) override;
 
-  // bool testFn()
-  // {
-  //  _color = RgbColor(0, 0, 0);
-  //  _brightness = 255;
-  // }
+//   // bool testFn()
+//   // {
+//   //  _color = RgbColor(0, 0, 0);
+//   //  _brightness = 255;
+//   // }
 
-private:
-  uint32_t _timer = 0;
-};
+// private:
+//   uint32_t _timer = 0;
+// };
 
 
 
@@ -258,7 +267,7 @@ void setup()
   // lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
 
   // lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
-  // // lights.Add("DMX", new SwitchEffect(DMXfn));                              // need to test - requires custom libs included
+  lights.Add("DMX", new DMXEffect);                              // need to test - requires custom libs included
   // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
 
   // lights.Add("Dummy", new DummyEffect(DummyFn));
@@ -266,7 +275,7 @@ void setup()
 
 
 
-  lights.Add("test", new testclass);
+  //lights.Add("test", new testclass);
 
 
   // lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
@@ -488,7 +497,7 @@ bool check_duplicate_req()
 
   if (memcmp(last_request, this_request, 16) == 0) {
     match = true;
-    Serial.println("Request ignored: duplicate");
+//    Serial.println("Request ignored: duplicate");
   }
 
   memcpy(last_request, this_request, 16);
@@ -617,7 +626,7 @@ void handle_data()
 //  this has to go last for the JSON to be passed to the current effect
   if (lights.Current()) {
     if (lights.Current()->parseJson(root)) {
-      Serial.println("[handle] JSON Setting applied");
+//      Serial.println("[handle] JSON Setting applied");
     }
   }
 
@@ -754,7 +763,7 @@ void handle_data()
         String effect =  (HTTP.hasArg("timeroption")) ? HTTP.arg("timeroption") : String();
 
         if (lights.setTimer(HTTP.arg("timer").toInt(), HTTP.arg("timercommand"), effect )) {
-          Serial.println("[handle] Timer command accepted");
+//          Serial.println("[handle] Timer command accepted");
         }
       }
     } else if (HTTP.arg("enabletimer") == "off") {
@@ -972,7 +981,7 @@ void FadeTo(RgbColor color)
 
   //int32_t difference = abs(brightness - color.CalculateBrightness() );
 
-  Serial.printf("[FadeTo] current brightness %u, target brightness %u, Brightness Diff = %u, time %ums\n", current_brightness, target_brightness, brightness, brightness * 8);
+//  Serial.printf("[FadeTo] current brightness %u, target brightness %u, Brightness Diff = %u, time %ums\n", current_brightness, target_brightness, brightness, brightness * 8);
 
   FadeTo(brightness * 8, color);
 }

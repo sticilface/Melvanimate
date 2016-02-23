@@ -381,7 +381,7 @@ void  DMXfn (effectState state, EffectHandler* ptr)
 
     lights.SetTimeout(0);
     e131 = new E131;
-    Debugln("DMX Effect Started");
+//    Debugln("DMX Effect Started");
 //    if (millis() > 30000) Adalight_Flash();
 
     count = strip->PixelCount() * 3;
@@ -531,7 +531,7 @@ void SimpleColorFn(effectState& state, EffectHandler* ptr)
       lights.SetTimeout(10000);
       lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state...
       
-        FadeTo( lights.dim(effect->_color, effect->_brightness));
+        FadeTo( lights.dim(effect->color(), effect->brightness()));
       
     }
 

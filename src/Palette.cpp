@@ -34,17 +34,17 @@ void Palette::mode(palette_type mode)
 
 void Palette::randommode(const char * mode)
 {
-	Serial.println("[Palette::randommode] Random mode called");
+	PaletteDebugf("[Palette::randommode] Random mode called\n");
 	if (mode) {
 		for (uint8_t i = 0; i < NUMBER_OF_RANDOM_MODES; i++) {
-			Serial.printf("[Palette::randommode] comparing %s\n", random_mode_strings[i] );
+			PaletteDebugf("[Palette::randommode] comparing %s\n", random_mode_strings[i] );
 			if (strcmp(mode, random_mode_strings[i]) == 0) {
 				randommode( (random_mode)i );
-				Serial.printf("Found: %u, %s\n", i, random_mode_strings[i]);
+				PaletteDebugf("Found: %u, %s\n", i, random_mode_strings[i]);
 			}
 		}
 	} else {
-		Serial.println("[Palette::randommode] NULL POINTER PASSED");
+		PaletteDebugf("[Palette::randommode] NULL POINTER PASSED\n");
 	}
 }
 
@@ -283,7 +283,7 @@ bool Palette::addJson(JsonObject& root)
 
 bool Palette::parseJson(JsonObject& root)
 {
-	Serial.println("[Palette::parseJson] Func HIT");
+	PaletteDebugf("[Palette::parseJson] Func HIT\n");
 	bool changed = false;
 
 	if (!root.containsKey("Palette")) { return false; }
@@ -297,7 +297,7 @@ bool Palette::parseJson(JsonObject& root)
 
 			_mode = mode;
 			changed = true;
-			Serial.printf("[Palette::parseJson] mode = %u\n", palette["mode"].as<long>() );
+			PaletteDebugf("[Palette::parseJson] mode = %u\n", palette["mode"].as<long>() );
 		}
 	}
 	if (palette.containsKey("total")) {

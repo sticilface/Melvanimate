@@ -15,7 +15,7 @@ EffectGroup::~EffectGroup()
 			count++;
 		}
 	} while (holding);
-	Serial.printf("[~EffectGroup] %u effects deleted\n", count); 
+	Debugobjf("[~EffectGroup] %u effects deleted\n", count); 
 
 }
 
@@ -37,7 +37,7 @@ EffectObjectHandler * EffectGroup::Add(uint16_t id, uint32_t timeout , EffectObj
 	}
 
 	return handle;
-	//Serial.printf("EFFECT Object ID:%u \n", _lastHandle->id());
+	//Debugobjf("EFFECT Object ID:%u \n", _lastHandle->id());
 }
 
 EffectObjectHandler* EffectGroup::Get(uint16_t x)
