@@ -59,8 +59,13 @@ public:
 	const char* getName(uint8_t i);
 	//const char* getName();
 
-	bool newSave(uint8_t ID, const char * name, bool overwrite = false);
-	bool newLoad(uint8_t ID);
+	bool Save(uint8_t ID, const char * name, bool overwrite = false);
+
+	bool Load(uint8_t ID);
+		//  Load needs to be moved to the effecthandler... so that the manager can just set the flag.. 
+		//  load this preset, then the effect can do it when it is ready... so async... 
+
+
 	bool removePreset(uint8_t ID);
 	uint8_t nextFree(JsonObject & root);
 
@@ -71,6 +76,7 @@ public:
 
 	// maybe move this into a helper header file....
 	static bool convertcolor(JsonObject & root, const char * colorstring);
+	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
 
 
 	uint8_t _numberofpresets = 0;
@@ -91,7 +97,6 @@ private:
 	std::function<bool()>  _waitFn = nullptr;
 
 	// hold a 'new' array of elegible presets for _currenthandler
-	bool _parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
 	EffectHandler* _findhandle(const char * handle);
 
 };
@@ -113,11 +118,10 @@ public:
 	virtual void Refresh() {}
 	virtual void SetTimeout(uint32_t) {}
 
-	bool parseJson(JsonObject & root);
-	virtual bool parseJsonEffect(JsonObject & root) { return false;} // use json so it can be used with MQTT etc...
+	bool parseJson(JsonObject & root); // calls parseJsonEffect internally after calling propertymanager... 
+	virtual bool parseJsonEffect(JsonObject & root) { return false;} // allows JSON to be acted on within the effect
 
 	// needs to NOT be virtual... call parsejson instead... but then call a virtual member..
-	bool load(JsonObject& root, const char *& ID) { return false ; };
 
 	bool addJson(JsonObject& settings); // called first, iterates through 'installed properties' then calls addEffectJson
 	virtual bool addEffectJson(JsonObject& settings) { return false; };
@@ -413,37 +417,24 @@ public:
 		addVar(new Variable<RgbColor>("color3"));
 		addVar(new Variable<RgbColor>("color4"));
 		addVar(new Variable<RgbColor>("color5"));
-		heapv = heapv - ESP.getFreeHeap(); 
-		Serial.printf("**[Effect2:init] heap used %u\n", heapv);
-
+		heapv = heapv - ESP.getFreeHeap();
+		_ready = true; 
+		Serial.printf("[Effect2:init] heap used %u\n", heapv);
 	}
 
-  bool Run() override
-  {
-    if ( millis() - _timer > 10000) {
-      RgbColor color = getVar<RgbColor>("color1");
-      uint8_t brightness = getVar<uint8_t>("brightness");
-      uint8_t speed = getVar<uint8_t>("speed");
+	bool Stop() override
+	{
+		Serial.println("[Effect2::Stop]");
+		purgeVars(); //  this is important to reclaim memory... 
+	}
 
-      Serial.printf("[testclass::Run] bri = %u, col = (%u,%u,%u)\n", brightness, color.R, color.G, color.B);
+	void Refresh() override
+	{
+		Serial.println("[Effect2::Refresh]");
+	}
 
-      _timer = millis();
-    }
-  };
-  bool Start() override
-  {
-    Serial.println("[Effect2::Start]");
-  };
-  bool Stop() override
-  {
-    Serial.println("[Effect2::Stop]");
-  };
-  void Refresh() override
-  {
-    Serial.println("[Effect2::Refresh]");
-  };
 private:
-	uint32_t _timer = 0; 
+	uint32_t _timer = 0;
 };
 
 

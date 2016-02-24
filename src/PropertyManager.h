@@ -71,13 +71,14 @@ public:
 			}
 		}
 
-		return (T)(NULL);  // not sure about this...
+		return 0; 
 	}
 
 	//  these functions should 'overridde from the effectHandler'
 	bool parseJsonEffect(JsonObject & root) ;  // use json so it can be used with MQTT etc...
 	bool addEffectJson(JsonObject& root) ;
 
+	void purgeVars(); 
 
 private:
 	AbstractPropertyHandler* _firsthandle;

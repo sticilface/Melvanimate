@@ -193,9 +193,9 @@ void setup()
   HTTP.on("/command", HTTP_ANY, []() {
     if (HTTP.hasArg("save")) {
       if (HTTP.hasArg("name")) {
-        lights.newSave(HTTP.arg("save").toInt(), HTTP.arg("name").c_str());
+        lights.Save(HTTP.arg("save").toInt(), HTTP.arg("name").c_str());
       } else {
-        lights.newSave(HTTP.arg("save").toInt(), "No Name");
+        lights.Save(HTTP.arg("save").toInt(), "No Name");
 
       }
       Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
@@ -204,7 +204,7 @@ void setup()
     }
 
     if (HTTP.hasArg("load")) {
-      lights.newLoad(HTTP.arg("load").toInt());
+      lights.Load(HTTP.arg("load").toInt());
       Serial.printf("[load] done, heap: %u\n", ESP.getFreeHeap());
       Serial.printf("[load] current preset = %u\n", lights.Current()->getPreset());
       HTTP.setContentLength(0);
@@ -262,8 +262,8 @@ void setup()
 
   lights.Add("Off", new SwitchEffect( offFn));                              // working
   lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn));              // working
-  lights.Add("CuriousCat", new Effect2); 
-  
+  lights.Add("CuriousCat", new Effect2);
+
   // lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
 
   // lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
@@ -284,7 +284,7 @@ void setup()
 
 // experimental and in testing
 
- // lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
+// lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
@@ -549,7 +549,7 @@ void handle_data()
 
   if (HTTP.hasArg("preset")) {
     uint8_t preset = HTTP.arg("preset").toInt();
-    if (lights.newLoad(preset)) {
+    if (lights.Load(preset)) {
       //  try to switch current effect to preset...
       Serial.printf("[handle] Loaded preset %u\n", preset);
     }
@@ -946,9 +946,9 @@ void send_data(String page)
 
   }
 
-  // Serial.println("JSON REPLY"); 
+  // Serial.println("JSON REPLY");
   // root.prettyPrintTo(Serial);
-  // Serial.println(); 
+  // Serial.println();
 
   ESPmanager::sendJsontoHTTP(root, HTTP);
 

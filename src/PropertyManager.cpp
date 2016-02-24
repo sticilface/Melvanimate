@@ -113,13 +113,13 @@ bool Variable<const char *>::parseJsonProperty(JsonObject & root)
 	if (root.containsKey(_name)) {
 		if (_var) {
 			if ( strcmp(root[_name], _var)) {
-				free( (void*)_var); 
+				free( (void*)_var);  //  not good... but i really want to free that const char *
 				_var = strdup(root[_name]);
 				return true;
 			}
 		} else {
 			_var = strdup(root[_name]);
-			return true; 
+			return true;
 		}
 	}
 	return false;

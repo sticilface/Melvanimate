@@ -190,7 +190,7 @@ const char * EffectManager::getName(uint8_t i)
 
 
 //  could try and package this up... maybe using a struct... ... maybe...
-bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, JsonObject *& root, const char * file_name)
+bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, JsonObject *& root, const char * file_name)
 {
 	uint32_t starttime = millis();
 
@@ -198,17 +198,17 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 	bool success = false;
 
 //	if (!f) {
-//		Serial.println("[_parsespiffs] No File Found");
+//		Serial.println("[parsespiffs] No File Found");
 //	}
 
 	if (f && f.size()) {
 
-		//Serial.println("[_parsespiffs] pre-malloc");
+		//Serial.println("[parsespiffs] pre-malloc");
 
 		data = new char[f.size()];
 		// prevent nullptr exception if can't allocate
 		if (data) {
-			Serial.printf("[_parsespiffs] Buffer size %u\n", f.size());
+			Serial.printf("[parsespiffs] Buffer size %u\n", f.size());
 
 			//  This method give a massive improvement in file reading speed for SPIFFS files..
 
@@ -245,13 +245,13 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 				success = true;
 			}
 		} else {
-//			Serial.println("[_parsespiffs] malloc failed");
+//			Serial.println("[parsespiffs] malloc failed");
 		}
 	}
 
 	f.close();
 
-//	Serial.printf("[_parsespiffs] time: %u\n", millis() - starttime);
+//	Serial.printf("[parsespiffs] time: %u\n", millis() - starttime);
 	if (success) {
 		return true;
 	} else {
@@ -268,7 +268,7 @@ bool EffectManager::removePreset(uint8_t ID)
 	char * data = nullptr;
 	bool success = false;
 
-	if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+	if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
 		if (root) {
 
@@ -334,7 +334,7 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 		JsonObject * root = nullptr;
 		uint8_t count = 0;
 
-		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
 			delay(0);
 
@@ -417,6 +417,8 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 
 }
 
+// todo....
+
 uint8_t EffectManager::nextFree(JsonObject & root)
 {
 
@@ -429,7 +431,7 @@ uint8_t EffectManager::nextFree(JsonObject & root)
 
 }
 
-bool EffectManager::newSave(uint8_t ID, const char * name, bool overwrite)
+bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 {
 	bool success = false;
 	char * data = nullptr;
@@ -442,7 +444,7 @@ bool EffectManager::newSave(uint8_t ID, const char * name, bool overwrite)
 		const char * cID = jsonBuffer.strdup(String(ID).c_str());
 		JsonObject * root = nullptr;
 
-		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 //			Serial.println("[newSave] Existing Settings Loaded");
 		} else {
 			// if no file exists, or parse fails create new json object...
@@ -495,10 +497,11 @@ bool EffectManager::newSave(uint8_t ID, const char * name, bool overwrite)
 }
 
 
-bool EffectManager::newLoad(uint8_t ID)
+bool EffectManager::Load(uint8_t ID)
 {
 	bool success = false;
-	if (_currentHandle ) {
+
+	if (_currentHandle && !_NextInLine) { //  make sure there is no effect waiting
 		DynamicJsonBuffer jsonBuffer;
 		const char * cID = jsonBuffer.strdup(String(ID).c_str()); //  this is a hack as i couldn't get it to work... can probably try without it now...
 
@@ -506,7 +509,7 @@ bool EffectManager::newLoad(uint8_t ID)
 		char * data = nullptr;
 		bool success = false;
 
-		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
 			//  Is current effect same effect as is wanted.
 			JsonObject& preset = (*root)[cID];
