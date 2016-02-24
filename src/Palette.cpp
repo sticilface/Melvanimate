@@ -4,12 +4,12 @@
 const char * palettes_strings[9] = { "off", "complementary", "monochromatic", "analogous", "splitcomplements", "triadic", "tetradic", "multi", "wheel"};
 const char * random_mode_strings[4] = {"off", "totalrandom", "timebased", "randomafterloop"} ;
 
-Palette::Palette(): _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0)
+Palette::Palette(const char * name): _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0), _name(name)
 {
 	Palette(OFF, 10);
 }
 
-Palette::Palette(palette_type mode, uint16_t total) : _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0)
+Palette::Palette(palette_type mode, uint16_t total, const char * name) : _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0), _name(name)
 {
 	_mode = mode;
 	_total = total;
@@ -262,7 +262,9 @@ RgbColor Palette::wheel (uint8_t position)
 bool Palette::addJson(JsonObject& root)
 {
 	//JsonObject& root = in;
-	JsonObject& palette = root.createNestedObject("Palette");
+		PaletteDebugf("[Palette::addJson] Func HIT, _mode = %u\n", (uint8_t)_mode );
+
+	JsonObject& palette = root.createNestedObject(_name);
 	palette["name"] = getModeString();
 	palette["mode"] = (uint8_t)_mode;
 	palette["total"] = _total;
@@ -286,18 +288,18 @@ bool Palette::parseJson(JsonObject& root)
 	PaletteDebugf("[Palette::parseJson] Func HIT\n");
 	bool changed = false;
 
-	if (!root.containsKey("Palette")) { return false; }
+	if (!root.containsKey(_name)) { return false; }
 
-	JsonObject& palette = root["Palette"];
+	JsonObject& palette = root[_name];
 
 	if (palette.containsKey("mode")) {
-		palette_type mode = (palette_type)palette["mode"].as<long>();
+		palette_type modevar = (palette_type)palette["mode"].as<long>();
 
-		if (_mode != mode ) {
+		if (_mode != modevar ) {
 
-			_mode = mode;
+			mode((palette_type)modevar); //  = mode;
 			changed = true;
-			PaletteDebugf("[Palette::parseJson] mode = %u\n", palette["mode"].as<long>() );
+			PaletteDebugf("[Palette::parseJson] mode = %u\n", (uint8_t)_mode );
 		}
 	}
 	if (palette.containsKey("total")) {

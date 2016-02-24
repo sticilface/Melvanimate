@@ -50,7 +50,7 @@ public:
 	}
 
 private:
-	T _var;
+	T _var{}; 
 };
 
 
@@ -102,7 +102,7 @@ public:
 	bool parseJsonProperty(JsonObject & root) override ;
 
 private:
-	RgbColor _var;
+	RgbColor _var = RgbColor(0,0,0); 
 };
 
 template <>
@@ -126,7 +126,7 @@ template <>
 class Variable<Palette*>: public AbstractPropertyHandler
 {
 public:
-	Variable(const char * name)
+	Variable(const char * name): _var(name)
 	{
 		_name = name;
 	};
@@ -137,6 +137,7 @@ public:
 	{
 		return _var.addJson(root);
 	}
+
 	bool parseJsonProperty(JsonObject & root) override
 	{
 		if (root.containsKey(_name)) {

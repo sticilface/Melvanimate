@@ -62,8 +62,8 @@ public:
 	bool Save(uint8_t ID, const char * name, bool overwrite = false);
 
 	bool Load(uint8_t ID);
-		//  Load needs to be moved to the effecthandler... so that the manager can just set the flag.. 
-		//  load this preset, then the effect can do it when it is ready... so async... 
+	//  Load needs to be moved to the effecthandler... so that the manager can just set the flag..
+	//  load this preset, then the effect can do it when it is ready... so async...
 
 
 	bool removePreset(uint8_t ID);
@@ -118,7 +118,7 @@ public:
 	virtual void Refresh() {}
 	virtual void SetTimeout(uint32_t) {}
 
-	bool parseJson(JsonObject & root); // calls parseJsonEffect internally after calling propertymanager... 
+	bool parseJson(JsonObject & root); // calls parseJsonEffect internally after calling propertymanager...
 	virtual bool parseJsonEffect(JsonObject & root) { return false;} // allows JSON to be acted on within the effect
 
 	// needs to NOT be virtual... call parsejson instead... but then call a virtual member..
@@ -128,7 +128,7 @@ public:
 
 	// save does NOT have to be overridden.  it calls addJson instead.
 	virtual bool save(JsonObject& root, const char *& ID, const char * name);
-	
+
 	uint8_t preset() { return _preset; }
 	void preset(uint8_t preset) { _preset = preset; }
 
@@ -218,15 +218,16 @@ class SimpleEffect : public SwitchEffect
 {
 
 public:
-	SimpleEffect(EffectHandlerFunction Fn): SwitchEffect(Fn)  {
+	SimpleEffect(EffectHandlerFunction Fn): SwitchEffect(Fn)
+	{
 
-		//addVar(new Variable<Palette*>("Palette")); 
+		//addVar(new Variable<Palette*>("Palette"));
 	};
 
-	bool InitVars() 
+	bool InitVars()
 	{
 		addVar(new Variable<uint8_t>("brightness"));
-		addVar(new Variable<RgbColor>("color1"));		
+		addVar(new Variable<RgbColor>("color1"));
 	}
 
 	RgbColor color() { return getVar<RgbColor>("color1"); }
@@ -250,8 +251,8 @@ public:
 		addVar(new Variable<uint8_t>("universe"));
 		addVar(new Variable<uint8_t>("ppu"));
 		addVar(new Variable<uint8_t>("channel_start"));
-		addVar(new Variable<const char *>("marqueetext"));		
-		//addVar(new Variable<Palette*>("Palette")); 
+		addVar(new Variable<const char *>("marqueetext"));
+		//addVar(new Variable<Palette*>("Palette"));
 
 	}
 
@@ -387,7 +388,7 @@ private:
 //virtual bool addEffectJson(JsonObject& settings) { return false; };
 
 //	bool parseJsonEffectM(JsonObject & root) ;  // use json so it can be used with MQTT etc...
-//	bool addEffectJsonM(JsonObject& root) ; 
+//	bool addEffectJsonM(JsonObject& root) ;
 
 
 // class Effect2: public EffectHandler
@@ -403,7 +404,7 @@ private:
 // 		_manager.addVar(new Variable<RgbColor>("color5"));
 // 	}
 
-// 	//  required as inherited functions do not override 
+// 	//  required as inherited functions do not override
 // 	bool addEffectJson(JsonObject & root) override  { return _manager.addEffectJsonM(root); }
 // 	bool parseJsonEffect(JsonObject & root) override { return _manager.parseJsonEffectM(root); }
 
@@ -413,7 +414,7 @@ private:
 // 		RgbColor b = _manager.getVar<RgbColor>("color1");
 // 	}
 // private:
-// 	PropertyManager _manager; 
+// 	PropertyManager _manager;
 // };
 
 class Effect2: public EffectHandler
@@ -424,8 +425,9 @@ public:
 
 	}
 
-	bool InitVars() override {
-		uint32_t heapv = ESP.getFreeHeap(); 
+	bool InitVars() override
+	{
+		uint32_t heapv = ESP.getFreeHeap();
 		addVar(new Variable<int>("int"));
 		addVar(new Variable<uint8_t>("brightness"));
 		addVar(new Variable<uint8_t>("speed"));
@@ -453,8 +455,9 @@ public:
 		addVar(new Variable<int>("int8"));
 		addVar(new Variable<int>("int9"));
 		addVar(new Variable<int>("int10"));
+
 		heapv = heapv - ESP.getFreeHeap();
-		Serial.printf("[Effect2:init] heap used %u\n", heapv);		
+		Serial.printf("[Effect2:init] heap used %u\n", heapv);
 	}
 
 	bool Stop() override

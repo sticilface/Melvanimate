@@ -12,7 +12,7 @@
 
 #include <ArduinoJson.h>
 
-//#define DebugPalette
+#define DebugPalette
 
 #ifdef DebugPalette
 #define PaletteDebugf(...) Serial.printf(__VA_ARGS__)
@@ -39,8 +39,8 @@ class Palette
 {
 
 public:
-	Palette();
-	Palette(palette_type mode, uint16_t total);
+	Palette(const char * name = "Palette");
+	Palette(palette_type mode, uint16_t total, const char * name = "Palette" );
 	~Palette();
 
 	RgbColor next();
@@ -124,4 +124,5 @@ private:
 	RgbColor _input;
 	float _range = 0.2f; // spread of palettes... 
 	uint32_t _delay; 
+	const char * _name; 
 };
