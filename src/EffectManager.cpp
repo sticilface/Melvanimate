@@ -188,6 +188,8 @@ const char * EffectManager::getName(uint8_t i)
 
 
 
+
+//  could try and package this up... maybe using a struct... ... maybe...
 bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, JsonObject *& root, const char * file_name)
 {
 	uint32_t starttime = millis();
@@ -195,9 +197,9 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 	File f = SPIFFS.open(file_name, "r");
 	bool success = false;
 
-	if (!f) {
+//	if (!f) {
 //		Serial.println("[_parsespiffs] No File Found");
-	}
+//	}
 
 	if (f && f.size()) {
 
@@ -206,7 +208,7 @@ bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, 
 		data = new char[f.size()];
 		// prevent nullptr exception if can't allocate
 		if (data) {
-//			Serial.printf("[_parsespiffs] buffer size %u\n", f.size());
+			Serial.printf("[_parsespiffs] Buffer size %u\n", f.size());
 
 			//  This method give a massive improvement in file reading speed for SPIFFS files..
 
@@ -336,7 +338,7 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 
 			delay(0);
 
-			if (root) { // avoid nullptr errors...
+			if (root) { // avoid nullptr ...
 
 				for (JsonObject::iterator it = root->begin(); it != root->end(); ++it) {
 					// get id of preset
@@ -387,7 +389,6 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 									} else {
 										preset_names[count] = nullptr;
 									}
-
 
 									count++;
 								}
@@ -497,39 +498,42 @@ bool EffectManager::newSave(uint8_t ID, const char * name, bool overwrite)
 bool EffectManager::newLoad(uint8_t ID)
 {
 	bool success = false;
-	if (_currentHandle) {
+	if (_currentHandle ) {
 		DynamicJsonBuffer jsonBuffer;
-		const char * cID = jsonBuffer.strdup(String(ID).c_str());
+		const char * cID = jsonBuffer.strdup(String(ID).c_str()); //  this is a hack as i couldn't get it to work... can probably try without it now...
+
 		JsonObject * root = nullptr;
 		char * data = nullptr;
 		bool success = false;
 
 		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
-			//  Is current effect same effect as it wanted.
+			//  Is current effect same effect as is wanted.
 			JsonObject& preset = (*root)[cID];
 			EffectHandler* effectp = nullptr;
 
+			if (root) {
 
-			if (root->containsKey(cID)) { // only process if the json contains a key with the right name
+				if (root->containsKey(cID)) { // only process if the json contains a key with the right name
 
-				if (_currentHandle && preset.containsKey("effect")) {
-					if (strcmp(_currentHandle->name(), preset["effect"]) != 0) {
-						effectp = Start(preset["effect"].asString());
+					if (_currentHandle && preset.containsKey("effect")) {
+						if (strcmp(_currentHandle->name(), preset["effect"]) != 0) {
+							effectp = Start(preset["effect"].asString());
 //						Serial.printf("[EffectManager::newLoad]  Effect changed to %s\n", effectp->name());
-					} else {
-						effectp = _currentHandle;
+						} else {
+							effectp = _currentHandle;
+						}
 					}
-				}
 
-				// now can load the effect using json
+					// now can load the effect using json
 
-				if (effectp->parseJson(preset)) {
+					if (effectp->parseJson(preset)) {
 //						Serial.printf("[EffectManager::newLoad] Preset %s loaded\n", cID);
-					effectp->_preset = ID;
-					success = true;
-				}
+						effectp->_preset = ID;
+						success = true;
+					}
 
+				}
 			}
 		}
 

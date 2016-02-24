@@ -71,7 +71,7 @@ public:
 			}
 		}
 
-		return (T)(NULL);  // not sure about this... likely
+		return (T)(NULL);  // not sure about this...
 	}
 
 	//  these functions should 'overridde from the effectHandler'
@@ -86,7 +86,7 @@ private:
 
 
 
-// specialisations for Variable
+// specialisations for Variables 
 template <>
 class Variable<RgbColor>: public AbstractPropertyHandler
 {
