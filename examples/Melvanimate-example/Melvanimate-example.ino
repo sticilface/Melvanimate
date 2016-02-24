@@ -206,7 +206,7 @@ void setup()
     if (HTTP.hasArg("load")) {
       lights.Load(HTTP.arg("load").toInt());
       Serial.printf("[load] done, heap: %u\n", ESP.getFreeHeap());
-      Serial.printf("[load] current preset = %u\n", lights.Current()->getPreset());
+      Serial.printf("[load] current preset = %u\n", lights.Current()->preset());
       HTTP.setContentLength(0);
       HTTP.send(200); // sends OK if were just receiving data...
     }
@@ -284,7 +284,7 @@ void setup()
 
 // experimental and in testing
 
-// lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
+   lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
@@ -469,7 +469,8 @@ void print_args()
     Serial.print("] ");
     Serial.print(HTTP.argName(i));
     Serial.print(" = ");
-    Serial.println(HTTP.arg(i));
+    Serial.print(HTTP.arg(i));
+    Serial.printf("\nheap = [%u]\n",ESP.getFreeHeap()); 
     Serial.flush();
   }
 }
@@ -807,7 +808,7 @@ void send_data(String page)
     JsonObject& settings = root.createNestedObject("settings");
     // adds minimum current effect name, if there if addJson returns false.
     if (lights.Current()) {
-      settings["currentpreset"] = lights.Current()->getPreset();
+      settings["currentpreset"] = lights.Current()->preset();
 
       if (!lights.Current()->addJson(settings)) {
         settings["effect"] = lights.Current()->name();

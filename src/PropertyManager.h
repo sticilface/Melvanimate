@@ -19,7 +19,6 @@ private:
 	AbstractPropertyHandler* _next = nullptr;
 protected:
 	const char * _name = nullptr;
-
 };
 
 //  template class for everything
@@ -77,8 +76,9 @@ public:
 	//  these functions should 'overridde from the effectHandler'
 	bool parseJsonEffect(JsonObject & root) ;  // use json so it can be used with MQTT etc...
 	bool addEffectJson(JsonObject& root) ;
+	void EndVars();
+	virtual bool InitVars() { return false; }
 
-	void purgeVars(); 
 
 private:
 	AbstractPropertyHandler* _firsthandle;

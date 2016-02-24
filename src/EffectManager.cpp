@@ -86,13 +86,19 @@ EffectHandler* EffectManager::Start(const char * name)
 
 	// actually.. maybe use return values to signal... with timeouts to prevent getting stuck..
 	// manager sends... stop()....  until that returns true.. it can't --- NOPE not going to work... Start and stop should only get called once...
-	if (_currentHandle) { _currentHandle->Stop(); }
+
+	Stop();
 
 	EffectHandler* handler = _findhandle(name);
 
 
 	if (handler) {
 		_NextInLine = handler;
+		_NextInLine->InitVars();
+
+		if (_NextInLine->preset() != 255) {
+			Load(_NextInLine->preset()); 
+		}
 		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
 
 //		Serial.printf("[Start] %u presets found for %s\n", _numberofpresets, _NextInLine->name());
@@ -104,6 +110,7 @@ EffectHandler* EffectManager::Start(const char * name)
 
 };
 
+// not sure about this implementation....
 bool EffectManager::Next()
 {
 	_currentHandle = _currentHandle->next();
@@ -112,7 +119,10 @@ bool EffectManager::Next()
 
 bool EffectManager::Stop()
 {
-	if (_currentHandle) { _currentHandle->Stop(); }
+	if (_currentHandle) {
+		_currentHandle->EndVars();
+		_currentHandle->Stop();
+	}
 };
 
 bool EffectManager::Pause()
@@ -501,7 +511,19 @@ bool EffectManager::Load(uint8_t ID)
 {
 	bool success = false;
 
-	if (_currentHandle && !_NextInLine) { //  make sure there is no effect waiting
+	EffectHandler* handle = nullptr; 
+
+	if (_currentHandle && !_NextInLine) 
+	{ 
+		handle = _currentHandle;
+	} else if (_NextInLine) 
+	{
+		handle = _NextInLine;
+	}
+
+
+	if (handle) {
+
 		DynamicJsonBuffer jsonBuffer;
 		const char * cID = jsonBuffer.strdup(String(ID).c_str()); //  this is a hack as i couldn't get it to work... can probably try without it now...
 
@@ -513,26 +535,27 @@ bool EffectManager::Load(uint8_t ID)
 
 			//  Is current effect same effect as is wanted.
 			JsonObject& preset = (*root)[cID];
-			EffectHandler* effectp = nullptr;
+//			EffectHandler* effectp = nullptr;
 
 			if (root) {
 
 				if (root->containsKey(cID)) { // only process if the json contains a key with the right name
 
-					if (_currentHandle && preset.containsKey("effect")) {
-						if (strcmp(_currentHandle->name(), preset["effect"]) != 0) {
-							effectp = Start(preset["effect"].asString());
+					if (handle && preset.containsKey("effect")) {
+						if (strcmp(handle->name(), preset["effect"]) != 0) {
+							handle = Start(preset["effect"].asString());
 //						Serial.printf("[EffectManager::newLoad]  Effect changed to %s\n", effectp->name());
-						} else {
-							effectp = _currentHandle;
-						}
+						} 
+						//else {
+						//	effectp = _currentHandle;
+						//}
 					}
 
 					// now can load the effect using json
 
-					if (effectp->parseJson(preset)) {
+					if (handle->parseJson(preset)) {
 //						Serial.printf("[EffectManager::newLoad] Preset %s loaded\n", cID);
-						effectp->_preset = ID;
+						handle->preset(ID);
 						success = true;
 					}
 

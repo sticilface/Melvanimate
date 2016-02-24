@@ -24,7 +24,28 @@ AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 	return nullptr;
 }
 
+void PropertyManager::EndVars() 
+{
 
+
+	//  set the first pointer in manager to null, but keeps track of pointer to first handle..
+
+	AbstractPropertyHandler* handle = nullptr;
+	AbstractPropertyHandler* previoushandle = nullptr;
+
+	for ( handle = _firsthandle; handle; handle = handle->next()) {
+
+		if (previoushandle) {
+			delete previoushandle;
+			previoushandle = nullptr;
+		}
+
+		previoushandle = handle;
+	}
+
+	_firsthandle = nullptr;
+
+}
 
 bool PropertyManager::parseJsonEffect(JsonObject & root)
 {
