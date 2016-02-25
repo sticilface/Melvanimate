@@ -260,7 +260,7 @@ void setup()
 
 
 
-  lights.Add("Off", new SwitchEffect( offFn));                              // working
+  lights.Add("Off", new SwitchEffect( offFn), true);     //  **  Last true indicates this is the default effect... ie... off...
   lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn));              // working
   lights.Add("CuriousCat", new Effect2);
 
@@ -284,7 +284,7 @@ void setup()
 
 // experimental and in testing
 
-   lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
+  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
@@ -469,10 +469,11 @@ void print_args()
     Serial.print("] ");
     Serial.print(HTTP.argName(i));
     Serial.print(" = ");
-    Serial.print(HTTP.arg(i));
-    Serial.printf("\nheap = [%u]\n",ESP.getFreeHeap()); 
+    Serial.println(HTTP.arg(i));
     Serial.flush();
   }
+  Serial.printf("Heap = [%u]\n", ESP.getFreeHeap());
+
 }
 
 //  this is required as some
@@ -544,7 +545,7 @@ void handle_data()
 
   if (HTTP.hasArg("mode")) {
     modechange = lights.Start(HTTP.arg("mode"));
-    if (HTTP.arg("mode") != "Off") { lights.SetToggle(HTTP.arg("mode").c_str()); }
+    //if (HTTP.arg("mode") != "Off") { lights.SetToggle(HTTP.arg("mode").c_str()); }
   }
 
 
@@ -773,6 +774,24 @@ void handle_data()
 
   }
 
+
+
+
+  if (HTTP.hasArg("presetcommand")) {
+
+    if (HTTP.arg("presetcommand") == "load") {
+      lights.Load(HTTP.arg("selectedeffect").toInt());
+    } else if (HTTP.arg("presetcommand") == "save" ) {
+      //lights.Save(HTTP.arg("selectedeffect").toInt(), HTTP.arg("name").c_str());
+    } else if (HTTP.arg("presetcommand") == "overwrite" ) {
+      lights.Save(HTTP.arg("selectedeffect").toInt(), HTTP.arg("name").c_str());
+    } else if (HTTP.arg("presetcommand") == "delete" ) {
+      lights.removePreset(HTTP.arg("selectedeffect").toInt()); 
+    }
+
+
+
+  }
   //HTTP.setContentLength(0);
   //HTTP.send(200); // sends OK if were just receiving data...
   send_data(page);
@@ -945,6 +964,10 @@ void send_data(String page)
       remaining.add(seconds);
     }
 
+  }
+
+  if (page == "presetspage") {
+    lights.addAllpresets(jsonBuffer, root);
   }
 
   // Serial.println("JSON REPLY");

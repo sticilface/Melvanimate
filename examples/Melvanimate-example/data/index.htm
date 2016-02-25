@@ -80,8 +80,8 @@
         </div>
         <div>
             <a href="#homepage" data-role="button" class="ui-btn">Home</a>
-            <a href="#savepage" data-role="button" class="ui-btn">Save</a>
-            <a href="#presets" data-role="button" class="ui-btn">Presets</a>
+            <!--<a href="#savepage" data-role="button" class="ui-btn">Save</a>-->
+            <a href="#presetspage" data-role="button" class="ui-btn">Presets</a>
             <a href="#palette" data-role="button" class="ui-btn">Palette</a>
             <a href="#timer" data-role="button" class="ui-btn">Timer</a>
             <a href="#layout" data-role="button" class="ui-btn">Layout</a>
@@ -199,7 +199,7 @@
     </div>
     <!-- homepage -->
 
-    <div data-role="page" data-close-btn="right" data-dialog="true" id="savepage">
+    <div data-role="page" data-close-btn="right" data-dialog="true" id="presetspage">
       
         <div data-role="header">
         <h1>Save</h1>
@@ -207,26 +207,28 @@
         <div data-role="content">
             <form id="save_presets_form">
                     <div class="ui-field-contain ">
-                        <label for="select-saveasnew">Save:</label>
-                        <select name="saveasnew" id="select-saveasnew">
-                            <option value="new" selected="selected">New</option>
+                        <label for="select-saveasnew">Action:</label>
+                        <select name="presetcommand" id="select-saveasnew">
+                            <option value="load" selected="selected">Load</option>
+                            <option value="new">Create New</option>
                             <option value="overwrite">Overwrite Existing</option>
+                            <option value="delete">Delete Existing</option>
                         </select>
                     </div>
-                    
-                <div class="ui-field-contain" id="savepage_effects_list_div" style="display: none;">
+                    <!--style="display: none;"-->
+                <div class="ui-field-contain" id="savepage_effects_list_div" >   
                     <label for="savepage_effects_list_select">Effect:</label>
-                    <select name="savepageeffect" id="savepage_effects_list_select" >
+                    <select name="selectedeffect" id="savepage_effects_list_select" >
 
                     </select>
                 </div>
                 
-                <div class="ui-field-contain">
+                <div class="ui-field-contain" style="display: none;">
                     <label for="input_savename">Effect Name:</label>
-                    <input type="text" name="savename" id="input_savename" value="">
+                    <input type="text" name="presetsavename" id="input_savename" value="">
                 </div>
 
-                <a href="##" data-rel="back" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Save</a>
+                <a href="##" data-rel="back" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
 
                 </form>
         </div>
@@ -235,16 +237,16 @@
     
     
     
-    <div data-role="page" id="presets">
+    <!--<div data-role="page" id="presets">-->
 
-        <div data-role="content">
+    <!--    <div data-role="content">-->
 
-            <h3>Presets</h3>
+    <!--        <h3>Presets</h3>-->
 
 
-        </div>
+    <!--    </div>-->
 
-    </div>
+    <!--</div>-->
 
 
     <div data-role="page" id="layout">
@@ -824,6 +826,38 @@
                 });
 
             });
+            
+            $("#presetspage").on("pagebeforeshow", function() {
+              
+              // #savepage_effects_list_select
+              // #select-saveasnew
+              // #input_savename
+              
+
+              //               <option value="new" selected="selected">New</option>
+              //               <option value="overwrite">Overwrite Existing</option>
+              //               <option value="delete">Delete Existing</option>
+
+                $('#select-saveasnew').change(function() {
+
+                    console.log("mode change");
+                    var command = $(this).val();
+              
+                if (command == "new") {
+                  $('#input_savename').closest('div.ui-field-contain').show();
+                  $('#savepage_effects_list_select').closest('div.ui-field-contain').hide();
+                  
+                }
+                
+                if (command == "overwrite" || command == "delete") {
+                  $('#input_savename').closest('div.ui-field-contain').hide();
+                  $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
+                }
+              
+              
+                });
+            });
+            
 
             $("#homepage").on("pagebeforeshow", function() {
               
@@ -1186,6 +1220,26 @@
                       }
                       //  presetlist
                     }
+
+                    //presetspage
+                    
+                    
+                    if ($.mobile.activePage.attr('id') == 'presetspage') {
+                      
+                      if (result.hasOwnProperty('Presets')) {
+                            $.each(result.Presets, function(key, value) {
+                                var isconnected = " ";
+                                //if (result.hasOwnProperty('settings')) {
+                                //if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
+                                //}
+                                  console.log("KEY = " + key + ", VALUE = " + value); 
+                                $("#savepage_effects_list_select").append('<option value=' + key + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
+                            }); 
+                        $('#savepage_effects_list_select').selectmenu('refresh');                      
+                      
+                      }
+                    }
+
 
                     // Layout Page
                     if ($.mobile.activePage.attr('id') == 'layout') {

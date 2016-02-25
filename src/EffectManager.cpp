@@ -17,12 +17,16 @@ const char * PRESETS_FILE = "/presets.txt";
 ---------------------------------------------*/
 
 EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandle(nullptr), _lastHandle(nullptr), _toggleHandle(nullptr),
-	_NextInLine(nullptr)
+	_NextInLine(nullptr), _defaulteffecthandle(nullptr)
 {};
 
-bool EffectManager::Add(const char * name, EffectHandler* handle)
+bool EffectManager::Add(const char * name, EffectHandler* handle, bool defaulteffect)
 {
 	_count++;
+
+	if (defaulteffect) {
+		_defaulteffecthandle = handle; 
+	}
 
 	if (!_lastHandle) {
 		_firstHandle = handle; //  set the first handle
@@ -45,17 +49,16 @@ EffectHandler* EffectManager::Start()
 	return nullptr;
 }
 
-bool EffectManager::SetToggle(const char * name)
-{
-	EffectHandler* handler = _findhandle(name);
+// bool EffectManager::SetToggle(const char * name)
+// {
+// 	EffectHandler* handler = _findhandle(name);
 
-	if (handler) {
-		_toggleHandle = handler;
-		//getPresets(_toggleHandle, _numberofpresets, _presets);
-		return true;
-	}
-	return false;
-}
+// 	if (handler) {
+// 		_toggleHandle = handler;
+// 		return true;
+// 	}
+// 	return false;
+// }
 
 
 
@@ -91,20 +94,30 @@ EffectHandler* EffectManager::Start(const char * name)
 
 	EffectHandler* handler = _findhandle(name);
 
-
 	if (handler) {
 		_NextInLine = handler;
 		_NextInLine->InitVars();
 
 		if (_NextInLine->preset() != 255) {
-			Load(_NextInLine->preset()); 
+			Load(_NextInLine->preset());
 		}
 		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
 
-//		Serial.printf("[Start] %u presets found for %s\n", _numberofpresets, _NextInLine->name());
+		//  This sets the toggle... as long as it is not the default handle... ie... Off.... 
+		if (_defaulteffecthandle) {
+			if (handler != _defaulteffecthandle) {
+				_toggleHandle = handler; 
+			}
+		}
 
 		return _NextInLine;
 	} else {
+
+		if (_defaulteffecthandle)
+		{
+			return Start(_defaulteffecthandle->name()); 
+		}
+
 		return nullptr;
 	}
 
@@ -427,6 +440,49 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 
 }
 
+void EffectManager::addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & root)
+{
+	JsonObject & presets = root.createNestedObject("Presets");
+
+	{
+
+		DynamicJsonBuffer jsonBuffer2;
+		JsonObject * root2 = nullptr;
+		char * data = nullptr;
+
+
+		if (parsespiffs(data, jsonBuffer2, root2, PRESETS_FILE )) {
+
+			for (JsonObject::iterator it = root2->begin(); it != root2->end(); ++it) {
+				// get id of preset
+				const char * key = it->key;
+				// extract the json object for each effect
+
+				JsonObject& current = it->value.asObject();
+
+				// compare to the name of current effect
+				//	Serial.printf("[getPresets] Identified presets for %s (%s)\n", handle->name(), key);
+				if (current.containsKey("effect") && current.containsKey("name")) {
+
+					const char * presetkey = jsonBuffer.strdup(key); 
+					const char * presetname = jsonBuffer.strdup(current["name"].asString());
+					const char * preseteffect = jsonBuffer.strdup(current["effect"].asString());
+
+					JsonObject & effect = presets.createNestedObject(presetkey);
+					effect["name"] = presetname;
+					effect["effect"] = preseteffect;
+
+
+				}
+			}
+
+		}
+		if (data) { delete[] data; }
+	}
+
+}
+
+
 // todo....
 
 uint8_t EffectManager::nextFree(JsonObject & root)
@@ -511,13 +567,11 @@ bool EffectManager::Load(uint8_t ID)
 {
 	bool success = false;
 
-	EffectHandler* handle = nullptr; 
+	EffectHandler* handle = nullptr;
 
-	if (_currentHandle && !_NextInLine) 
-	{ 
+	if (_currentHandle && !_NextInLine) {
 		handle = _currentHandle;
-	} else if (_NextInLine) 
-	{
+	} else if (_NextInLine) {
 		handle = _NextInLine;
 	}
 
@@ -545,7 +599,7 @@ bool EffectManager::Load(uint8_t ID)
 						if (strcmp(handle->name(), preset["effect"]) != 0) {
 							handle = Start(preset["effect"].asString());
 //						Serial.printf("[EffectManager::newLoad]  Effect changed to %s\n", effectp->name());
-						} 
+						}
 						//else {
 						//	effectp = _currentHandle;
 						//}

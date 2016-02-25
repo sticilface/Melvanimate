@@ -29,7 +29,7 @@ public:
 	EffectManager();
 	~EffectManager() {};
 
-	bool Add(const char * name, EffectHandler* Handler);
+	bool Add(const char * name, EffectHandler* Handler, bool defaulteffect = false);
 	void SetTimeout(uint32_t time);
 	void SetTimeout(const char * name, uint32_t time);
 
@@ -71,6 +71,7 @@ public:
 
 	// fetches info from SPIFFS valid presests for current effect
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
+	void addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & root); 
 
 	bool SetToggle(const char * name);
 
@@ -90,6 +91,7 @@ protected:
 	EffectHandler*  _lastHandle;
 	EffectHandler*  _NextInLine;
 	EffectHandler*  _toggleHandle;
+	EffectHandler* _defaulteffecthandle; 
 	uint16_t _count;
 	//const char * PresetsFile = PRESETS_FILE;
 private:
