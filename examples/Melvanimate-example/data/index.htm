@@ -202,10 +202,10 @@
     <div data-role="page" data-close-btn="right" data-dialog="true" id="presetspage">
       
         <div data-role="header">
-        <h1>Save</h1>
+        <h1>Presets</h1>
         </div>
         <div data-role="content">
-            <form id="save_presets_form">
+            <form id="presets_form">
                     <div class="ui-field-contain ">
                         <label for="select-saveasnew">Action:</label>
                         <select name="presetcommand" id="select-saveasnew">
@@ -339,11 +339,13 @@
     </div>
 
 
-    <div data-role="page" id="palette">
-
+    <div data-role="page" id="palette" data-close-btn="right" data-dialog="true">
+        <div data-role="header">
+        <h1>Palette</h1>
+        </div>
         <div data-role="content">
 
-            <h3> Palette </h3>
+            <!--<h3> Palette </h3>-->
             <form id="palette-form">
                 <div class="ui-field-contain">
                     <label for="select-palettes2">Palette:</label>
@@ -379,8 +381,9 @@
                     <label for="input-palette-delay">Time Delay:</label>
                     <input type="text" name="palette-delay" id="input-palette-delay" value="">
                 </div>
+                <a href="##" data-rel="back" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
 
-                <button id="apply_palette_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
+                <!--<button id="apply_palette_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>-->
             </form>
             
         </div>
@@ -388,11 +391,13 @@
     </div>
 
 
-    <div data-role="page" id="timer">
-
+    <div data-role="page" id="timer" data-close-btn="right" data-dialog="true">
+        <div data-role="header">
+        <h1>Timer</h1>
+        </div>
+        
         <div data-role="content">
 
-            <h3> Timer </h3>
             <div id="timer-time-left"></div>
             <form id="timer-form">
 
@@ -443,8 +448,9 @@
                         </div>                        
                         
                     </div>
+                <a href="##" data-rel="back" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
 
-                    <button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
+                    <!--<button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>-->
                 </div>
                 <!-- end of maintimerdiv-->
             </form>
@@ -850,12 +856,18 @@
                 }
                 
                 if (command == "overwrite" || command == "delete") {
-                  $('#input_savename').closest('div.ui-field-contain').hide();
+                  $('#input_savename').closest('div.ui-field-contain').show();
                   $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
                 }
-              
-              
+          
                 });
+                          $('#savepage_effects_list_select').change(function() {
+                   $('#input_savename').val($(this).val());
+                });
+                
+                
+                
+                
             });
             
 
@@ -1225,7 +1237,7 @@
                     
                     
                     if ($.mobile.activePage.attr('id') == 'presetspage') {
-                      
+                      $("#savepage_effects_list_select").find('option').remove();
                       if (result.hasOwnProperty('Presets')) {
                             $.each(result.Presets, function(key, value) {
                                 var isconnected = " ";
