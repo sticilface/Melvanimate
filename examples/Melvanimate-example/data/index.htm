@@ -205,6 +205,7 @@
         <h1>Presets</h1>
         </div>
         <div data-role="content">
+          <div id='presetpage_currentEffect'></div>
             <form id="presets_form">
                     <div class="ui-field-contain ">
                         <label for="select-saveasnew">Action:</label>
@@ -509,7 +510,7 @@
         var currentmode;
         var globaldata = {};
         var settings = {}; 
-
+        var presetspagedata = {}; 
 
         var plot1;
         var graphvalues = [''];
@@ -845,9 +846,7 @@
               //               <option value="delete">Delete Existing</option>
 
                 $('#select-saveasnew').change(function() {
-
-                    console.log("mode change");
-                    var command = $(this).val();
+                    command = $(this).val();
               
                 if (command == "new") {
                   $('#input_savename').closest('div.ui-field-contain').show();
@@ -855,17 +854,52 @@
                   
                 }
                 
-                if (command == "overwrite" || command == "delete") {
+                if (command == "overwrite") {
                   $('#input_savename').closest('div.ui-field-contain').show();
                   $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
                 }
+
+                if (command == "delete" || command == "load") {
+                  $('#input_savename').closest('div.ui-field-contain').hide();
+                  $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
+                }
+                
+                
           
                 });
-                          $('#savepage_effects_list_select').change(function() {
-                   $('#input_savename').val($(this).val());
+                
+                $('#savepage_effects_list_select').change(function() {
+                  
+                  selected = $(this).val();
+                  
+                  if (presetspagedata.hasOwnProperty('Presets')) {
+                    
+                    $.each(presetspagedata.Presets, function(key, value) {
+                    
+                    if (selected == key) {
+                      $('#input_savename').val(value.name); 
+                    }
+                    
+                    }); 
+                  }
+                  
+                   //$('#input_savename').val($(this).val());
                 });
                 
-                
+                      //               presetspagedata = result; 
+                      // $("#savepage_effects_list_select").find('option').remove();
+                      // if (result.hasOwnProperty('Presets')) {
+                      //       $.each(result.Presets, function(key, value) {
+                      //           var isconnected = " ";
+                      //           if (result.hasOwnProperty('settings')) {
+                      //           if (result.settings.currentpreset == value.name) isconnected = "selected=\"selected\"";
+                      //           }
+                      //             console.log("KEY = " + key + ", VALUE = " + value); 
+                      //           $("#savepage_effects_list_select").append('<option value=' + key + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
+                      //       }); 
+                      //   $('#savepage_effects_list_select').selectmenu('refresh');                      
+                      
+                      // } 
                 
                 
             });
@@ -1237,21 +1271,24 @@
                     
                     
                     if ($.mobile.activePage.attr('id') == 'presetspage') {
+                      presetspagedata = result; 
                       $("#savepage_effects_list_select").find('option').remove();
                       if (result.hasOwnProperty('Presets')) {
                             $.each(result.Presets, function(key, value) {
                                 var isconnected = " ";
-                                //if (result.hasOwnProperty('settings')) {
-                                //if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
-                                //}
+                                if (result.hasOwnProperty('settings')) {
+                                if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
+                                }
                                   console.log("KEY = " + key + ", VALUE = " + value); 
                                 $("#savepage_effects_list_select").append('<option value=' + key + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
                             }); 
                         $('#savepage_effects_list_select').selectmenu('refresh');                      
                       
                       }
+                      if (result.hasOwnProperty('settings') && settings.hasOwnProperty('currentpresetname')) {
+                      $('#presetpage_currentEffect').empty().append("Current Effect: " + result.settings.currentpresetname); // .css("color", "red");;
                     }
-
+                    }
 
                     // Layout Page
                     if ($.mobile.activePage.attr('id') == 'layout') {
