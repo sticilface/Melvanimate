@@ -112,7 +112,7 @@ void CascadeEffectFn(effectState& state, EffectHandler* ptr)
 *
 *------------------------------------------------*/
 // forward declaration
-/*
+
 
 void Adalight_function();
 void  Adalight_Flash();
@@ -135,7 +135,7 @@ void AdaLightFn(effectState& state, EffectHandler* ptr)
       }
       uint32_t speed = 115200;
 
-      if (effect->getSerialspeed(speed) )
+      if (speed = effect->serialspeed() )
 
         Serial.begin(speed);
 
@@ -286,7 +286,7 @@ void Adalight_function ()      //  uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, c
 
 }
 
-*/
+
 
 /*-----------------------------------------------
 *
@@ -297,56 +297,56 @@ void Adalight_function ()      //  uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, c
 
 void UDPFn(effectState state, EffectHandler* ptr)
 {
-  int packetSize;
+//   int packetSize;
 
-  switch (state) {
+//   switch (state) {
 
-  case PRE_EFFECT: {
+//   case PRE_EFFECT: {
 
-    lights.SetTimeout(0);
+//     lights.SetTimeout(0);
 
-//    if (millis() > 60000) Adalight_Flash();
-    Udp.beginMulticast(WiFi.localIP(), multicast_ip_addr, UDPlightPort);
+// //    if (millis() > 60000) Adalight_Flash();
+//     Udp.beginMulticast(WiFi.localIP(), multicast_ip_addr, UDPlightPort);
 
-    break;
-  }
-  case RUN_EFFECT: {
+//     break;
+//   }
+//   case RUN_EFFECT: {
 
-    if (!Udp) Udp.beginMulticast(WiFi.localIP(), multicast_ip_addr, UDPlightPort); // restart listening if it stops...
+//     if (!Udp) Udp.beginMulticast(WiFi.localIP(), multicast_ip_addr, UDPlightPort); // restart listening if it stops...
 
-    packetSize = Udp.parsePacket();
+//     packetSize = Udp.parsePacket();
 
-    if  (Udp.available())  {
-      for (int i = 0; i < packetSize; i = i + 3) {
-        if (i > strip->PixelCount() * 3) break;         // Stops reading if LED count is reached.
-        stripBuffer[i + 1] = Udp.read();   // direct buffer is GRB,
-        stripBuffer[i]     = Udp.read();
-        stripBuffer[i + 2] = Udp.read();
-      }
-      Udp.flush();
-      strip->Dirty();
-      //strip->Show();
+//     if  (Udp.available())  {
+//       for (int i = 0; i < packetSize; i = i + 3) {
+//         if (i > strip->PixelCount() * 3) break;         // Stops reading if LED count is reached.
+//         stripBuffer[i + 1] = Udp.read();   // direct buffer is GRB,
+//         stripBuffer[i]     = Udp.read();
+//         stripBuffer[i + 2] = Udp.read();
+//       }
+//       Udp.flush();
+//       strip->Dirty();
+//       //strip->Show();
 
-      Show_pixels(true);
-      lights.timeoutvar = millis();
+//       Show_pixels(true);
+//       lights.timeoutvar = millis();
 
-    }
+//     }
 
-    if (millis() - lights.timeoutvar > 5000)  {
-      strip->ClearTo(0, 0, 0);
-      lights.timeoutvar = millis();
-    }
+//     if (millis() - lights.timeoutvar > 5000)  {
+//       strip->ClearTo(0, 0, 0);
+//       lights.timeoutvar = millis();
+//     }
 
-    break;
-  }
-  case POST_EFFECT: {
-    Udp.stop();
-    animator->FadeTo(250, 0);
+//     break;
+//   }
+//   case POST_EFFECT: {
+//     Udp.stop();
+//     animator->FadeTo(250, 0);
 
-    break;
-  }
+//     break;
+//   }
 
-  }
+//   }
 
 }
 
@@ -363,153 +363,153 @@ void UDPFn(effectState state, EffectHandler* ptr)
 void  DMXfn (effectState state, EffectHandler* ptr)
 {
 
-  int packetSize;
-//TODO: Dynamically allocate seqTracker to support more than 4 universes w/ PIXELS_MAX change
-  static uint8_t         *seqTracker;    /* Current sequence numbers for each Universe */
-  static uint8_t         ppu, uniTotal, universe, channel_start, uniLast;
-  static uint16_t        count, bounds ;
-  static uint32_t        *seqError;      /* Sequence error tracking for each universe */
-  static uint32_t timeout_data = 0;
+//   int packetSize;
+// //TODO: Dynamically allocate seqTracker to support more than 4 universes w/ PIXELS_MAX change
+//   static uint8_t         *seqTracker;    /* Current sequence numbers for each Universe */
+//   static uint8_t         ppu, uniTotal, universe, channel_start, uniLast;
+//   static uint16_t        count, bounds ;
+//   static uint32_t        *seqError;      /* Sequence error tracking for each universe */
+//   static uint32_t timeout_data = 0;
 
-  ppu = 170;
-  universe = 1;
-  channel_start = 1;
+//   ppu = 170;
+//   universe = 1;
+//   channel_start = 1;
 
-  switch (state) {
+//   switch (state) {
 
-  case PRE_EFFECT:
+//   case PRE_EFFECT:
 
-    lights.SetTimeout(0);
-    e131 = new E131;
-//    Debugln("DMX Effect Started");
-//    if (millis() > 30000) Adalight_Flash();
+//     lights.SetTimeout(0);
+//     e131 = new E131;
+// //    Debugln("DMX Effect Started");
+// //    if (millis() > 30000) Adalight_Flash();
 
-    count = strip->PixelCount() * 3;
-    bounds = ppu * 3;
-    if (count % bounds)
-      uniLast = universe + count / bounds;
-    else
-      uniLast = universe + count / bounds - 1;
+//     count = strip->PixelCount() * 3;
+//     bounds = ppu * 3;
+//     if (count % bounds)
+//       uniLast = universe + count / bounds;
+//     else
+//       uniLast = universe + count / bounds - 1;
 
-    uniTotal = (uniLast + 1) - universe;
+//     uniTotal = (uniLast + 1) - universe;
 
-    if (seqTracker) free(seqTracker);
-    if ((seqTracker = (uint8_t *)malloc(uniTotal)))
-      memset(seqTracker, 0x00, uniTotal);
+//     if (seqTracker) free(seqTracker);
+//     if ((seqTracker = (uint8_t *)malloc(uniTotal)))
+//       memset(seqTracker, 0x00, uniTotal);
 
-    if (seqError) free(seqError);
-    if ((seqError = (uint32_t *)malloc(uniTotal * 4)))
-      memset(seqError, 0x00, uniTotal * 4);
+//     if (seqError) free(seqError);
+//     if ((seqError = (uint32_t *)malloc(uniTotal * 4)))
+//       memset(seqError, 0x00, uniTotal * 4);
 
-    Debugf("Count = %u, bounds = %u, uniLast = %u, uniTotal = %u\n", count, bounds, uniLast, uniTotal);
-
-
-    e131->begin( E131_MULTICAST , universe ) ; // E131_MULTICAST // universe is optional and only used for Multicast configuration.
+//     Debugf("Count = %u, bounds = %u, uniLast = %u, uniTotal = %u\n", count, bounds, uniLast, uniTotal);
 
 
-    break;
-
-  case RUN_EFFECT:
-
-// if(e131.parsePacket()) {
-//        if (e131.universe == WS2812_Settings.Effect_Option) {
-//            for (uint16_t i = 0; i < pixelCount; i++) {
-//                uint16_t j = i * 3 + (CHANNEL_START - 1);
-//                strip->SetPixelColor(i, e131.data[j], e131.data[j+1], e131.data[j+2]);
-//            }
-//            strip->Show();
-//            timeout = millis();
-//        }
-//    }
+//     e131->begin( E131_MULTICAST , universe ) ; // E131_MULTICAST // universe is optional and only used for Multicast configuration.
 
 
-    if (e131->parsePacket()) {
-      if ((e131->universe >= universe) && (universe <= uniLast)) {
-        /* Universe offset and sequence tracking */
-        uint8_t uniOffset = (e131->universe - universe);
-        if (e131->packet->sequence_number != seqTracker[uniOffset]++) {
-          seqError[uniOffset]++;
-          seqTracker[uniOffset] = e131->packet->sequence_number + 1;
-        }
+//     break;
 
-        /* Find out starting pixel based off the Universe */
-        uint16_t pixelStart = uniOffset * ppu;
+//   case RUN_EFFECT:
 
-        /* Calculate how many pixels we need from this buffer */
-        uint16_t pixelStop = strip->PixelCount();
-        if ((pixelStart + ppu) < pixelStop)
-          //pixelStop = pixelStart + config.ppu;
-          pixelStop = pixelStart + ppu;
-
-        /* Offset the channel if required for the first universe */
-        uint16_t offset = 0;
-        if (e131->universe == universe)
-          offset = channel_start - 1;
-
-        /* Set the pixel data */
-        uint16_t buffloc = 0;
-        for (uint16_t i = pixelStart; i < pixelStop; i++) {
-          uint16_t j = buffloc++ * 3 + offset;
-          //pixels.setPixelColor(i, e131.data[j], e131.data[j+1], e131.data[j+2]);
-          strip->SetPixelColor(i, e131->data[j], e131->data[j + 1], e131->data[j + 2]);
-        }
-
-        /* Refresh when last universe shows up  or within 10ms if missed */
-        if ((e131->universe == uniLast) || (millis() - lights.timeoutvar > 10)) {
-          //if (e131.universe == uniLast) {
-          //if (millis() - lastPacket > 25) {
-          lights.timeoutvar = millis();
-          Show_pixels(true);
-
-        }
-      }
-    }
+// // if(e131.parsePacket()) {
+// //        if (e131.universe == WS2812_Settings.Effect_Option) {
+// //            for (uint16_t i = 0; i < pixelCount; i++) {
+// //                uint16_t j = i * 3 + (CHANNEL_START - 1);
+// //                strip->SetPixelColor(i, e131.data[j], e131.data[j+1], e131.data[j+2]);
+// //            }
+// //            strip->Show();
+// //            timeout = millis();
+// //        }
+// //    }
 
 
+//     if (e131->parsePacket()) {
+//       if ((e131->universe >= universe) && (universe <= uniLast)) {
+//         /* Universe offset and sequence tracking */
+//         uint8_t uniOffset = (e131->universe - universe);
+//         if (e131->packet->sequence_number != seqTracker[uniOffset]++) {
+//           seqError[uniOffset]++;
+//           seqTracker[uniOffset] = e131->packet->sequence_number + 1;
+//         }
 
-//  Set to black if 30 seconds passed...
-    if (millis() - lights.timeoutvar > 30000)  {
-      strip->ClearTo(0, 0, 0);
-      lights.timeoutvar = millis();
-    }
+//          Find out starting pixel based off the Universe 
+//         uint16_t pixelStart = uniOffset * ppu;
+
+//         /* Calculate how many pixels we need from this buffer */
+//         uint16_t pixelStop = strip->PixelCount();
+//         if ((pixelStart + ppu) < pixelStop)
+//           //pixelStop = pixelStart + config.ppu;
+//           pixelStop = pixelStart + ppu;
+
+//         /* Offset the channel if required for the first universe */
+//         uint16_t offset = 0;
+//         if (e131->universe == universe)
+//           offset = channel_start - 1;
+
+//         /* Set the pixel data */
+//         uint16_t buffloc = 0;
+//         for (uint16_t i = pixelStart; i < pixelStop; i++) {
+//           uint16_t j = buffloc++ * 3 + offset;
+//           //pixels.setPixelColor(i, e131.data[j], e131.data[j+1], e131.data[j+2]);
+//           strip->SetPixelColor(i, e131->data[j], e131->data[j + 1], e131->data[j + 2]);
+//         }
+
+//         /* Refresh when last universe shows up  or within 10ms if missed */
+//         if ((e131->universe == uniLast) || (millis() - lights.timeoutvar > 10)) {
+//           //if (e131.universe == uniLast) {
+//           //if (millis() - lastPacket > 25) {
+//           lights.timeoutvar = millis();
+//           Show_pixels(true);
+
+//         }
+//       }
+//     }
 
 
-//  Print out errors...
-    if (millis() - timeout_data > 30000) {
 
-      //   for (int i = 0; i < ((uniLast + 1) - universe); i++)
-      //     seqErrors =+ seqError[i];
+// //  Set to black if 30 seconds passed...
+//     if (millis() - lights.timeoutvar > 30000)  {
+//       strip->ClearTo(0, 0, 0);
+//       lights.timeoutvar = millis();
+//     }
 
-      uint32_t seqErrors = 0, packet_rate = 0;
-      static uint32_t packets_last = 0;
-      for (int i = 0; i < ((uniLast + 1) - universe); i++)
-        seqErrors = + seqError[i];
 
-      packet_rate = ( e131->stats.num_packets - packets_last ) / 30;
-      Debugf("DMX: Total Packets = %u, Sequence errors = %u, Rate = %u /s \n", e131->stats.num_packets, seqErrors, packet_rate);
-      timeout_data = millis();
-      packets_last = e131->stats.num_packets;
+// //  Print out errors...
+//     if (millis() - timeout_data > 30000) {
 
-    }
+//       //   for (int i = 0; i < ((uniLast + 1) - universe); i++)
+//       //     seqErrors =+ seqError[i];
 
-    break;
+//       uint32_t seqErrors = 0, packet_rate = 0;
+//       static uint32_t packets_last = 0;
+//       for (int i = 0; i < ((uniLast + 1) - universe); i++)
+//         seqErrors = + seqError[i];
 
-  case POST_EFFECT:
+//       packet_rate = ( e131->stats.num_packets - packets_last ) / 30;
+//       Debugf("DMX: Total Packets = %u, Sequence errors = %u, Rate = %u /s \n", e131->stats.num_packets, seqErrors, packet_rate);
+//       timeout_data = millis();
+//       packets_last = e131->stats.num_packets;
 
-    FadeTo(250, 0);
-    if (e131) {
-      delete e131;
-    }
-    e131 = nullptr;
+//     }
 
-    if (seqTracker) free(seqTracker);
-    seqTracker = nullptr;
+//     break;
 
-    if (seqError) free(seqError);
-    seqError = nullptr;
-    break;
+//   case POST_EFFECT:
 
-  }
+//     FadeTo(250, 0);
+//     if (e131) {
+//       delete e131;
+//     }
+//     e131 = nullptr;
+
+//     if (seqTracker) free(seqTracker);
+//     seqTracker = nullptr;
+
+//     if (seqError) free(seqError);
+//     seqError = nullptr;
+//     break;
+
+//   }
 }
 
 /*-----------------------------------------------

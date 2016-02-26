@@ -4,21 +4,25 @@
 #pragma once
 
 #include "Arduino.h"
+#include <functional>
 
 #include <NeoPixelBus.h>
 #include <FS.h>
 #include <ArduinoJson.h>
 #include <MD5Builder.h>
-#include <functional>
 
 
 #include "EffectManager.h"
 #include "ObjectManager.h"
 #include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function 
-#include "Palette.h"
-#include "e131/_E131.h"
 #include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
 
+
+#include "effects/SwitchEffect.h"
+#include "effects/SimpleEffect.h"
+#include "effects/Effect2.h"
+#include "effects/DMXEffect.h"
+#include "effects/AdalightEffect.h"
 
 
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
@@ -35,34 +39,13 @@
 #define DebugMelvanimatef(...) {}
 #endif
 
-class EffectManager;
-class Palette;
 
-// globals for various things, including neopixels...
+// globals for neopixels.
 extern const uint16_t TOTALPIXELS;
 extern NeoPixelBus * strip;
 extern NeoPixelAnimator * animator;
 extern uint8_t* stripBuffer;
-extern WiFiUDP Udp;
-extern const IPAddress multicast_ip_addr; // Multicast broadcast address
-extern const uint16_t UDPlightPort;
-extern E131* e131;
 extern SimpleTimer timer;
-
-
-/*
- * uses effectmanager as base class to manage effects...
- * need to tidy..
- *
- * // ToDo
- *	1.
- *	2.
- *	3. Create Entoopy variable...  Randomness selection...
- *  4.
- *
- *
- *
- */
 
 
 class Melvanimate : public EffectManager
@@ -114,7 +97,6 @@ private:
 	uint8_t _waiting;
 	uint32_t _waiting_timeout = 0;
 
-//	Palette * _palette;
 	int _timer = -1;
 
 

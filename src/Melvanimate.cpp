@@ -8,9 +8,7 @@ NeoPixelBus * strip = nullptr;
 NeoPixelAnimator * animator = nullptr;
 uint8_t* stripBuffer = NULL;
 WiFiUDP Udp;
-const IPAddress multicast_ip_addr(224, 0, 0, 0); // Multicast broadcast address
-const uint16_t UDPlightPort = 8888;
-E131* e131 = nullptr;
+
 SimpleTimer timer;
 
 Melvanimate::Melvanimate(): _pixels(TOTALPIXELS)
