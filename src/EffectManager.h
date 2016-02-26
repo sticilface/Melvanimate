@@ -67,13 +67,13 @@ public:
 
 
 	bool removePreset(uint8_t ID);
-	uint8_t nextFree(JsonObject & root);
+	uint8_t nextFreePreset(JsonObject & root);
 
 	// fetches info from SPIFFS valid presests for current effect
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
 	void addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & root); 
 
-	bool SetToggle(const char * name);
+//	bool SetToggle(const char * name);
 
 	// maybe move this into a helper header file....
 	static bool convertcolor(JsonObject & root, const char * colorstring);
@@ -91,11 +91,10 @@ protected:
 	EffectHandler*  _lastHandle;
 	EffectHandler*  _NextInLine;
 	EffectHandler*  _toggleHandle;
-	EffectHandler* _defaulteffecthandle; 
-	uint16_t _count;
-	//const char * PresetsFile = PRESETS_FILE;
-private:
+	EffectHandler*  _defaulteffecthandle; 
 
+	uint16_t _count;
+private:
 	std::function<bool()>  _waitFn = nullptr;
 
 	// hold a 'new' array of elegible presets for _currenthandler

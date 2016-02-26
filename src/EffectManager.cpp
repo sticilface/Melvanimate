@@ -6,7 +6,7 @@
 #include "EffectManager.h"
 #include "FS.h"
 
-//#define jsonprettyprint
+//#define jsonprettyprint //  uses prettyPrintTo to send to SPIFFS... uses a lot more chars to pad the json.. a lot more..
 
 const char * PRESETS_FILE = "/presets.txt";
 
@@ -25,7 +25,7 @@ bool EffectManager::Add(const char * name, EffectHandler* handle, bool defaultef
 	_count++;
 
 	if (defaulteffect) {
-		_defaulteffecthandle = handle; 
+		_defaulteffecthandle = handle;
 	}
 
 	if (!_lastHandle) {
@@ -46,6 +46,7 @@ EffectHandler* EffectManager::Start()
 	if (_toggleHandle) {
 		return Start(_toggleHandle->name());
 	}
+
 	return nullptr;
 }
 
@@ -101,23 +102,23 @@ EffectHandler* EffectManager::Start(const char * name)
 		if (_NextInLine->preset() != 255) {
 			Load(_NextInLine->preset());
 		}
+
 		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
 
-		//  This sets the toggle... as long as it is not the default handle... ie... Off.... 
+		//  This sets the toggle... as long as it is not the default handle... ie... Off....
 		if (_defaulteffecthandle) {
 			if (handler != _defaulteffecthandle) {
-				_toggleHandle = handler; 
+				_toggleHandle = handler;
 			}
 		}
 
 		return _NextInLine;
 	} else {
-
-		if (_defaulteffecthandle)
-		{
-			return Start(_defaulteffecthandle->name()); 
+		//  if no handle.. try to start default....
+		if (_defaulteffecthandle) {
+			return Start(_defaulteffecthandle->name());
 		}
-
+		// if that fails.. bail...
 		return nullptr;
 	}
 
@@ -220,9 +221,9 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, J
 	File f = SPIFFS.open(file_name, "r");
 	bool success = false;
 
-//	if (!f) {
-//		Serial.println("[parsespiffs] No File Found");
-//	}
+	// if (!f) {
+	// 	Serial.printf("[parsespiffs] File open Failed\n");
+	// }
 
 	if (f && f.size()) {
 
@@ -284,42 +285,49 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, J
 
 bool EffectManager::removePreset(uint8_t ID)
 {
-
-	DynamicJsonBuffer jsonBuffer;
-	const char * cID = jsonBuffer.strdup(String(ID).c_str());
-	JsonObject * root = nullptr;
-	char * data = nullptr;
 	bool success = false;
 
-	if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+	{
+		DynamicJsonBuffer jsonBuffer;
+		const char * cID = jsonBuffer.strdup(String(ID).c_str());
+		JsonObject * root = nullptr;
+		char * data = nullptr;
 
-		if (root) {
+		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
-			if (root->containsKey(cID)) {
-				root->remove(cID) ;
-				File f = SPIFFS.open(PRESETS_FILE, "w");
+			if (root) {
 
-				if (f) {
+				if (root->containsKey(cID)) {
+					root->remove(cID) ;
+					File f = SPIFFS.open(PRESETS_FILE, "w");
 
-					root->prettyPrintTo(f);
-					f.close();
-					success = true;
+					if (f) {
+
+#ifdef jsonprettyprint
+						root->prettyPrintTo(f);
+#else
+						root->printTo(f);
+#endif
+						f.close();
+						success = true;
 //					Serial.printf("[removePreset] [%s] Setting Removed\n", cID);
-				} else {
+					} else {
 //					Serial.println("[removePreset] FILE OPEN error:  NOT saved");
+					}
+
 				}
 
 			}
 
 		}
 
-	}
-
-	if (data) {
-		delete[] data;
+		if (data) {
+			delete[] data;
+		}
 	}
 
 	if (success) {
+		getPresets(_currentHandle, _numberofpresets, _presets, _preset_names); // goes here.. to go outofscope of the previous data[] and jsonbuffer... needs lot of heap...
 		return true;
 	} else {
 		return false;
@@ -359,7 +367,7 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 
 		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
-			delay(0);
+			//delay(0);
 
 			if (root) { // avoid nullptr ...
 
@@ -374,10 +382,11 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 					if (current.containsKey("effect")) {
 						if ( strcmp( current["effect"], handle->name() ) == 0) {
 							// if matched then this preset is a valid effect for the current one.
-							// Serial.printf("[getPresets] found preset for %s (%s)\n", handle->name(), key);
+							//Serial.printf("[getPresets] found preset for %s (%s)\n", handle->name(), key);
 							count++;
 						}
 					}
+
 				}
 
 				// once number of presets identified, create array and fill it..
@@ -425,6 +434,7 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 
 		}
 
+
 	}
 
 	if (data) { delete[] data; }
@@ -464,7 +474,7 @@ void EffectManager::addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & ro
 				//	Serial.printf("[getPresets] Identified presets for %s (%s)\n", handle->name(), key);
 				if (current.containsKey("effect") && current.containsKey("name")) {
 
-					const char * presetkey = jsonBuffer.strdup(key); 
+					const char * presetkey = jsonBuffer.strdup(key);
 					const char * presetname = jsonBuffer.strdup(current["name"].asString());
 					const char * preseteffect = jsonBuffer.strdup(current["effect"].asString());
 
@@ -485,15 +495,44 @@ void EffectManager::addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & ro
 
 // todo....
 
-uint8_t EffectManager::nextFree(JsonObject & root)
+uint8_t EffectManager::nextFreePreset(JsonObject & root)
 {
+	Serial.printf("[EffectManager::nextFreePreset] called\n");
+	uint8_t i = 0;
 
-	for (JsonObject::iterator it = root.begin(); it != root.end(); ++it) {
-		uint8_t ID = String(it->key).toInt();
-//		Serial.printf("[EffectManager::nextFree] %u,", ID);
+	bool * array = new bool[255];
+	//memset(array, 0, 255);
+	if (array) {
+
+		for (uint8_t j = 1; j < 255; j++) {
+			array[j] = false;
+		}
+
+
+		for (JsonObject::iterator it = root.begin(); it != root.end(); ++it) {
+			uint8_t ID = String(it->key).toInt();
+			array[ID] = true;
+		}
+
+
+		for (i = 1; i < 255; i++) {
+			if (array[i] == false) {
+				break;
+			}
+		}
+
+
+		delete[] array;
+
+	} else {
+		Serial.printf("[EffectManager::nextFreePreset] new array failed\n");
 	}
 
-	Serial.println();
+	if (i == 254) {
+		i = 0;
+	}
+	Serial.printf("[EffectManager::nextFreePreset] nextFree = %u \n", i);
+	return i;
 
 }
 
@@ -502,32 +541,34 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 	bool success = false;
 	char * data = nullptr;
 
-//	Serial.println("[newSave] Called");
 
-	if (_currentHandle) {
+	Serial.println("[newSave] Called");
+
+	if (_currentHandle && strlen(name) > 0 ) {
 
 		DynamicJsonBuffer jsonBuffer;
-		const char * cID = jsonBuffer.strdup(String(ID).c_str());
+		//const char * cID = jsonBuffer.strdup(String(ID).c_str());
 		JsonObject * root = nullptr;
 
 		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
-//			Serial.println("[newSave] Existing Settings Loaded");
+			Serial.println("[newSave] Existing Settings Loaded");
 		} else {
 			// if no file exists, or parse fails create new json object...
 			root = &jsonBuffer.createObject();
 		}
 
 		//  temp working
-
-		uint8_t xID = nextFree(*root);
-		const char * xcID = jsonBuffer.strdup(String(xID).c_str());
-//		Serial.printf("[newSave] Next Free %s\n", xcID);
+		if (ID == 0 && !overwrite) {
+			ID = nextFreePreset(*root);
+		}
+		const char * cID = jsonBuffer.strdup(String(ID).c_str());
+		Serial.printf("[newSave] Next Free %s\n", cID);
 
 		//
 
 		if (root && _currentHandle->save(*root, cID, name)) {
 
-//			Serial.println("[newSave] New Settings Added");
+			Serial.println("[newSave] New Settings Added");
 			File f = SPIFFS.open(PRESETS_FILE, "w");
 
 			if (f) {
@@ -539,11 +580,14 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 #endif
 //				root->prettyPrintTo(Serial);
 
-//				Serial.printf("[newSave] DONE Heap %u\n", ESP.getFreeHeap() );
+				Serial.printf("[newSave] DONE Heap %u\n", ESP.getFreeHeap() );
 				f.close();
+
+				_currentHandle->preset(ID);
+
 				success = true;
 			} else {
-//				Serial.println("FILE OPEN error:  NOT saved");
+				Serial.println("FILE OPEN error:  NOT saved");
 			}
 
 		}
@@ -555,6 +599,7 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 	}
 
 	if (success) {
+		getPresets(_currentHandle, _numberofpresets, _presets, _preset_names); // goes here.. to go outofscope of the previous data[] and jsonbuffer... needs lot of heap...
 		return true;
 	} else {
 		return false;

@@ -781,10 +781,10 @@ void handle_data()
 
     if (HTTP.arg("presetcommand") == "load") {
       lights.Load(HTTP.arg("selectedeffect").toInt());
-    } else if (HTTP.arg("presetcommand") == "save" ) {
-      //lights.Save(HTTP.arg("selectedeffect").toInt(), HTTP.arg("name").c_str());
+    } else if (HTTP.arg("presetcommand") == "new" ) {
+      lights.Save(0, HTTP.arg("presetsavename").c_str());
     } else if (HTTP.arg("presetcommand") == "overwrite" ) {
-      lights.Save(HTTP.arg("selectedeffect").toInt(), HTTP.arg("name").c_str());
+      lights.Save(HTTP.arg("selectedeffect").toInt(), HTTP.arg("presetsavename").c_str(), true);
     } else if (HTTP.arg("presetcommand") == "delete" ) {
       lights.removePreset(HTTP.arg("selectedeffect").toInt()); 
     }
@@ -967,6 +967,29 @@ void send_data(String page)
   }
 
   if (page == "presetspage") {
+
+    JsonObject& settings = root.createNestedObject("settings");
+    // adds minimum current effect name, if there if addJson returns false.
+    if (lights.Current()) {
+      settings["currentpreset"] = lights.Current()->preset();
+      settings["currentpresetname"] = lights.Current()->name();
+
+      // if (!lights.Current()->addJson(settings)) {
+      //   settings["effect"] = lights.Current()->name();
+      // }
+
+      // if (!settings.containsKey("effect")) {
+      //   settings["effect"] = lights.Current()->name();
+      // }
+
+      if (lights._numberofpresets) {
+        JsonObject& currentpresets = root.createNestedObject("currentpresets");
+        for (uint8_t i = 0; i < lights._numberofpresets; i++ ) {
+          currentpresets[ String(lights._presets[i])] = lights._preset_names[i];
+        }
+      }
+    }
+
     lights.addAllpresets(jsonBuffer, root);
   }
 
