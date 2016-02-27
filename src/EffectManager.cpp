@@ -98,7 +98,7 @@ EffectHandler* EffectManager::Start(const char * name)
 	if (handler) {
 		_NextInLine = handler;
 
-		if (_NextInLine->animate()) {
+		if (_NextInLine->animate() && strip->PixelCount() <= MAXLEDANIMATIONS) {
 			if (!animator) {
 				Serial.println("[EffectManager::Start] Animator Created");
 				animator = new NeoPixelAnimator(strip);
@@ -132,8 +132,12 @@ EffectHandler* EffectManager::Start(const char * name)
 				if (_preset_names[i]) {
 					const char * name = (const char *)_preset_names[i];
 					if (!strcmp(name, "Default") || !strcmp( name, "default")) {
-						Serial.printf("[Start] Default Loaded %u\n", _presets[i]);
-						Load(_presets[i]);
+
+						if (Load(_presets[i])) {
+							Serial.printf("[Start] Default Loaded %u\n", _presets[i]);
+						} else {
+							Serial.printf("[Start] ERROR loading Default %u\n", _presets[i]);
+						}
 					}
 				}
 			}
@@ -666,7 +670,6 @@ bool EffectManager::Load(uint8_t ID)
 
 		JsonObject * root = nullptr;
 		char * data = nullptr;
-		bool success = false;
 
 		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
@@ -683,25 +686,24 @@ bool EffectManager::Load(uint8_t ID)
 							handle = Start(preset["effect"].asString());
 //						Serial.printf("[EffectManager::newLoad]  Effect changed to %s\n", effectp->name());
 						}
-						//else {
-						//	effectp = _currentHandle;
-						//}
+
 					}
 
 					// now can load the effect using json
-
-					if (handle->parseJson(preset)) {
-//						Serial.printf("[EffectManager::newLoad] Preset %s loaded\n", cID);
-						handle->preset(ID);
-						success = true;
+					if (handle) {
+						if (handle->parseJson(preset)) {
+//							Serial.printf("[EffectManager::newLoad] Preset %s loaded\n", cID);
+							handle->preset(ID);
+							success = true;
+						}
 					}
-
 				}
 			}
 		}
 
 		if (data) { delete[] data; }
 	}
+
 	return success;
 }
 

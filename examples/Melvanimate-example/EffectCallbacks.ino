@@ -352,7 +352,7 @@ void SimpleColorFn(effectState& state, EffectHandler* ptr)
       effect->SetTimeout(10000);
       lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state...
       
-        FadeTo( lights.dim(effect->color(), effect->brightness()));
+      FadeTo( lights.dim(effect->color(), effect->brightness()));
       
     }
 

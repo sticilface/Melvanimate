@@ -1034,7 +1034,6 @@ void FadeTo( uint16_t time, RgbColor color)
     strip->ClearTo(color);
   }
 
-
 }
 
 
