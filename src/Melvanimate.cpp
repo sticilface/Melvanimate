@@ -6,8 +6,7 @@ const uint16_t TOTALPIXELS = 64;
 
 NeoPixelBus * strip = nullptr;
 NeoPixelAnimator * animator = nullptr;
-uint8_t* stripBuffer = NULL;
-WiFiUDP Udp;
+//WiFiUDP Udp;
 
 SimpleTimer timer;
 
@@ -64,7 +63,7 @@ void Melvanimate::_init_LEDs()
 		return;
 	}
 
-	stripBuffer = (uint8_t*)strip->Pixels();
+	//stripBuffer = (uint8_t*)strip->Pixels();
 	setmatrix(_matrixconfig);
 	strip->Begin();
 	strip->Show();

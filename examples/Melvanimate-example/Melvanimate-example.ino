@@ -265,9 +265,9 @@ void setup()
   lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn));              // working
   lights.Add("CuriousCat", new Effect2);
 
-  // lights.Add("Adalight", new AdalightEffect(AdaLightFn));                    // working - need to test
+   lights.Add("Adalight", new AdalightEffect(Serial, 115000));                    // working - need to test
 
-  // lights.Add("UDP", new SwitchEffect(UDPFn));                              // working
+  lights.Add("UDP", new UDPEffect);                              // working
   lights.Add("DMX", new DMXEffect);                              // need to test - requires custom libs included
   // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
 
@@ -397,14 +397,6 @@ void Show_pixels(bool override)
   strip->Show();
   tick = millis();
 }
-
-
-
-
-
-
-
-
 
 void testshapegenerater()
 {

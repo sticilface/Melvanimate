@@ -83,11 +83,25 @@ EffectHandler* EffectManager::Start(const char * name)
 		_NextInLine = handler;
 		_NextInLine->InitVars();
 
-		if (_NextInLine->preset() != 255) {
-			Load(_NextInLine->preset());
+		if (getPresets(_NextInLine, _numberofpresets, _presets, _preset_names)) {
+			// look for default and flag that to load after
 		}
 
-		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
+
+		if (_NextInLine->preset() != 255) {
+			Load(_NextInLine->preset());
+		} else {
+			// try to load defaut...
+			for (uint8_t i = 0; i < _numberofpresets; i++) {
+				if (_preset_names[i]) {
+					const char * name = (const char *)_preset_names[i];
+					if (!strcmp(name, "Default") || !strcmp( name, "default")) {
+						Serial.printf("[Start] Default Loaded %u, %s\n", _presets[i], name);
+						Load(_presets[i]);
+					}
+				}
+			}
+		}
 
 		//  This sets the toggle... as long as it is not the default handle... ie... Off....
 		if (_defaulteffecthandle) {

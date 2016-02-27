@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EffectHandler.h"
+
 #include "e131/_E131.h"
 
 // extern const IPAddress multicast_ip_addr; // Multicast broadcast address
@@ -24,8 +25,8 @@ public:
 
 	}
 
-	RgbColor color() { return getVar<RgbColor>("color1"); }
-	uint8_t brightness() { return getVar<uint8_t>("brightness"); }
+//	RgbColor color() { return getVar<RgbColor>("color1"); }
+//	uint8_t brightness() { return getVar<uint8_t>("brightness"); }
 
 private:
 
