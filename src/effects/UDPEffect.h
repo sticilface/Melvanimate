@@ -22,15 +22,16 @@ public:
 	//  InitVars is overridden from PropertyManager.  delete is called automagically on all vars created with addVar.
 	bool InitVars() override
 	{
+		if (_vars) { delete _vars;} 
 		_udp = new WiFiUDP; 
 		_vars = new UDPEffectVars; 
-		addVar(new Variable<int>("udp_port"));
-		addVar(new Variable<bool>("udp_usemulticast")); 
-		addVar(new Variable<IPAddress>("udp_multicast_ip_addr"));
+		addVar(new Variable<uint16_t>("udp_port", 8888));
+		addVar(new Variable<bool>("udp_usemulticast", true)); 
+		addVar(new Variable<IPAddress>("udp_multicast_ip_addr", IPAddress(224, 0, 0, 0)));
 		
 	}
 
-	int port()  {  return getVar<int>("UDPlightPort"); }
+	uint16_t port()  {  return getVar<uint16_t>("UDPlightPort"); }
 	bool usemulticast() { return getVar<bool>("udp_usemulticast");}
 	IPAddress multicastaddress() { return getVar<IPAddress>("udp_multicast_ip_addr") ;}
 
