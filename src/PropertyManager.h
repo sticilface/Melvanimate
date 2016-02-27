@@ -180,16 +180,23 @@ public:
 
 	bool parseJsonProperty(JsonObject & root) override
 	{
-		if (root.containsKey(_name) && root[_name].is<JsonArray&>()) {
-			JsonArray & IP = root[_name];
-			IPAddress ret;
-			for (uint8_t i = 0; i < 4; i++) {
-				ret[i] = IP[i];
-			}
+		if (root.containsKey(_name) ) {
 
-			if (_var != ret) {
-				_var = ret;
-				return true;
+			if ( root[_name].is<JsonArray&>()) {
+				JsonArray & IP = root[_name];
+				IPAddress ret;
+				for (uint8_t i = 0; i < 4; i++) {
+					ret[i] = IP[i];
+				}
+
+				if (_var != ret) {
+					_var = ret;
+					return true;
+				}
+			} else {
+				const char * input = root[_name];
+//				Serial.printf("[Variable<IPAddress>::parseJsonProperty] IP as String %s\n", input);
+				return _var.fromString(input); 
 			}
 		}
 
@@ -217,7 +224,7 @@ public:
 			}
 		}
 
-		return 0;
+		return T{};
 	}
 	template<class T> void setVar(const char * property, T value)
 	{

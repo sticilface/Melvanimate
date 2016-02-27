@@ -24,19 +24,23 @@ public:
 	{
 		_udp = new WiFiUDP; 
 		_vars = new UDPEffectVars; 
-		addVar(new Variable<int>("port"));
-		addVar(new Variable<bool>("Multicast")); 
-		addVar(new Variable<IPAddress>("multicastIP"));
+		addVar(new Variable<int>("udp_port"));
+		addVar(new Variable<bool>("udp_usemulticast")); 
+		addVar(new Variable<IPAddress>("udp_multicast_ip_addr"));
 		
 	}
 
-	int port()  {  return getVar<int>("port"); }
+	int port()  {  return getVar<int>("UDPlightPort"); }
+	bool usemulticast() { return getVar<bool>("udp_usemulticast");}
+	IPAddress multicastaddress() { return getVar<IPAddress>("udp_multicast_ip_addr") ;}
+
 
 	static void Adalight_Flash();
 
 private:
 
 	struct UDPEffectVars {
+		uint32_t timeoutvar{0};
 
 	};
 

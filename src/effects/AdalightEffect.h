@@ -24,6 +24,8 @@ public:
 		_vars = new AdalightEffectVars; 
 		addVar(new Variable<int>("serialspeed"));
 		setVar<int>("serialspeed", _defaultSpeed);
+		addVar(new Variable<bool>("useserial1"));
+		setVar<bool>("useserial1", false); 
 	}
 
 	int serialspeed()  {  return getVar<int>("serialspeed"); }

@@ -1,60 +1,57 @@
 #include "UDPEffect.h"
 
+#include "NeopixelBus.h"
+
+extern NeoPixelBus * strip;
+extern NeoPixelAnimator * animator;
+
 bool UDPEffect::Run()
 {
-	//   int packetSize;
+   int packetSize;
 
-//   switch (state) {
+       if (!_udp || !strip || !_vars) {
+       	return 0; 
+       } 
 
-//   case PRE_EFFECT: {
+    packetSize = _udp->parsePacket();
 
-//     lights.SetTimeout(0);
-
-// //    if (millis() > 60000) Adalight_Flash();
-//     Udp.beginMulticast(WiFi.localIP(), multicast_ip_addr, UDPlightPort);
-
-//     break;
-//   }
-//   case RUN_EFFECT: {
-
-//     if (!Udp) Udp.beginMulticast(WiFi.localIP(), multicast_ip_addr, UDPlightPort); // restart listening if it stops...
-
-//     packetSize = Udp.parsePacket();
-
-//     if  (Udp.available())  {
-//       for (int i = 0; i < packetSize; i = i + 3) {
-//         if (i > strip->PixelCount() * 3) break;         // Stops reading if LED count is reached.
-//         stripBuffer[i + 1] = Udp.read();   // direct buffer is GRB,
-//         stripBuffer[i]     = Udp.read();
-//         stripBuffer[i + 2] = Udp.read();
-//       }
-//       Udp.flush();
-//       strip->Dirty();
-//       //strip->Show();
-
-//       Show_pixels(true);
-//       lights.timeoutvar = millis();
-
-//     }
-
-//     if (millis() - lights.timeoutvar > 5000)  {
-//       strip->ClearTo(0, 0, 0);
-//       lights.timeoutvar = millis();
-//     }
-
-//     break;
-//   }
-//   case POST_EFFECT: {
-//     Udp.stop();
-//     animator->FadeTo(250, 0);
-
-//     break;
-//   }
-
-//   }
+    if  (_udp->available())  {
+      for (int i = 0; i < packetSize; i = i + 3) {
+        if (i > strip->PixelCount() * 3) break;         // Stops reading if LED count is reached.
+        strip->Pixels()[i + 1] = _udp->read();   // direct buffer is GRB,
+        strip->Pixels()[i]     = _udp->read();
+        strip->Pixels()[i + 2] = _udp->read();
+      }
+        _udp->flush();
+        strip->Dirty();
+        strip->Show();
+        _vars->timeoutvar = millis(); 
 }
 
-bool UDPEffect::Start() {
+    if (millis() - _vars->timeoutvar > 5000)  {
+      strip->ClearTo(0, 0, 0);
+      _vars->timeoutvar = millis();
+    }
+
+    return true; 
+
+}
+
+bool UDPEffect::Start()
+{
+	if (_udp) {
+		if (*_udp) {
+			_udp->stop();
+		}
+
+		if (usemulticast()) {
+			Serial.printf("[UDPEffect::Start] beginMulticast \n"); 
+			_udp->beginMulticast(WiFi.localIP(), multicastaddress(), port() );
+		} else {
+			Serial.printf("[UDPEffect::Start] beginUnicast \n");
+			_udp->begin(port());
+		}
+	}
 
 }
 
@@ -62,12 +59,18 @@ bool UDPEffect::Start() {
 bool UDPEffect::Stop()
 {
 	if (_udp) {
+		_udp->stop();
 		delete _udp;
-		_udp = nullptr; 
+		_udp = nullptr;
 	}
 
 	if (_vars) {
 		delete _vars;
-		_vars = nullptr; 
+		_vars = nullptr;
 	}
+
+	if (animator) {
+		animator->FadeTo(250, 0);
+	}
+
 }
