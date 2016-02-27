@@ -28,7 +28,7 @@ bool        Melvanimate::begin()
 	if (!_settings) {
 		DebugMelvanimatef("ERROR File open for failed!\n");
 		_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
-		if (!_settings) DebugMelvanimatef("Failed to create empty file too\n");
+		if (!_settings) { DebugMelvanimatef("Failed to create empty file too\n"); }
 	}
 
 	load();
@@ -52,10 +52,10 @@ void Melvanimate::_init_LEDs()
 
 	strip = new NeoPixelBus(_pixels, DEFAULT_WS2812_PIN);
 
-	if (_pixels <= maxLEDanimations) {
-		animator = new NeoPixelAnimator(strip);
-		_animations = true;
-	} else _animations = false;
+	// if (_pixels <= maxLEDanimations) {
+	// 	animator = new NeoPixelAnimator(strip);
+	// 	_animations = true;
+	// } else _animations = false;
 
 	// not sure if this bit is working...
 	if (!_pixels) {
@@ -65,17 +65,19 @@ void Melvanimate::_init_LEDs()
 
 	//stripBuffer = (uint8_t*)strip->Pixels();
 	setmatrix(_matrixconfig);
-	strip->Begin();
-	strip->Show();
+	if (strip) {
+		strip->Begin();
+		strip->Show();
+	}
 }
 
 
 
 const RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
 {
-	if (brightness == 0) return RgbColor(0);
-	if (brightness == 255) return input;
-	if (input.R == 0 && input.G == 0 && input.B == 0 ) return input;
+	if (brightness == 0) { return RgbColor(0); }
+	if (brightness == 255) { return input; }
+	if (input.R == 0 && input.G == 0 && input.B == 0 ) { return input; }
 	HslColor originalHSL = HslColor(input);
 	originalHSL.L =  originalHSL.L   * ( float(brightness) / 255.0 ) ;
 	return RgbColor( HslColor(originalHSL.H, originalHSL.S, originalHSL.L )  );
@@ -119,7 +121,7 @@ void        Melvanimate::setPixels(const uint16_t pixels)
 // set using setWaitFn ( std::bind (&Melvana::returnWaiting, this)  ); in initialisation
 bool Melvanimate::returnWaiting()
 {
-	if (!_waiting) return false;
+	if (!_waiting) { return false; }
 
 	if (animator && _waiting == 2) {
 
@@ -129,7 +131,7 @@ bool Melvanimate::returnWaiting()
 			return false;
 		}
 	}
-	
+
 	// saftey, in case of faulty effect
 	if (millis() - _waiting_timeout > EFFECT_WAIT_TIMEOUT) {
 		_waiting = false;
@@ -185,7 +187,7 @@ bool        Melvanimate::save(bool override)
 		if (!_settings) {
 			_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
 			DebugMelvanimatef("Failed to create empty file too\n");
-			if (_settings) return false;
+			if (_settings) { return false; }
 		}
 	}
 
@@ -210,15 +212,15 @@ bool        Melvanimate::load()
 		}
 	}
 
-	char * data = nullptr; 
+	char * data = nullptr;
 
 	if (_settings.size()) {
-	
-	data = new char[_settings.size()];
+
+		data = new char[_settings.size()];
 
 	} else {
 		DebugMelvanimatef("[Melvanimate::load] Fail: buffer size 0\n");
-		return false; 
+		return false;
 	}
 
 	// prevent nullptr exception if can't allocate
@@ -271,20 +273,20 @@ bool        Melvanimate::load()
 			_grid_y  = globals["gridy"].as<long>();
 
 
-		} else DebugMelvanimatef("[Melvanimate::load] No Globals\n");
+		} else { DebugMelvanimatef("[Melvanimate::load] No Globals\n"); }
 // current settings
 		if (root.containsKey("current")) {
 
 			JsonObject& current = root["current"];
 
-		} else DebugMelvanimatef("[Melvanimate::load] No Current\n");
+		} else { DebugMelvanimatef("[Melvanimate::load] No Current\n"); }
 // effect settings
 		if (root.containsKey("effectsettings")) {
 			JsonObject& effectsettings = root["effectsettings"];
 
 
 
-		} else DebugMelvanimatef("[Melvanimate::load] No effect settings\n");
+		} else { DebugMelvanimatef("[Melvanimate::load] No effect settings\n"); }
 
 
 		return true;

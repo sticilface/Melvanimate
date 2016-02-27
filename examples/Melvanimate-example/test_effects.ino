@@ -134,7 +134,7 @@ void ObjectFn(effectState state)
     palette = new Palette;
     palette->mode(WHEEL);
 
-    lights.SetTimeout(timeout);
+//    lights.SetTimeout(timeout);
 
     blob->SetObjectUpdateCallback( []() {
       uint16_t pixarray[points];

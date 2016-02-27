@@ -11,6 +11,10 @@
 #include <ArduinoJson.h>
 #include <MD5Builder.h>
 
+#define MELVANA_SETTINGS "/MelvanaSettings.txt"
+#define EFFECT_WAIT_TIMEOUT 20000
+#define DEFAULT_WS2812_PIN 2
+
 
 #include "EffectManager.h"
 #include "ObjectManager.h"
@@ -26,10 +30,7 @@
 #include "effects/UDPEffect.h"
 
 
-#define MELVANA_SETTINGS "/MelvanaSettings.txt"
-#define maxLEDanimations 300
-#define EFFECT_WAIT_TIMEOUT 20000
-#define DEFAULT_WS2812_PIN 2
+
 
 
 //#define DebugMelvanimate
@@ -71,7 +72,7 @@ public:
 
 	bool        load();
 	bool        begin();
-	bool		animations() {return _animations; }
+//	bool		animations() {return _animations; }
 
 	void setWaiting(bool wait = true);
 	void autoWait();
@@ -92,7 +93,7 @@ private:
 	uint8_t _matrixconfig;
 	uint16_t _grid_x, _grid_y;
 	bool _settings_changed;
-	bool _animations;
+//	bool _animations;
 	File _settings = File();
 
 	uint8_t _waiting;

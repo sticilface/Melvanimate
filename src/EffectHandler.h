@@ -33,6 +33,9 @@ public:
 	uint8_t preset() { return _preset; }
 	void preset(uint8_t preset) { _preset = preset; }
 
+	void animate(bool require) { _animator = require; }
+	bool animate() { return _animator; }
+
 //  Core Very important...
 	EffectHandler* next() { return _next; } //  ASK what is next
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
@@ -42,6 +45,7 @@ public:
 private:
 	EffectHandler* _next = nullptr;
 	const char * _name;
+	bool _animator{false}; 
 	uint8_t _preset = 255;  // no current preset
 
 protected:

@@ -261,14 +261,14 @@ void setup()
 
 
 
-  lights.Add("Off", new SwitchEffect( offFn), true);     //  **  Last true indicates this is the default effect... ie... off...
-  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn));              // working
-  lights.Add("CuriousCat", new Effect2);
+  lights.Add("Off", new SwitchEffect( offFn), true, true);     //  **  Last true indicates this is the default effect... ie... off...
+  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn), true);              // working
+  lights.Add("CuriousCat", new Effect2, true);
 
-   lights.Add("Adalight", new AdalightEffect(Serial, 115000));                    // working - need to test
+   lights.Add("Adalight", new AdalightEffect(Serial, 115000), true);                    // working - need to test
 
-  lights.Add("UDP", new UDPEffect);                              // working
-  lights.Add("DMX", new DMXEffect);                              // need to test - requires custom libs included
+  lights.Add("UDP", new UDPEffect, false);                              // working
+  lights.Add("DMX", new DMXEffect, false );                              // need to test - requires custom libs included
   // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
 
   // lights.Add("Dummy", new DummyEffect(DummyFn));
@@ -285,7 +285,7 @@ void setup()
 
 // experimental and in testing
 
-  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
+  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn), false);
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
@@ -391,7 +391,7 @@ void Show_pixels(bool override)
   static uint32_t tick = 0;
   if (override) { tick = 0; }
   if ( millis() - tick < 30) { return; }
-  if (lights.animations()) {
+  if (animator) {
     if ( animator->IsAnimating() ) { animator->UpdateAnimations(100); }
   }
   strip->Show();
@@ -996,7 +996,7 @@ void send_data(String page)
 
 void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdate)
 {
-  if (lights.animations()) {
+  if (animator) {
     animator->StartAnimation(pixel, time, animUpdate);
   }
 
@@ -1028,7 +1028,7 @@ void FadeTo(RgbColor color)
 
 void FadeTo( uint16_t time, RgbColor color)
 {
-  if (lights.animations()) {
+  if (animator) {
     animator->FadeTo(time, color);
   } else {
     strip->ClearTo(color);

@@ -3,6 +3,12 @@
 
 #include "EffectManager.h"
 #include "FS.h"
+#include "NeopixelBus.h"
+
+#define MAXLEDANIMATIONS 300
+
+extern NeoPixelBus * strip;
+extern NeoPixelAnimator * animator;
 
 //#define jsonprettyprint //  uses prettyPrintTo to send to SPIFFS... uses a lot more chars to pad the json.. a lot more..
 
@@ -18,9 +24,16 @@ EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandl
 	_NextInLine(nullptr), _defaulteffecthandle(nullptr)
 {};
 
-bool EffectManager::Add(const char * name, EffectHandler* handle, bool defaulteffect)
+bool EffectManager::Add(const char * name, EffectHandler* handle, bool require_animator, bool defaulteffect)
 {
 	_count++;
+
+	// if (require_animator) {
+	// 	if (strip->PixelCount() > MAXLEDANIMATIONS) {
+	// 		Serial.println("[EffectManager::Add] Effect not added: Too many LEDs for animations");
+	// 		return false;
+	// 	}
+	// }
 
 	if (defaulteffect) {
 		_defaulteffecthandle = handle;
@@ -36,6 +49,8 @@ bool EffectManager::Add(const char * name, EffectHandler* handle, bool defaultef
 		_lastHandle = handle;  // move on..
 		_lastHandle->name(name);  // give it name...
 	}
+
+	handle->animate(require_animator);
 //	Serial.printf("ADDED EFFECT %u: %s\n", _count, _lastHandle->name());
 }
 
@@ -74,14 +89,34 @@ EffectHandler* EffectManager::Start(const char * name)
 
 	// actually.. maybe use return values to signal... with timeouts to prevent getting stuck..
 	// manager sends... stop()....  until that returns true.. it can't --- NOPE not going to work... Start and stop should only get called once...
+	uint32_t heap;
 
 	Stop();
-	uint32_t heap = ESP.getFreeHeap();
 
 	EffectHandler* handler = _findhandle(name);
 
 	if (handler) {
 		_NextInLine = handler;
+
+		if (_NextInLine->animate()) {
+			if (!animator) {
+				Serial.println("[EffectManager::Start] Animator Created");
+				animator = new NeoPixelAnimator(strip);
+			} else {
+				Serial.println("[EffectManager::Start] Animator Already in Place");
+			}
+		} else {
+			if (animator) {
+				Serial.println("[EffectManager::Start] Animator Deleted");
+				delete animator;
+				animator = nullptr;
+			} else {
+				Serial.println("[EffectManager::Start] Animator Already Deleted");
+			}
+		}
+
+		heap = ESP.getFreeHeap();
+
 		_NextInLine->InitVars();
 
 		if (getPresets(_NextInLine, _numberofpresets, _presets, _preset_names)) {
@@ -110,8 +145,11 @@ EffectHandler* EffectManager::Start(const char * name)
 				_toggleHandle = handler;
 			}
 		}
-		
-		Serial.printf("[Start] Heap Used by %s (%u)\n", handler->name(), heap - ESP.getFreeHeap()); 
+
+		int used = heap - ESP.getFreeHeap();
+		if (used < 0) { used = 0; }
+		Serial.printf("[Start] Heap Used by %s (%u)\n", handler->name(), used);
+
 		return _NextInLine;
 	} else {
 		//  if no handle.. try to start default....
