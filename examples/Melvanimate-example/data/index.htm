@@ -168,6 +168,11 @@
                     <label for="input_marqueetext">Text:</label>
                     <input type="text" name="marqueetext" id="input_marqueetext" value="">
                 </div>
+                
+                 <div class="ui-field-contain mysubmittext udp_multicast_ip_addr">
+                    <label for="input_udp_multicast_ip_addr">Multicast Add:</label>
+                    <input type="text" name="udp_multicast_ip_addr" id="input_udp_multicast_ip_addr" value="">
+                </div>               
 
                 <div class="ui-field-contain rotation">
                     <label for="input-rotation">Rotation:</label>
@@ -846,7 +851,7 @@
               //               <option value="delete">Delete Existing</option>
 
                 $('#select-saveasnew').change(function() {
-                    command = $(this).val();
+                    var command = $(this).val();
               
                 if (command == "new") {
                   $('#input_savename').closest('div.ui-field-contain').show();
@@ -854,12 +859,12 @@
                   
                 }
                 
-                if (command == "overwrite") {
+                if (command == "overwrite" || command == "delete") {
                   $('#input_savename').closest('div.ui-field-contain').show();
                   $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
                 }
 
-                if (command == "delete" || command == "load") {
+                if (command == "delete") {
                   $('#input_savename').closest('div.ui-field-contain').hide();
                   $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
                 }
@@ -1218,6 +1223,13 @@
                             $('#input_marqueetext').val(settings.marqueetext);
                         }
 
+
+
+                        if (settings.hasOwnProperty('udp_multicast_ip_addr')) {
+                            $('#input_udp_multicast_ip_addr').val(settings.udp_multicast_ip_addr[0] + "." + settings.udp_multicast_ip_addr[1] + "." + settings.udp_multicast_ip_addr[2] + "." + settings.udp_multicast_ip_addr[3]);
+                        }
+                        
+                        
                         // OLD METHOD
                         // if (settings.hasOwnProperty('palette')) {
                         //     $('#select-palettes').val(settings.palette).selectmenu('refresh');
