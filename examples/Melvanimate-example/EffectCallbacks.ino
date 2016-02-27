@@ -348,7 +348,8 @@ void SimpleColorFn(effectState& state, EffectHandler* ptr)
 
     case PRE_EFFECT: {
       Serial.println("[SimpleColorFn] PRE_EFFECT");
-      lights.SetTimeout(10000);
+
+      effect->SetTimeout(10000);
       lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state...
       
         FadeTo( lights.dim(effect->color(), effect->brightness()));
@@ -392,7 +393,7 @@ void offFn(effectState &state, EffectHandler* ptr)
 
   case PRE_EFFECT: {
     Serial.println("[OffFn] PRE_EFFECT");
-    lights.SetTimeout(10000);
+//    lights.SetTimeout(10000);
     lights.autoWait();
     FadeTo(0);
   }

@@ -19,7 +19,7 @@ public:
 	bool Run() override;
 	virtual bool Start() override { _state = PRE_EFFECT ; _Fn(_state, this) ; _state = RUN_EFFECT; }
 	virtual bool Stop() override { _state = POST_EFFECT; _Fn(_state, this); };
-	virtual void SetTimeout (uint32_t timeout) override { _timeout = timeout; };
+	virtual void SetTimeout (uint32_t timeout) { _timeout = timeout; };
 	virtual void Refresh();
 
 

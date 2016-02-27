@@ -176,24 +176,24 @@ void EffectManager::Loop()
 	if (!waiting && _currentHandle) { _currentHandle->Run(); }
 };
 
-void EffectManager::SetTimeout(uint32_t time)
-{
-	if (_currentHandle) { _currentHandle->SetTimeout(time); }
-}
+// void EffectManager::SetTimeout(uint32_t time)
+// {
+// 	if (_currentHandle) { _currentHandle->SetTimeout(time); }
+// }
 
-void EffectManager::SetTimeout(const char * name, uint32_t time)
-{
+// void EffectManager::SetTimeout(const char * name, uint32_t time)
+// {
 
-	EffectHandler* handler;
-	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( strcmp( handler->name(), name) == 0) {
-			break;
-		}
-	}
+// 	EffectHandler* handler;
+// 	for (handler = _firstHandle; handler; handler = handler->next()) {
+// 		if ( strcmp( handler->name(), name) == 0) {
+// 			break;
+// 		}
+// 	}
 
-	if (handler) { handler->SetTimeout(time); }
+// 	if (handler) { handler->SetTimeout(time); }
 
-}
+// }
 
 
 
