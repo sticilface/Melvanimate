@@ -31,9 +31,9 @@ public:
 		
 	}
 
-	uint16_t port()  {  return getVar<uint16_t>("UDPlightPort"); }
-	bool usemulticast() { return getVar<bool>("udp_usemulticast");}
-	IPAddress multicastaddress() { return getVar<IPAddress>("udp_multicast_ip_addr") ;}
+	inline uint16_t port()  {  return getVar<uint16_t>("UDPlightPort"); }
+	inline bool usemulticast() { return getVar<bool>("udp_usemulticast");}
+	inline IPAddress multicastaddress() { return getVar<IPAddress>("udp_multicast_ip_addr") ;}
 
 
 	static void Adalight_Flash();
