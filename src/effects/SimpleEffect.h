@@ -10,8 +10,8 @@ public:
 
 	bool InitVars()
 	{
-		addVar(new Variable<uint8_t>("brightness"));
-		addVar(new Variable<RgbColor>("color1"));
+		addVar(new Variable<uint8_t>("brightness", 255));
+		addVar(new Variable<RgbColor>("color1", RgbColor(0)));
 	}
 
 	RgbColor color() { return getVar<RgbColor>("color1"); }
