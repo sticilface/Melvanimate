@@ -77,7 +77,7 @@ public:
 	void set(RgbColor value) { _var = value; }
 
 	bool addJsonProperty(JsonObject & root) override;
-	bool parseJsonProperty(JsonObject & root) override; 
+	bool parseJsonProperty(JsonObject & root) override;
 
 
 private:
@@ -217,7 +217,17 @@ public:
 			}
 		}
 
-		return 0; 
+		return 0;
+	}
+	template<class T> void setVar(const char * property, T value)
+	{
+		AbstractPropertyHandler* handle = nullptr;
+
+		for (handle = _firsthandle; handle; handle = handle->next()) {
+			if (!strcmp(handle->name(), property)) {
+				((Variable<T>*)(handle))->set(value);
+			}
+		}
 	}
 
 	//  these functions should 'overridde from the effectHandler'
