@@ -27,7 +27,7 @@ public:
 		addVar(new Variable<bool>("useserial1", false));
 	}
 
-	int serialspeed()  {  return getVar<int>("serialspeed"); }
+	inline  int serialspeed()  {  return getVar<int>("serialspeed"); }
 
 	static void Adalight_Flash();
 
