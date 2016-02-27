@@ -3,11 +3,13 @@
 #include <arduinojson.h>
 #include <RgbColor.h>
 #include "palette.h"
+#include "IPAddress.h"
 
 
 class AbstractPropertyHandler
 {
 public:
+	virtual ~AbstractPropertyHandler() {}
 	virtual bool addJsonProperty(JsonObject & root) {return false; };
 	virtual bool parseJsonProperty(JsonObject & root) { return false; } ;
 
@@ -22,6 +24,7 @@ protected:
 };
 
 //  template class for everything
+//  template class for everything
 template <class T>
 class Variable: public AbstractPropertyHandler
 {
@@ -30,8 +33,10 @@ public:
 	{
 		_name = name;
 	};
+	~Variable() override { Serial.printf("[~Variable] called\n"); }
 
 	T get() { return _var; }
+	void set(T value) { _var = value; }
 	bool addJsonProperty(JsonObject & root) override
 	{
 		root[_name] = _var;
@@ -50,7 +55,7 @@ public:
 	}
 
 private:
-	T _var{}; 
+	T _var{};
 };
 
 
@@ -85,9 +90,7 @@ private:
 };
 
 
-
-
-// specialisations for Variables 
+// specialisations for Variables
 template <>
 class Variable<RgbColor>: public AbstractPropertyHandler
 {
@@ -96,14 +99,27 @@ public:
 	{
 		_name = name;
 	};
+	~Variable() override {}
 
 	RgbColor get() { return _var; }
-	bool addJsonProperty(JsonObject & root) override ;
-	bool parseJsonProperty(JsonObject & root) override ;
+	void set(RgbColor value) { _var = value; }
+
+	bool addJsonProperty(JsonObject & root) override;
+	// {
+	// 	JsonObject& color = root.createNestedObject(_name);
+	// 	color["R"] = _var.R;
+	// 	color["G"] = _var.G;
+	// 	color["B"] = _var.B;
+	// 	return true;
+	// }
+
+	bool parseJsonProperty(JsonObject & root) override; 
+
 
 private:
-	RgbColor _var = RgbColor(0,0,0); 
+	RgbColor _var = RgbColor(0, 0, 0);
 };
+
 
 template <>
 class Variable<const char *>: public AbstractPropertyHandler
@@ -111,12 +127,58 @@ class Variable<const char *>: public AbstractPropertyHandler
 public:
 	Variable(const char * name): _var(nullptr)
 	{
+		Serial.printf("[class Variable<const char *>] Constructor called\n");
 		_name = name;
 	};
 
+	~Variable()
+	{
+		Serial.printf("[class Variable<const char *>] Deconstructor called\n");
+		if (_var) {
+			free((void*)_var);
+			Serial.printf("[class Variable<const char *>] _var freed\n");
+		}
+	}
+
 	const char * get() { return _var; }
-	bool addJsonProperty(JsonObject & root) override ;
-	bool parseJsonProperty(JsonObject & root) override ;
+	void set(const char * in)
+	{
+
+		if (_var) {
+			if ( strcmp(in, _var)) {
+				free( (void*)_var);  //  not good... but i really want to free that const char *
+				_var = strdup(in);
+			}
+		} else {
+			_var = strdup(in);
+		}
+
+	}
+
+	bool addJsonProperty(JsonObject & root) override;
+	// {
+	// 	root[_name] = _var;
+	// 	return true;
+	// }
+
+	bool parseJsonProperty(JsonObject & root) override;
+	// {
+	// 	if (root.containsKey(_name)) {
+	// 		if (_var) {
+	// 			if ( strcmp(root[_name], _var)) {
+	// 				free( (void*)_var);  //  not good... but i really want to free that const char *
+	// 				_var = strdup(root[_name]);
+	// 				return true;
+	// 			}
+	// 		} else {
+	// 			_var = strdup(root[_name]);
+	// 			return true;
+	// 		}
+	// 	}
+
+	// 	return false;
+	// }
+
 
 private:
 	const char * _var;
@@ -130,8 +192,10 @@ public:
 	{
 		_name = name;
 	};
+	~Variable() override {}
 
 	Palette* get() { return &_var; }
+	void set(Palette * value) { _var = *value; }
 
 	bool addJsonProperty(JsonObject & root) override
 	{
@@ -151,8 +215,51 @@ private:
 	Palette _var;
 };
 
+template <>
+class Variable<IPAddress>: public AbstractPropertyHandler
+{
+public:
+	Variable(const char * name)
+	{
+		_name = name;
+		_var = IPAddress(0, 0, 0, 0);
+	};
+	~Variable() override {}
 
+	IPAddress get() { return _var; }
+	void set(IPAddress value) { _var = value; }
 
+	bool addJsonProperty(JsonObject & root) override
+	{
+		JsonArray & IP = root.createNestedArray(_name);
+		for (uint8_t i = 0; i < 4; i++) {
+			IP.add(_var[i]);
+		}
+
+		return true;
+	}
+
+	bool parseJsonProperty(JsonObject & root) override
+	{
+		if (root.containsKey(_name) && root[_name].is<JsonArray&>()) {
+			JsonArray & IP = root[_name];
+			IPAddress ret;
+			for (uint8_t i = 0; i < 4; i++) {
+				ret[i] = IP[i];
+			}
+
+			if (_var != ret) {
+				_var = ret;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+private:
+	IPAddress _var;
+};
 
 
 

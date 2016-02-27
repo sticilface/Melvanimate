@@ -10,7 +10,7 @@ extern const char * PRESETS_FILE;
 	Effect Mangager
 	This is the base class for managing effects
 --------------------------------------------------------------------------*/
-
+class EffectHandler; 
 
 class EffectManager
 {

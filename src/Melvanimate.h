@@ -23,6 +23,7 @@
 #include "effects/Effect2.h"
 #include "effects/DMXEffect.h"
 #include "effects/AdalightEffect.h"
+#include "effects/UDPEffect.h"
 
 
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
@@ -44,7 +45,7 @@
 extern const uint16_t TOTALPIXELS;
 extern NeoPixelBus * strip;
 extern NeoPixelAnimator * animator;
-extern uint8_t* stripBuffer;
+//extern uint8_t* stripBuffer;
 extern SimpleTimer timer;
 
 
