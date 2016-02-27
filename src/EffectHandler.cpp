@@ -46,6 +46,7 @@ bool EffectHandler::parseJson(JsonObject & root)
 	if (parseJsonEffect(root)) { found = true; }
 
 	if (found) {
+		Refresh(); 
 		_preset = 255;
 	}
 	return found;
