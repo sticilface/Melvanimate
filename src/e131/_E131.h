@@ -29,8 +29,8 @@
 //#   include <ESP8266WiFiMulti.h>
 #   include <WiFiUdp.h>
 #	define _UDP WiFiUDP
-#	define INT_ESP8266
-#	define INT_WIFI
+//#	define INT_ESP8266
+//#	define INT_WIFI
 #elif defined (ARDUINO_ARCH_AVR)
 #	include <Ethernet.h>
 #   include <EthernetUdp.h>
@@ -141,6 +141,7 @@ class E131 {
         e131_packet_t *pwbuff;  /* Pointer to working packet buffer */
         uint8_t       sequence; /* Sequence tracker */
         _UDP udp;               /* UDP handle */
+        uint16_t _port; 
 
         /* Internal Initializers */
         int initWiFi(const char *ssid, const char *passphrase);
@@ -155,6 +156,7 @@ class E131 {
         e131_stats_t  stats;                /* Statistics tracker */
 
         E131();
+        void setport(uint16_t in) { _port = in; }
 
         /* Generic UDP listener, no physical or IP configuration */
     	void begin(e131_listen_t type, uint16_t universe = 1);

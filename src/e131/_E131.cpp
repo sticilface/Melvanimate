@@ -28,7 +28,7 @@ const byte E131::ACN_ID[12] = { 0x41, 0x53, 0x43, 0x2d, 0x45, 0x31, 0x2e, 0x31, 
 #endif
 
 /* Constructor */
-E131::E131() {
+E131::E131(): _port(E131_DEFAULT_PORT) {
 #ifdef NO_DOUBLE_BUFFER
     memset(pbuff1.raw, 0, sizeof(pbuff1.raw));
     packet = &pbuff1;
@@ -48,18 +48,19 @@ E131::E131() {
 
 void E131::initUnicast() {
     delay(100);
-    udp.begin(E131_DEFAULT_PORT);
+    udp.begin(_port);
     if (Serial) {
         Serial.print(F("- Unicast port: "));
-        Serial.println(E131_DEFAULT_PORT);
+        Serial.println(_port);
     }
 }
 
 void E131::initMulticast(uint16_t universe) {
     delay(100);
     IPAddress address = IPAddress(239, 255, ((universe >> 8) & 0xff), ((universe >> 0) & 0xff));
-#ifdef INT_ESP8266
-    udp.beginMulticast(WiFi.localIP(), address, E131_DEFAULT_PORT);
+#ifdef ESP8266
+    //Serial.println("[multicast DEFO started]");
+    udp.beginMulticast(WiFi.localIP(), address, _port);
 #endif
     if (Serial) {
         Serial.print(F("- Universe: "));
@@ -68,6 +69,14 @@ void E131::initMulticast(uint16_t universe) {
         Serial.println(address);
     }
 }
+
+void E131::begin(e131_listen_t type, uint16_t universe) {
+    if (type == E131_UNICAST)
+        initUnicast();
+    if (type == E131_MULTICAST)
+        initMulticast(universe);
+}
+
 
 /****** START - Wireless ifdef block ******/
 #if defined (INT_ESP8266) || defined (INT_WIFI)
@@ -110,12 +119,7 @@ int E131::initWiFi(const char *ssid, const char *passphrase) {
     return retval;
 }
 
-void E131::begin(e131_listen_t type, uint16_t universe) {
-	if (type == E131_UNICAST)
-		initUnicast();
-	if (type == E131_MULTICAST)
-		initMulticast(universe);
-}
+
 
 int E131::begin(const char *ssid, const char *passphrase) {
     if (initWiFi(ssid, passphrase)) {
