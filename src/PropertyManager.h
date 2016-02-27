@@ -34,10 +34,17 @@ public:
 	{
 		_name = name;
 	};
+	Variable(const char * name, T value)
+	{
+		_name = name;
+		set(value); 
+	};
 
 	~Variable() override {}
 
+	//T get() { return _var; }
 	T get() { return _var; }
+
 	void set(T value) { _var = value; }
 	bool addJsonProperty(JsonObject & root) override
 	{
@@ -70,10 +77,14 @@ public:
 	{
 		_name = name;
 	};
-
+	Variable(const char * name, RgbColor value)
+	{
+		_name = name;
+		set(value); 
+	};
 	~Variable() override { }
 
-	RgbColor get() { return _var; }
+	RgbColor& get() { return _var; }
 	void set(RgbColor value) { _var = value; }
 
 	bool addJsonProperty(JsonObject & root) override;
@@ -93,7 +104,11 @@ public:
 	{
 		_name = name;
 	};
-
+	Variable(const char * name, const char * value)
+	{
+		_name = name;
+		set(value); 
+	};
 	~Variable() override
 	{
 		if (_var) {
@@ -131,6 +146,11 @@ public:
 	{
 		_name = name;
 	};
+	Variable(const char * name, Palette* value)
+	{
+		_name = name;
+		set(value); 
+	};
 	~Variable() override {}
 
 	Palette* get() { return &_var; }
@@ -162,6 +182,11 @@ public:
 	{
 		_name = name;
 		_var = IPAddress(0, 0, 0, 0);
+	};
+	Variable(const char * name, IPAddress value)
+	{
+		_name = name;
+		set(value); 
 	};
 	~Variable() override {}
 
@@ -196,7 +221,7 @@ public:
 			} else {
 				const char * input = root[_name];
 //				Serial.printf("[Variable<IPAddress>::parseJsonProperty] IP as String %s\n", input);
-				return _var.fromString(input); 
+				return _var.fromString(input);
 			}
 		}
 
@@ -207,6 +232,14 @@ private:
 	IPAddress _var;
 };
 
+enum var_types_t {
+	T_BOOL = 0,
+	T_INT8_T,
+	T_INT,
+	T_RGBCOLOR,
+	T_IPADDRESS,
+	T_CONSTCHAR
+};
 
 class PropertyManager
 {
@@ -241,11 +274,68 @@ public:
 	bool parseJsonEffect(JsonObject & root) ;  // use json so it can be used with MQTT etc...
 	bool addEffectJson(JsonObject& root) ;
 	void EndVars();
+
 	virtual bool InitVars() { return false; }
 
 
+	// overloaded index to allow getting and settings using index... 
+	template<class T>
+	T operator[] (const char * name) const
+	{
+
+		AbstractPropertyHandler* handle = nullptr;
+
+		for (handle = _firsthandle; handle; handle = handle->next()) {
+			if (!strcmp(handle->name(), name)) {
+				return ((Variable<T>*)(handle))->get();
+			}
+		}
+		return T{};
+	}
+
+	// template<class T>
+	// T& operator[] (const char * name)
+	// {
+	// 	AbstractPropertyHandler* handle = nullptr;
+
+	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
+	// 		if (!strcmp(handle->name(), name)) {
+
+	// 			return (  (Variable<T>*)(handle))->get();
+	// 		}
+	// 	}
+	// 	return T{};		
+	// }
+
+
+	var_types_t type(bool)
+	{
+		return T_BOOL;
+	}
+	var_types_t type(int)
+	{
+		return T_INT;
+	}
+	var_types_t type(uint8_t)
+	{
+		return T_INT8_T;
+	}
+	var_types_t type(RgbColor)
+	{
+		return T_RGBCOLOR;
+	}
+	var_types_t type (IPAddress)
+	{
+		return T_IPADDRESS;
+	}
+	var_types_t type (const char *)
+	{
+		return T_CONSTCHAR;
+	}
+
 private:
 	AbstractPropertyHandler* _firsthandle;
+
 };
 
 
