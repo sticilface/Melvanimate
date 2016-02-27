@@ -110,6 +110,7 @@ EffectHandler* EffectManager::Start(const char * name)
 				_toggleHandle = handler;
 			}
 		}
+		
 		Serial.printf("[Start] Heap Used by %s (%u)\n", handler->name(), heap - ESP.getFreeHeap()); 
 		return _NextInLine;
 	} else {

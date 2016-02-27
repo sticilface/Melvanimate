@@ -39,6 +39,7 @@ bool AdalightEffect::Stop()
 		_vars = nullptr; 
 	}
 	_Serial.begin(_defaultSpeed);
+	_Serial.println(); 
 }
 
 
