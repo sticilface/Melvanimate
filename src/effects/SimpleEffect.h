@@ -14,7 +14,7 @@ public:
 		addVar(new Variable<RgbColor>("color1", RgbColor(0)));
 	}
 
-	RgbColor color() { return getVar<RgbColor>("color1"); }
-	uint8_t brightness() { return getVar<uint8_t>("brightness"); }
+	inline RgbColor color() { return getVar<RgbColor>("color1"); }
+	inline uint8_t brightness() { return getVar<uint8_t>("brightness"); }
 
 };
