@@ -12,19 +12,20 @@ public:
 	virtual ~AbstractPropertyHandler() {}
 	virtual bool addJsonProperty(JsonObject & root) {return false; };
 	virtual bool parseJsonProperty(JsonObject & root) { return false; } ;
-
 	const char * name() { return _name; }
 	AbstractPropertyHandler* next() { return _next; }
 	void next (AbstractPropertyHandler* next) { _next = next; }
 
 private:
 	AbstractPropertyHandler* _next = nullptr;
+
 protected:
 	const char * _name = nullptr;
+
 };
 
 //  template class for everything
-//  template class for everything
+
 template <class T>
 class Variable: public AbstractPropertyHandler
 {
@@ -33,7 +34,8 @@ public:
 	{
 		_name = name;
 	};
-	~Variable() override { Serial.printf("[~Variable] called\n"); }
+
+	~Variable() override {}
 
 	T get() { return _var; }
 	void set(T value) { _var = value; }
@@ -59,37 +61,6 @@ private:
 };
 
 
-class PropertyManager
-{
-public:
-	PropertyManager(): _firsthandle(nullptr) {}
-	AbstractPropertyHandler* addVar(AbstractPropertyHandler* ptr);
-
-	template<class T> T getVar(const char * property)
-	{
-		AbstractPropertyHandler* handle = nullptr;
-
-		for (handle = _firsthandle; handle; handle = handle->next()) {
-			if (!strcmp(handle->name(), property)) {
-				return (  (Variable<T>*)(handle))->get();
-			}
-		}
-
-		return 0; 
-	}
-
-	//  these functions should 'overridde from the effectHandler'
-	bool parseJsonEffect(JsonObject & root) ;  // use json so it can be used with MQTT etc...
-	bool addEffectJson(JsonObject& root) ;
-	void EndVars();
-	virtual bool InitVars() { return false; }
-
-
-private:
-	AbstractPropertyHandler* _firsthandle;
-};
-
-
 // specialisations for Variables
 template <>
 class Variable<RgbColor>: public AbstractPropertyHandler
@@ -99,20 +70,13 @@ public:
 	{
 		_name = name;
 	};
-	~Variable() override {}
+
+	~Variable() override { }
 
 	RgbColor get() { return _var; }
 	void set(RgbColor value) { _var = value; }
 
 	bool addJsonProperty(JsonObject & root) override;
-	// {
-	// 	JsonObject& color = root.createNestedObject(_name);
-	// 	color["R"] = _var.R;
-	// 	color["G"] = _var.G;
-	// 	color["B"] = _var.B;
-	// 	return true;
-	// }
-
 	bool parseJsonProperty(JsonObject & root) override; 
 
 
@@ -127,16 +91,13 @@ class Variable<const char *>: public AbstractPropertyHandler
 public:
 	Variable(const char * name): _var(nullptr)
 	{
-		Serial.printf("[class Variable<const char *>] Constructor called\n");
 		_name = name;
 	};
 
-	~Variable()
+	~Variable() override
 	{
-		Serial.printf("[class Variable<const char *>] Deconstructor called\n");
 		if (_var) {
 			free((void*)_var);
-			Serial.printf("[class Variable<const char *>] _var freed\n");
 		}
 	}
 
@@ -156,29 +117,7 @@ public:
 	}
 
 	bool addJsonProperty(JsonObject & root) override;
-	// {
-	// 	root[_name] = _var;
-	// 	return true;
-	// }
-
 	bool parseJsonProperty(JsonObject & root) override;
-	// {
-	// 	if (root.containsKey(_name)) {
-	// 		if (_var) {
-	// 			if ( strcmp(root[_name], _var)) {
-	// 				free( (void*)_var);  //  not good... but i really want to free that const char *
-	// 				_var = strdup(root[_name]);
-	// 				return true;
-	// 			}
-	// 		} else {
-	// 			_var = strdup(root[_name]);
-	// 			return true;
-	// 		}
-	// 	}
-
-	// 	return false;
-	// }
-
 
 private:
 	const char * _var;
@@ -262,9 +201,35 @@ private:
 };
 
 
+class PropertyManager
+{
+public:
+	PropertyManager(): _firsthandle(nullptr) {}
+	AbstractPropertyHandler* addVar(AbstractPropertyHandler* ptr);
+
+	template<class T> T getVar(const char * property)
+	{
+		AbstractPropertyHandler* handle = nullptr;
+
+		for (handle = _firsthandle; handle; handle = handle->next()) {
+			if (!strcmp(handle->name(), property)) {
+				return (  (Variable<T>*)(handle))->get();
+			}
+		}
+
+		return 0; 
+	}
+
+	//  these functions should 'overridde from the effectHandler'
+	bool parseJsonEffect(JsonObject & root) ;  // use json so it can be used with MQTT etc...
+	bool addEffectJson(JsonObject& root) ;
+	void EndVars();
+	virtual bool InitVars() { return false; }
 
 
-
+private:
+	AbstractPropertyHandler* _firsthandle;
+};
 
 
 

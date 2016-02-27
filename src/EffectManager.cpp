@@ -76,6 +76,7 @@ EffectHandler* EffectManager::Start(const char * name)
 	// manager sends... stop()....  until that returns true.. it can't --- NOPE not going to work... Start and stop should only get called once...
 
 	Stop();
+	uint32_t heap = ESP.getFreeHeap();
 
 	EffectHandler* handler = _findhandle(name);
 
@@ -96,7 +97,7 @@ EffectHandler* EffectManager::Start(const char * name)
 				if (_preset_names[i]) {
 					const char * name = (const char *)_preset_names[i];
 					if (!strcmp(name, "Default") || !strcmp( name, "default")) {
-						Serial.printf("[Start] Default Loaded %u, %s\n", _presets[i], name);
+						Serial.printf("[Start] Default Loaded %u\n", _presets[i]);
 						Load(_presets[i]);
 					}
 				}
@@ -109,7 +110,7 @@ EffectHandler* EffectManager::Start(const char * name)
 				_toggleHandle = handler;
 			}
 		}
-
+		Serial.printf("[Start] Heap Used by %s (%u)\n", handler->name(), heap - ESP.getFreeHeap()); 
 		return _NextInLine;
 	} else {
 		//  if no handle.. try to start default....

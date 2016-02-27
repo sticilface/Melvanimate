@@ -3,8 +3,6 @@
 
 
 
-
-
 #include "PropertyManager.h"
 #include "EffectManager.h"
 
@@ -31,27 +29,21 @@ AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 	return nullptr;
 }
 
-void PropertyManager::EndVars() 
+void PropertyManager::EndVars()
 {
 
-
-	//  set the first pointer in manager to null, but keeps track of pointer to first handle..
-
-	AbstractPropertyHandler* handle = nullptr;
+	AbstractPropertyHandler* handle = _firsthandle;
 	AbstractPropertyHandler* previoushandle = nullptr;
 
-	for ( handle = _firsthandle; handle; handle = handle->next()) {
-
-		if (previoushandle) {
-			delete previoushandle;
-			previoushandle = nullptr;
-		}
-
+	while (handle) {
 		previoushandle = handle;
+		handle = handle->next();
+		if (previoushandle) {
+			//Serial.printf("[EndVars] Deleting: %s\n", previoushandle->name());
+			delete previoushandle;
+		}
 	}
-
 	_firsthandle = nullptr;
-
 }
 
 bool PropertyManager::parseJsonEffect(JsonObject & root)
@@ -153,5 +145,15 @@ bool Variable<const char *>::parseJsonProperty(JsonObject & root)
 	return false;
 }
 
+
+//template<>
+// Variable<const char *>::~Variable()
+// {
+// 	Serial.printf("[class Variable<const char *>] Deconstructor called\n");
+// 	if (_var) {
+// 		free((void*)_var);
+// 		Serial.printf("[class Variable<const char *>] _var freed\n");
+// 	}
+// }
 
 
