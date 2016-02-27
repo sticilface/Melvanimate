@@ -34,6 +34,11 @@ bool AdalightEffect::Start()
 
 bool AdalightEffect::Stop()
 {
+
+	if (strip) {
+		strip->ClearTo(0);
+	}
+
 	if (_vars) {
 		delete _vars; 
 		_vars = nullptr; 

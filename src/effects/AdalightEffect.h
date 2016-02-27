@@ -21,11 +21,10 @@ public:
 	//  InitVars is overridden from PropertyManager.  delete is called automagically on all vars created with addVar.
 	bool InitVars() override
 	{
+		if (_vars) { delete _vars;} 
 		_vars = new AdalightEffectVars; 
-		addVar(new Variable<int>("serialspeed"));
-		setVar<int>("serialspeed", _defaultSpeed);
-		addVar(new Variable<bool>("useserial1"));
-		setVar<bool>("useserial1", false); 
+		addVar(new Variable<int>("serialspeed", _defaultSpeed ));
+		addVar(new Variable<bool>("useserial1", false));
 	}
 
 	int serialspeed()  {  return getVar<int>("serialspeed"); }
