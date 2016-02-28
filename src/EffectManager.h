@@ -19,7 +19,7 @@ public:
 	EffectManager();
 	~EffectManager() {};
 
-	bool Add(const char * name, EffectHandler* Handler, bool require_animator, bool defaulteffect = false);
+	bool Add(const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
 //	void SetTimeout(uint32_t time);
 //	void SetTimeout(const char * name, uint32_t time);
 

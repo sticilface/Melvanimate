@@ -24,18 +24,11 @@ EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandl
 	_NextInLine(nullptr), _defaulteffecthandle(nullptr)
 {};
 
-bool EffectManager::Add(const char * name, EffectHandler* handle, bool require_animator, bool defaulteffect)
+bool EffectManager::Add(const char * name, EffectHandler* handle, bool animations, bool defaulteffect)
 {
 	_count++;
 
-	// if (require_animator) {
-	// 	if (strip->PixelCount() > MAXLEDANIMATIONS) {
-	// 		Serial.println("[EffectManager::Add] Effect not added: Too many LEDs for animations");
-	// 		return false;
-	// 	}
-	// }
-
-	if (defaulteffect) {
+	if (defaulteffect && !_defaulteffecthandle) {
 		_defaulteffecthandle = handle;
 	}
 
@@ -50,7 +43,7 @@ bool EffectManager::Add(const char * name, EffectHandler* handle, bool require_a
 		_lastHandle->name(name);  // give it name...
 	}
 
-	handle->animate(require_animator);
+	handle->animate(animations);
 //	Serial.printf("ADDED EFFECT %u: %s\n", _count, _lastHandle->name());
 }
 
@@ -177,13 +170,13 @@ bool EffectManager::Stop()
 {
 	if (_currentHandle) {
 		_currentHandle->EndVars();
-		_currentHandle->Stop();
+		return _currentHandle->Stop();
 	}
 };
 
 bool EffectManager::Pause()
 {
-	if (_currentHandle) { _currentHandle->Pause(); }
+	if (_currentHandle) { return _currentHandle->Pause(); }
 };
 
 void EffectManager::Refresh()
@@ -245,11 +238,17 @@ const char * EffectManager::getName(uint8_t i)
 
 	EffectHandler* handler;
 	uint8_t count = 0;
+
 	for (handler = _firstHandle; handler; handler = handler->next()) {
 		if ( i == count ) { break; }
 		count++;
 	}
-	return handler->name();
+
+	if (handler) {
+		return handler->name();
+	} else {
+		return "";
+	}
 }
 
 
@@ -675,7 +674,6 @@ bool EffectManager::Load(uint8_t ID)
 
 			//  Is current effect same effect as is wanted.
 			JsonObject& preset = (*root)[cID];
-//			EffectHandler* effectp = nullptr;
 
 			if (root) {
 

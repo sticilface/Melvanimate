@@ -25,22 +25,22 @@ public:
 	// needs to NOT be virtual... call parsejson instead... but then call a virtual member..
 
 	bool addJson(JsonObject& settings); // called first, iterates through 'installed properties' then calls addEffectJson
-	virtual bool addEffectJson(JsonObject& settings) { return false; };
+	virtual bool addEffectJson(JsonObject& settings) const { return false; };
 
 	// save does NOT have to be overridden.  it calls addJson instead.
 	virtual bool save(JsonObject& root, const char *& ID, const char * name);
 
-	uint8_t preset() { return _preset; }
+	uint8_t preset() const { return _preset; }
 	void preset(uint8_t preset) { _preset = preset; }
 
 	void animate(bool require) { _animator = require; }
-	bool animate() { return _animator; }
+	bool animate() const  { return _animator; }
 
 //  Core Very important...
-	EffectHandler* next() { return _next; } //  ASK what is next
+	EffectHandler* next() const { return _next; } //  ASK what is next
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
 	void name (const char * name) { _name = name; }
-	const char * name() {return _name; };
+	const char * name() const {return _name; };
 
 private:
 	EffectHandler* _next = nullptr;
