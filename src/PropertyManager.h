@@ -12,9 +12,11 @@ public:
 	virtual ~AbstractPropertyHandler() {}
 	virtual bool addJsonProperty(JsonObject & root) {return false; };
 	virtual bool parseJsonProperty(JsonObject & root) { return false; } ;
+
 	const char * name() { return _name; }
 	AbstractPropertyHandler* next() { return _next; }
 	void next (AbstractPropertyHandler* next) { _next = next; }
+	AbstractPropertyHandler* p() { return this; }
 
 private:
 	AbstractPropertyHandler* _next = nullptr;
@@ -37,7 +39,7 @@ public:
 	Variable(const char * name, T value)
 	{
 		_name = name;
-		set(value); 
+		set(value);
 	};
 
 	~Variable() override {}
@@ -80,7 +82,7 @@ public:
 	Variable(const char * name, RgbColor value)
 	{
 		_name = name;
-		set(value); 
+		set(value);
 	};
 	~Variable() override { }
 
@@ -107,7 +109,7 @@ public:
 	Variable(const char * name, const char * value)
 	{
 		_name = name;
-		set(value); 
+		set(value);
 	};
 	~Variable() override
 	{
@@ -149,7 +151,7 @@ public:
 	Variable(const char * name, Palette* value)
 	{
 		_name = name;
-		set(value); 
+		set(value);
 	};
 	~Variable() override {}
 
@@ -186,7 +188,7 @@ public:
 	Variable(const char * name, IPAddress value)
 	{
 		_name = name;
-		set(value); 
+		set(value);
 	};
 	~Variable() override {}
 
@@ -232,14 +234,152 @@ private:
 	IPAddress _var;
 };
 
-enum var_types_t {
-	T_BOOL = 0,
-	T_INT8_T,
-	T_INT,
-	T_RGBCOLOR,
-	T_IPADDRESS,
-	T_CONSTCHAR
+
+
+
+template <class T>
+class Array: public AbstractPropertyHandler
+{
+public:
+	Array(const char * name, T value, uint16_t number)
+	{
+		_number = number;
+		_var = new T[_number];
+		_name = name;
+		if (_var) {
+			for (uint16_t i = 0; i < _number; i++) {
+				_var[i] = value;
+			}
+		}
+	};
+
+	~Array() override
+	{
+		if (_var) {
+			delete[] _var;
+		}
+	}
+
+	operator uint16_t() const
+	{
+		return _number;
+	}
+
+	T operator[] (uint16_t i) const
+	{
+		return _var[i];
+	}
+
+	T& operator[] (uint16_t i)
+	{
+		return _var[i];
+	}
+
+	bool addJsonProperty(JsonObject & root) override
+	{
+		JsonArray& array = root.createNestedArray(_name);
+
+		for (uint16_t i = 0; i < _number; i++) {
+			array.add(_var[i]);
+		}
+		return true;
+	}
+
+	bool parseJsonProperty(JsonObject & root) override
+	{
+		if (root.containsKey(_name) ) {
+			if ( root[_name].is<JsonArray&>()) {
+
+				JsonArray& array = root[_name];
+
+				uint16_t count = 0;
+
+				 for (uint16_t i = 0; i < _number; i++) {
+				 	_var[i] = (array[i]); 
+				}
+				return true;
+			}
+		}
+		return false;
+	}
+
+private:
+	T* _var;
+	uint16_t _number;
 };
+
+
+// template <>
+// class Array<Array<class T>*>: public AbstractPropertyHandler
+// {
+// public:
+// 	Array(const char * name, T * value, uint16_t number)
+// 	{
+// 		_number = number;
+// 		_var = new T *[_number];
+// 		_name = name;
+// 		if (_var) {
+// 			for (uint16_t i = 0; i < _number; i++) {
+// 				_var[i] = value;
+// 			}
+// 		}
+// 	};
+
+// 	~Array() override
+// 	{
+// 		if (_var) {
+// 			delete[] _var;
+// 		}
+// 	}
+
+// 	operator uint16_t() const
+// 	{
+// 		return _number;
+// 	}
+
+// 	T * operator[] (uint16_t i) const
+// 	{
+// 		return _var[i];
+// 	}
+
+// 	T *& operator[] (uint16_t i)
+// 	{
+// 		return _var[i];
+// 	}
+
+// 	bool addJsonProperty(JsonObject & root) override
+// 	{
+// 		JsonArray& array = root.createNestedArray(_name);
+
+// 		for (uint16_t i = 0; i < _number; i++) {
+// 			array.add(_var[i]);
+// 		}
+// 		return true;
+// 	}
+
+// 	bool parseJsonProperty(JsonObject & root) override
+// 	{
+// 		if (root.containsKey(_name) ) {
+// 			if ( root[_name].is<JsonArray&>()) {
+
+// 				JsonArray& array = root[_name];
+
+// 				uint16_t count = 0;
+
+// 				 for (uint16_t i = 0; i < _number; i++) {
+// 				 	_var[i] = array[i]; 
+// 				}
+// 				return true;
+// 			}
+// 		}
+// 		return false;
+// 	}
+
+// private:
+// 	T ** _var;
+// 	uint16_t _number;
+// };
+
 
 class PropertyManager
 {
@@ -277,21 +417,60 @@ public:
 
 	virtual bool InitVars() { return false; }
 
-
-	// overloaded index to allow getting and settings using index... 
 	template<class T>
-	T operator[] (const char * name) const
+	bool hasProperty(const char * name) const
+	{
+		AbstractPropertyHandler* handle = nullptr;
+
+		for (handle = _firsthandle; handle; handle = handle->next()) {
+			if (!strcmp(handle->name(), name)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	template<class T>
+	Array<T>& variable(const char * name)
 	{
 
 		AbstractPropertyHandler* handle = nullptr;
 
 		for (handle = _firsthandle; handle; handle = handle->next()) {
 			if (!strcmp(handle->name(), name)) {
-				return ((Variable<T>*)(handle))->get();
+				return *((Variable<T>*)handle);
 			}
 		}
-		return T{};
 	}
+
+	template<class T>
+	Array<T>& array(const char * name)
+	{
+
+		AbstractPropertyHandler* handle = nullptr;
+
+		for (handle = _firsthandle; handle; handle = handle->next()) {
+			if (!strcmp(handle->name(), name)) {
+				return *((Array<T>*)handle);
+			}
+		}
+	}
+
+
+	// overloaded index to allow getting and settings using index...
+	// template<class T>
+	// T operator[] (const char * name) const
+	// {
+
+	// 	AbstractPropertyHandler* handle = nullptr;
+
+	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
+	// 		if (!strcmp(handle->name(), name)) {
+	// 			return ((Variable<T>*)(handle))->get();
+	// 		}
+	// 	}
+	// 	return T{};
+	// }
 
 	// template<class T>
 	// T& operator[] (const char * name)
@@ -304,34 +483,24 @@ public:
 	// 			return (  (Variable<T>*)(handle))->get();
 	// 		}
 	// 	}
-	// 	return T{};		
+	// 	return T{};
+	// }
+
+	// template<class T>
+	// T* operator* (const char * name) const
+	// {
+	// 	AbstractPropertyHandler* handle = nullptr;
+
+	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
+	// 		if (!strcmp(handle->name(), name)) {
+	// 			return ((Variable<T>*)(handle));
+	// 		}
+	// 	}
+	// 	return nullptr;
 	// }
 
 
-	var_types_t type(bool)
-	{
-		return T_BOOL;
-	}
-	var_types_t type(int)
-	{
-		return T_INT;
-	}
-	var_types_t type(uint8_t)
-	{
-		return T_INT8_T;
-	}
-	var_types_t type(RgbColor)
-	{
-		return T_RGBCOLOR;
-	}
-	var_types_t type (IPAddress)
-	{
-		return T_IPADDRESS;
-	}
-	var_types_t type (const char *)
-	{
-		return T_CONSTCHAR;
-	}
+
 
 private:
 	AbstractPropertyHandler* _firsthandle;
