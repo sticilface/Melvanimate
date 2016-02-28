@@ -8,28 +8,17 @@
 
 #include <NeoPixelBus.h>
 #include <FS.h>
-#include <ArduinoJson.h>
-#include <MD5Builder.h>
 
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
 #define EFFECT_WAIT_TIMEOUT 20000
 #define DEFAULT_WS2812_PIN 2
+#define DEFAULT_TOTAL_PIXELS 64
 
 
 #include "EffectManager.h"
-#include "ObjectManager.h"
 #include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function 
 #include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
-
-
-#include "effects/SwitchEffect.h"
-#include "effects/SimpleEffect.h"
-#include "effects/Effect2.h"
-#include "effects/DMXEffect.h"
-#include "effects/AdalightEffect.h"
-#include "effects/UDPEffect.h"
-
-
+#include "ObjectManager.h"
 
 
 
@@ -43,17 +32,15 @@
 
 
 // globals for neopixels.
-extern const uint16_t TOTALPIXELS;
 extern NeoPixelBus * strip;
 extern NeoPixelAnimator * animator;
-//extern uint8_t* stripBuffer;
 extern SimpleTimer timer;
 
 
 class Melvanimate : public EffectManager
 {
 public:
-	Melvanimate();
+	Melvanimate(uint16_t pixels, uint8_t pin);
 
 	static const RgbColor 	dim( RgbColor input, const uint8_t brightness);
 
@@ -67,12 +54,14 @@ public:
 	const uint16_t    getPixels() { return _pixels; }
 
 	void        setPixels(const uint16_t pixels);
-	bool        save() { return save(false); }
-	bool 		save(bool);
 
-	bool        load();
-	bool        begin();
-//	bool		animations() {return _animations; }
+	inline bool	 saveGeneral() { return saveGeneral(false); }
+	bool	saveGeneral(bool);
+
+	bool	loadGeneral();
+	bool    begin();
+
+	void Loop() override; 
 
 	void setWaiting(bool wait = true);
 	void autoWait();
@@ -89,11 +78,11 @@ private:
 	void _init_LEDs();
 	void _init_matrix();
 	uint16_t  _pixels;
+	uint8_t _pin; 
 	Melvtrix * _matrix;
 	uint8_t _matrixconfig;
 	uint16_t _grid_x, _grid_y;
 	bool _settings_changed;
-//	bool _animations;
 	File _settings = File();
 
 	uint8_t _waiting;

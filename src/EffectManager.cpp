@@ -1,4 +1,8 @@
+/*---------------------------------------------
 
+				Effect Manager
+
+---------------------------------------------*/
 
 
 #include "EffectManager.h"
@@ -13,12 +17,6 @@ extern NeoPixelAnimator * animator;
 //#define jsonprettyprint //  uses prettyPrintTo to send to SPIFFS... uses a lot more chars to pad the json.. a lot more..
 
 const char * PRESETS_FILE = "/presets.txt";
-
-/*---------------------------------------------
-
-				Effect Manager
-
----------------------------------------------*/
 
 EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandle(nullptr), _lastHandle(nullptr), _toggleHandle(nullptr),
 	_NextInLine(nullptr), _defaulteffecthandle(nullptr)
@@ -44,16 +42,7 @@ bool EffectManager::Add(const char * name, EffectHandler* handle, bool animation
 	}
 
 	handle->animate(animations);
-//	Serial.printf("ADDED EFFECT %u: %s\n", _count, _lastHandle->name());
-}
-
-EffectHandler* EffectManager::Start()
-{
-	if (_toggleHandle) {
-		return Start(_toggleHandle->name());
-	}
-
-	return nullptr;
+	DebugEffectManagerf("ADDED EFFECT %u: %s\n", _count, handle->name());
 }
 
 EffectHandler* EffectManager::_findhandle(const char * handle)
@@ -74,15 +63,20 @@ EffectHandler* EffectManager::_findhandle(const char * handle)
 	}
 }
 
+EffectHandler* EffectManager::Start()
+{
+	if (_toggleHandle) {
+		return Start(_toggleHandle->name());
+	}
+
+	return nullptr;
+}
+
 EffectHandler* EffectManager::Start(const char * name)
 {
-	//  end current effect...
-	//  need to store address of next... and handle changeover in the loop...
-	// this function should signal to current to END & store
-
-	// actually.. maybe use return values to signal... with timeouts to prevent getting stuck..
-	// manager sends... stop()....  until that returns true.. it can't --- NOPE not going to work... Start and stop should only get called once...
+#ifdef DebugEffectManager
 	uint32_t heap;
+#endif
 
 	Stop();
 
@@ -93,23 +87,23 @@ EffectHandler* EffectManager::Start(const char * name)
 
 		if (_NextInLine->animate() && strip->PixelCount() <= MAXLEDANIMATIONS) {
 			if (!animator) {
-				Serial.println("[EffectManager::Start] Animator Created");
+				DebugEffectManagerf("[EffectManager::Start] Animator Created\n");
 				animator = new NeoPixelAnimator(strip);
 			} else {
-				Serial.println("[EffectManager::Start] Animator Already in Place");
+				DebugEffectManagerf("[EffectManager::Start] Animator Already in Place\n");
 			}
 		} else {
 			if (animator) {
-				Serial.println("[EffectManager::Start] Animator Deleted");
+				DebugEffectManagerf("[EffectManager::Start] Animator Deleted\n");
 				delete animator;
 				animator = nullptr;
 			} else {
-				Serial.println("[EffectManager::Start] Animator Already Deleted");
+				DebugEffectManagerf("[EffectManager::Start] Animator Already Deleted\n");
 			}
 		}
-
+#ifdef DebugEffectManager
 		heap = ESP.getFreeHeap();
-
+#endif
 		_NextInLine->InitVars();
 
 		if (getPresets(_NextInLine, _numberofpresets, _presets, _preset_names)) {
@@ -127,9 +121,9 @@ EffectHandler* EffectManager::Start(const char * name)
 					if (!strcmp(name, "Default") || !strcmp( name, "default")) {
 
 						if (Load(_presets[i])) {
-							Serial.printf("[Start] Default Loaded %u\n", _presets[i]);
+							DebugEffectManagerf("[Start] Default Loaded %u\n", _presets[i]);
 						} else {
-							Serial.printf("[Start] ERROR loading Default %u\n", _presets[i]);
+							DebugEffectManagerf("[Start] ERROR loading Default %u\n", _presets[i]);
 						}
 					}
 				}
@@ -142,10 +136,12 @@ EffectHandler* EffectManager::Start(const char * name)
 				_toggleHandle = handler;
 			}
 		}
-
+#ifdef DebugEffectManager
 		int used = heap - ESP.getFreeHeap();
 		if (used < 0) { used = 0; }
-		Serial.printf("[Start] Heap Used by %s (%u)\n", handler->name(), used);
+#endif
+
+		DebugEffectManagerf("[Start] Heap Used by %s (%u)\n", handler->name(), used);
 
 		return _NextInLine;
 	} else {
@@ -158,6 +154,17 @@ EffectHandler* EffectManager::Start(const char * name)
 	}
 
 };
+
+
+EffectHandler* EffectManager::Current()
+{
+	if (_NextInLine) {
+		return _NextInLine;
+	} else {
+		return _currentHandle;
+	}
+};
+
 
 // not sure about this implementation....
 bool EffectManager::Next()
@@ -188,27 +195,7 @@ void EffectManager::Refresh()
 void EffectManager::Loop()
 {
 
-	bool waiting = false;
-
-	// if (_currentHandle)  {
-	// 	waiting = _currentHandle->wait();
-	// }
-
-	if (_waitFn)  {
-		waiting = _waitFn();
-	}
-
-
-	//  This flips over to next effect asyncstyle....
-	if (!waiting && _NextInLine) {
-//		Serial.println("[Loop] Next effect STARTED");
-		_currentHandle = _NextInLine;
-		_NextInLine = nullptr;
-		_currentHandle->Start();
-		return;
-	}
-
-	if (!waiting && _currentHandle) { _currentHandle->Run(); }
+	_process(); 
 };
 
 // void EffectManager::SetTimeout(uint32_t time)
@@ -230,6 +217,26 @@ void EffectManager::Loop()
 
 // }
 
+void EffectManager::_process()
+{
+		bool waiting = false;
+
+	if (_waitFn)  {
+		waiting = _waitFn();
+	}
+
+
+	//  This flips over to next effect asyncstyle....
+	if (!waiting && _NextInLine) {
+//		Serial.println("[Loop] Next effect STARTED");
+		_currentHandle = _NextInLine;
+		_NextInLine = nullptr;
+		_currentHandle->Start();
+		return;
+	}
+
+	if (!waiting && _currentHandle) { _currentHandle->Run(); }
+}
 
 
 const char * EffectManager::getName(uint8_t i)
@@ -262,9 +269,9 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, J
 	File f = SPIFFS.open(file_name, "r");
 	bool success = false;
 
-	// if (!f) {
-	// 	Serial.printf("[parsespiffs] File open Failed\n");
-	// }
+	if (!f) {
+		DebugEffectManagerf("[parsespiffs] File open Failed\n");
+	}
 
 	if (f && f.size()) {
 
@@ -273,7 +280,7 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, J
 		data = new char[f.size()];
 		// prevent nullptr exception if can't allocate
 		if (data) {
-			Serial.printf("[parsespiffs] Buffer size %u\n", f.size());
+			DebugEffectManagerf("[parsespiffs] Buffer size %u\n", f.size());
 
 			//  This method give a massive improvement in file reading speed for SPIFFS files..
 
@@ -310,13 +317,13 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, J
 				success = true;
 			}
 		} else {
-//			Serial.println("[parsespiffs] malloc failed");
+			DebugEffectManagerf("[parsespiffs] malloc failed\n");
 		}
 	}
 
 	f.close();
 
-//	Serial.printf("[parsespiffs] time: %u\n", millis() - starttime);
+	DebugEffectManagerf("[parsespiffs] time: %u\n", millis() - starttime);
 	if (success) {
 		return true;
 	} else {
@@ -351,9 +358,9 @@ bool EffectManager::removePreset(uint8_t ID)
 #endif
 						f.close();
 						success = true;
-//					Serial.printf("[removePreset] [%s] Setting Removed\n", cID);
+						DebugEffectManagerf("[removePreset] [%s] Setting Removed\n", cID);
 					} else {
-//					Serial.println("[removePreset] FILE OPEN error:  NOT saved");
+						DebugEffectManagerf("[removePreset] FILE OPEN error:  NOT saved\n");
 					}
 
 				}
@@ -423,7 +430,7 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 					if (current.containsKey("effect")) {
 						if ( strcmp( current["effect"], handle->name() ) == 0) {
 							// if matched then this preset is a valid effect for the current one.
-							//Serial.printf("[getPresets] found preset for %s (%s)\n", handle->name(), key);
+							DebugEffectManagerf("[getPresets] found preset for %s (%s)\n", handle->name(), key);
 							count++;
 						}
 					}
@@ -512,7 +519,6 @@ void EffectManager::addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & ro
 				JsonObject& current = it->value.asObject();
 
 				// compare to the name of current effect
-				//	Serial.printf("[getPresets] Identified presets for %s (%s)\n", handle->name(), key);
 				if (current.containsKey("effect") && current.containsKey("name")) {
 
 					const char * presetkey = jsonBuffer.strdup(key);
@@ -534,11 +540,9 @@ void EffectManager::addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & ro
 }
 
 
-// todo....
-
 uint8_t EffectManager::nextFreePreset(JsonObject & root)
 {
-	Serial.printf("[EffectManager::nextFreePreset] called\n");
+	DebugEffectManagerf("[EffectManager::nextFreePreset] called\n");
 	uint8_t i = 0;
 
 	bool * array = new bool[255];
@@ -566,13 +570,13 @@ uint8_t EffectManager::nextFreePreset(JsonObject & root)
 		delete[] array;
 
 	} else {
-		Serial.printf("[EffectManager::nextFreePreset] new array failed\n");
+		DebugEffectManagerf("[EffectManager::nextFreePreset] new array failed\n");
 	}
 
 	if (i == 254) {
 		i = 0;
 	}
-	Serial.printf("[EffectManager::nextFreePreset] nextFree = %u \n", i);
+	DebugEffectManagerf("[EffectManager::nextFreePreset] nextFree = %u \n", i);
 	return i;
 
 }
@@ -583,7 +587,7 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 	char * data = nullptr;
 
 
-	Serial.println("[newSave] Called");
+	DebugEffectManagerf("[newSave] Called\n");
 
 	if (_currentHandle && strlen(name) > 0 ) {
 
@@ -592,7 +596,7 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 		JsonObject * root = nullptr;
 
 		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
-			Serial.println("[newSave] Existing Settings Loaded");
+			DebugEffectManagerf("[newSave] Existing Settings Loaded\n");
 		} else {
 			// if no file exists, or parse fails create new json object...
 			root = &jsonBuffer.createObject();
@@ -603,13 +607,13 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 			ID = nextFreePreset(*root);
 		}
 		const char * cID = jsonBuffer.strdup(String(ID).c_str());
-		Serial.printf("[newSave] Next Free %s\n", cID);
+		DebugEffectManagerf("[newSave] Next Free %s\n", cID);
 
 		//
 
 		if (root && _currentHandle->save(*root, cID, name)) {
 
-			Serial.println("[newSave] New Settings Added");
+			DebugEffectManagerf("[newSave] New Settings Added\n");
 			File f = SPIFFS.open(PRESETS_FILE, "w");
 
 			if (f) {
@@ -621,14 +625,13 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 #endif
 //				root->prettyPrintTo(Serial);
 
-				Serial.printf("[newSave] DONE Heap %u\n", ESP.getFreeHeap() );
+				DebugEffectManagerf("[newSave] DONE Heap %u\n", ESP.getFreeHeap() );
 				f.close();
-
 				_currentHandle->preset(ID);
-
 				success = true;
+
 			} else {
-				Serial.println("FILE OPEN error:  NOT saved");
+				DebugEffectManagerf("FILE OPEN error:  NOT saved\n");
 			}
 
 		}
@@ -653,7 +656,7 @@ bool EffectManager::Load(uint8_t ID)
 {
 	bool success = false;
 
-	EffectHandler* handle = nullptr;
+	EffectHandler* handle = Current();
 
 	if (_currentHandle && !_NextInLine) {
 		handle = _currentHandle;
@@ -682,7 +685,7 @@ bool EffectManager::Load(uint8_t ID)
 					if (handle && preset.containsKey("effect")) {
 						if (strcmp(handle->name(), preset["effect"]) != 0) {
 							handle = Start(preset["effect"].asString());
-//						Serial.printf("[EffectManager::newLoad]  Effect changed to %s\n", effectp->name());
+							DebugEffectManagerf("[EffectManager::newLoad]  Effect changed to %s\n", handle->name());
 						}
 
 					}
@@ -690,7 +693,7 @@ bool EffectManager::Load(uint8_t ID)
 					// now can load the effect using json
 					if (handle) {
 						if (handle->parseJson(preset)) {
-//							Serial.printf("[EffectManager::newLoad] Preset %s loaded\n", cID);
+							DebugEffectManagerf("[EffectManager::newLoad] Preset %s loaded\n", cID);
 							handle->preset(ID);
 							success = true;
 						}
@@ -712,7 +715,7 @@ bool EffectManager::convertcolor(JsonObject & root, const char * node)
 
 		String colorstring = root[node];
 
-//		Serial.printf("[EffectManager::convertcolor] bcolorstring = %s\n", colorstring.c_str());
+		DebugEffectManagerf("[EffectManager::convertcolor] bcolorstring = %s\n", colorstring.c_str());
 		JsonObject& colorroot = root.createNestedObject(node);
 
 		colorroot["R"] = colorstring.substring(0, colorstring.indexOf(",")).toInt();

@@ -1,16 +1,17 @@
 #include "Melvanimate.h"
 
+#include <MD5Builder.h>
+#include <ArduinoJson.h>
 
 
-const uint16_t TOTALPIXELS = 64;
+
 
 NeoPixelBus * strip = nullptr;
 NeoPixelAnimator * animator = nullptr;
-//WiFiUDP Udp;
 
 SimpleTimer timer;
 
-Melvanimate::Melvanimate(): _pixels(TOTALPIXELS)
+Melvanimate::Melvanimate(uint16_t pixels, uint8_t pin): _pixels(pixels), _pin(pin)
 	, _grid_x(8), _grid_y(8), _matrixconfig(0), _matrix(nullptr)
 	, _settings_changed(false), timeoutvar(0)
 {
@@ -19,7 +20,7 @@ Melvanimate::Melvanimate(): _pixels(TOTALPIXELS)
 }
 
 
-bool        Melvanimate::begin()
+bool Melvanimate::begin()
 {
 	DebugMelvanimatef("Begin Melvana called\n");
 
@@ -31,12 +32,17 @@ bool        Melvanimate::begin()
 		if (!_settings) { DebugMelvanimatef("Failed to create empty file too\n"); }
 	}
 
-	load();
+	loadGeneral();
 	_init_LEDs();
 	_init_matrix();
-
 }
 
+
+void Melvanimate::Loop()
+{
+	_process(); 
+	
+}
 
 void Melvanimate::_init_matrix()
 {
@@ -163,11 +169,11 @@ void Melvanimate::setWaiting(bool wait)
 }
 
 
-bool        Melvanimate::save(bool override)
+bool        Melvanimate::saveGeneral(bool override)
 {
 
 	if (!_settings_changed && !override) { return false; }
-	//Debug("Saving Settings: ");
+	DebugMelvanimatef("Saving Settings: ");
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.createObject();
 
@@ -199,7 +205,7 @@ bool        Melvanimate::save(bool override)
 }
 
 
-bool        Melvanimate::load()
+bool        Melvanimate::loadGeneral()
 {
 
 	DynamicJsonBuffer jsonBuffer;

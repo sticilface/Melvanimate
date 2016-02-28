@@ -6,6 +6,15 @@
 
 extern const char * PRESETS_FILE;
 
+//#define DebugEffectManager
+
+#ifdef DebugEffectManager
+#define DebugEffectManagerf(...) Serial.printf(__VA_ARGS__)
+#else
+#define DebugEffectManagerf(...) {}
+#endif
+
+
 /* ------------------------------------------------------------------------
 	Effect Mangager
 	This is the base class for managing effects
@@ -20,8 +29,6 @@ public:
 	~EffectManager() {};
 
 	bool Add(const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
-//	void SetTimeout(uint32_t time);
-//	void SetTimeout(const char * name, uint32_t time);
 
 	EffectHandler* Start();
 	EffectHandler* Start(const char * name);
@@ -32,18 +39,11 @@ public:
 
 	bool Stop() ;
 	bool Pause() ;
-	void Loop();
+	virtual void Loop(); //  this can be overridden....  but should contain _process() function to operate... 
 
 	void setWaitFn(std::function<bool()> Fn ) { _waitFn = Fn; } //  allow effects to wait until triggering next...
 
-	EffectHandler* Current() const
-	{
-		if (_NextInLine) {
-			return _NextInLine;
-		} else {
-			return _currentHandle;
-		}
-	};
+	EffectHandler* Current();  // returns current.. or the next in line.
 
 	const uint16_t total() const { return _count;}
 	const char* getName(uint8_t i);
@@ -55,15 +55,12 @@ public:
 	//  Load needs to be moved to the effecthandler... so that the manager can just set the flag..
 	//  load this preset, then the effect can do it when it is ready... so async...
 
-
 	bool removePreset(uint8_t ID);
 	uint8_t nextFreePreset(JsonObject & root);
 
 	// fetches info from SPIFFS valid presests for current effect
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
 	void addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & root); 
-
-//	bool SetToggle(const char * name);
 
 	// maybe move this into a helper header file....
 	static bool convertcolor(JsonObject & root, const char * colorstring);
@@ -84,6 +81,9 @@ protected:
 	EffectHandler*  _defaulteffecthandle; 
 
 	uint16_t _count;
+
+	void _process();  //  this must be called by derived classes in loop. 
+
 private:
 	std::function<bool()>  _waitFn = nullptr;
 
@@ -91,15 +91,6 @@ private:
 	EffectHandler* _findhandle(const char * handle);
 
 };
-
-
-
-
-/* ------------------------------------------------------------------------
-								Attempt at SUB Template for settings...
---------------------------------------------------------------------------*/
-
-
 
 
 

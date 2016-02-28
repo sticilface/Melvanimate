@@ -100,7 +100,6 @@ private:
   type;
   const uint8_t
   matrixWidth, matrixHeight, tilesX, tilesY;
-
   ShapeUpdateCallback ShapeFn;
 
 };

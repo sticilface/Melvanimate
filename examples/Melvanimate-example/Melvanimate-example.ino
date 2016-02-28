@@ -32,9 +32,17 @@
 
 #include "SimpleTimer/_SimpleTimer.h"
 
-#include "class_effects.h"
+#include "effects/SwitchEffect.h"
+#include "effects/SimpleEffect.h"
+#include "effects/Effect2.h"
+#include "effects/DMXEffect.h"
+#include "effects/AdalightEffect.h"
+#include "effects/UDPEffect.h"
 
-#define Debug
+#define WS2812_PIXELS 64
+
+
+//#define Debug
 
 #ifdef Debug
 #define Debugf(...) Serial.printf(__VA_ARGS__)
@@ -46,239 +54,36 @@
 //  this is the native SDK json lib.
 //#include <json/json.h>
 
-// #include <cont.h>
-// #include <stddef.h>
-// #include <ets_sys.h>
-
 
 ESP8266WebServer HTTP(80);
 FSBrowser fsbrowser(HTTP);
-//ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
-
-//ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SONET_1", "tachi123");
-
-//ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
-
-ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
-
-
-
-// class testclass : public EffectHandler, public Color_property, public Brightness_property, public Palette_property
-// {
-
-// public:
-//   testclass(): Color_property(this), Brightness_property(this), Palette_property(this) {};
-
-
-//   bool Run() override
-//   {
-//     if ( millis() - _timer > 1000) {
-//       Serial.printf("[testclass::Run] bri = %u, col = (%u,%u,%u)\n", _brightness, _color.R, _color.G, _color.B);
-//       _timer = millis();
-//     }
-//   };
-//   bool Start() override
-//   {
-//     Serial.println("[testclass::Start]");
-//   };
-//   bool Stop() override
-//   {
-//     Serial.println("[testclass::Stop]");
-//   };
-//   void Refresh() override
-//   {
-//     Serial.println("[testclass::Refresh]");
-//   };
-
-//   // bool addEffectJson(JsonObject& settings) override
-//   // {
-//   //  Serial.printf("[CascadeEffect::addJson] Called\n");
-//   //  Serial.println("[CascadeEffect::addJson] root");
-//   //  settings.prettyPrintTo(Serial);
-//   //  Serial.println();
-//   // }
-
-// //  bool parseJsonEffect(JsonObject& root) override;
-
-//   // bool testFn()
-//   // {
-//   //  _color = RgbColor(0, 0, 0);
-//   //  _brightness = 255;
-//   // }
-
-// private:
-//   uint32_t _timer = 0;
-// };
-
-
-
-
-struct XY_t {
-  int x;
-  int y;
-} XY;
-
-//  MQTT
-
 IPAddress mqtt_server_ip(192, 168, 1, 1);
 
-//WiFiClient mqtt_wclient;
-//PubSubClient mqtt(mqtt_wclient, mqtt_server_ip);
+//ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
+//ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SONET_1", "tachi123");
+//ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
+//ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
-//  This initialises everything.
+ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
 
-Melvanimate lights;
+Melvanimate lights(WS2812_PIXELS,2);
 
-uint32_t save_flag = 0;
-bool modechange = false;
-
-
-// foreward dec for arudino
-// void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdate);
-// void FadeTo(RgbColor color);
-// void FadeTo( uint16_t time, RgbColor color);
-// void crashfunc();
-// void handle_data();
-// void Show_pixels(bool override);
-// void FadeToAndBack(uint16_t pixel, RgbColor color, uint16_t time);
-// void send_data(String page);
-
-
-
-// void MarqueeFn(effectState state, EffectHandler* ptr);
-// void offFn(effectState state, EffectHandler* ptr);
-// void SimpleColorFn(effectState state, EffectHandler* ptr);
-// void AdaLightFn(effectState state, EffectHandler* ptr);
-
-
-// class SwitchEffect;
-// class GeneralEffect;
-// class AdalightEffect;
-// class MarqueeEffect;
-
-
-void setup()
+void install_effects() 
 {
+// bool Add(const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
 
-  Serial.begin(115200);
-  Serial.println("");
-  //Serial.setDebugOutput(true);
+  lights.Add("Off",         new SwitchEffect( offFn), true, true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
+  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn), true);       // working
+  lights.Add("CuriousCat",  new Effect2, true);
+  lights.Add("Adalight",    new AdalightEffect(Serial, 115000), true);    // working - need to test
+  lights.Add("UDP",         new UDPEffect, false);                        // working
+  lights.Add("DMX",         new DMXEffect, false );                       // need to test - requires custom libs included
+  
 
-  SPIFFS.begin();
-
-  lights.begin();
-
-  settings.begin();
-  fsbrowser.begin();
-
-
-  HTTP.on("/crash", HTTP_ANY, crashfunc);
-
-  // HTTP.on("/stack", HTTP_ANY, []() {
-  //   cont_ stackvars;
-  //   if (cont_get_free_stack(&stackvars)){
-
-  //   }
-
-  // });
-
-  HTTP.on("/data.esp", HTTP_ANY, handle_data);
-  HTTP.on("/debug", HTTP_GET, []() {
-    static bool debugstate = false;
-    debugstate = !debugstate;
-    Serial.setDebugOutput(debugstate);
-    HTTP.setContentLength(0);
-    HTTP.send(200); // sends OK if were just receiving data...
-  });
-
-  HTTP.on("/command", HTTP_ANY, []() {
-    if (HTTP.hasArg("save")) {
-      if (HTTP.hasArg("name")) {
-        lights.Save(HTTP.arg("save").toInt(), HTTP.arg("name").c_str());
-      } else {
-        lights.Save(HTTP.arg("save").toInt(), "No Name");
-
-      }
-      Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
-      HTTP.setContentLength(0);
-      HTTP.send(200); // sends OK if were just receiving data...
-    }
-
-    if (HTTP.hasArg("load")) {
-      lights.Load(HTTP.arg("load").toInt());
-      Serial.printf("[load] done, heap: %u\n", ESP.getFreeHeap());
-      Serial.printf("[load] current preset = %u\n", lights.Current()->preset());
-      HTTP.setContentLength(0);
-      HTTP.send(200); // sends OK if were just receiving data...
-    }
-
-    if (HTTP.hasArg("print")) {
-      File f = SPIFFS.open(PRESETS_FILE, "r");
-      Serial.println("SETTINGS_FILE");
-
-      do {
-        char buf[250];
-        uint8_t number = (f.size() - f.position() > 250) ? 250 : f.size() - f.position();
-        f.readBytes(buf, number);
-        Serial.write(buf, number);
-      } while (f.position() < f.size());
-
-      Serial.println("---");
-
-      HTTP.setContentLength(0);
-      HTTP.send(200); // sends OK if were just receiving data...
-    }
-
-    if (HTTP.hasArg("remove")) {
-      lights.removePreset(HTTP.arg("remove").toInt());
-      HTTP.setContentLength(0);
-      HTTP.send(200); // sends OK if were just receiving data...
-    }
-
-    if (HTTP.hasArg("list")) {
-
-      Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
-
-      for (uint8_t i = 0; i < lights._numberofpresets; i++) {
-
-        char * text = lights._preset_names[i];
-
-
-        Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
-
-      }
-    }
-
-  });
-
-  void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
-
-  HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
-
-  HTTP.begin();
-
-// -------------------------------------------------------- //
-
-
-
-  lights.Add("Off", new SwitchEffect( offFn), true, true);     //  **  Last true indicates this is the default effect... ie... off...
-  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn), true);              // working
-  lights.Add("CuriousCat", new Effect2, true);
-
-   lights.Add("Adalight", new AdalightEffect(Serial, 115000), true);                    // working - need to test
-
-  lights.Add("UDP", new UDPEffect, false);                              // working
-  lights.Add("DMX", new DMXEffect, false );                              // need to test - requires custom libs included
   // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
-
   // lights.Add("Dummy", new DummyEffect(DummyFn));
   // lights.Add("PropertyTester", new CascadeEffect(CascadeEffectFn));
-
-
-
-  //lights.Add("test", new testclass);
-
-
+  // lights.Add("test", new testclass);
   // lights.Add("RainbowCycle", new SwitchEffect(RainbowCycleFn));
   // lights.Add("Rainbow", new SwitchEffect(RainbowFn));
   // lights.Add("BobblySquares", new SwitchEffect(BobblySquaresFn));
@@ -290,6 +95,110 @@ void setup()
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
   // lights.Add("Object", new SwitchEffect(ObjectFn));
+}
+
+//  MQTT
+
+
+//WiFiClient mqtt_wclient;
+//PubSubClient mqtt(mqtt_wclient, mqtt_server_ip);
+
+
+//uint32_t save_flag = 0;
+
+void setup()
+{
+
+  Serial.begin(115200);
+  Serial.println("");
+  //Serial.setDebugOutput(true);
+  SPIFFS.begin();
+  lights.begin();
+  settings.begin();
+  fsbrowser.begin();
+
+  HTTP.on("/data.esp", HTTP_ANY, handle_data);
+
+
+  HTTP.on("/crash", HTTP_ANY, [](){ NeoPixelBus * voidpointer; voidpointer->Show(); });
+  HTTP.on("/debug", HTTP_GET, []() {
+    static bool debugstate = false;
+    debugstate = !debugstate;
+    Serial.setDebugOutput(debugstate);
+    HTTP.setContentLength(0);
+    HTTP.send(200); // sends OK if were just receiving data...
+  });
+
+  // HTTP.on("/command", HTTP_ANY, []() {
+  //   if (HTTP.hasArg("save")) {
+  //     if (HTTP.hasArg("name")) {
+  //       lights.Save(HTTP.arg("save").toInt(), HTTP.arg("name").c_str());
+  //     } else {
+  //       lights.Save(HTTP.arg("save").toInt(), "No Name");
+
+  //     }
+  //     Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
+  //     HTTP.setContentLength(0);
+  //     HTTP.send(200); // sends OK if were just receiving data...
+  //   }
+
+  //   if (HTTP.hasArg("load")) {
+  //     lights.Load(HTTP.arg("load").toInt());
+  //     Serial.printf("[load] done, heap: %u\n", ESP.getFreeHeap());
+  //     Serial.printf("[load] current preset = %u\n", lights.Current()->preset());
+  //     HTTP.setContentLength(0);
+  //     HTTP.send(200); // sends OK if were just receiving data...
+  //   }
+
+    // if (HTTP.hasArg("print")) {
+    //   File f = SPIFFS.open(PRESETS_FILE, "r");
+    //   Serial.println("SETTINGS_FILE");
+
+    //   do {
+    //     char buf[250];
+    //     uint8_t number = (f.size() - f.position() > 250) ? 250 : f.size() - f.position();
+    //     f.readBytes(buf, number);
+    //     Serial.write(buf, number);
+    //   } while (f.position() < f.size());
+
+    //   Serial.println("---");
+
+    //   HTTP.setContentLength(0);
+    //   HTTP.send(200); // sends OK if were just receiving data...
+    // }
+
+    // if (HTTP.hasArg("remove")) {
+    //   lights.removePreset(HTTP.arg("remove").toInt());
+    //   HTTP.setContentLength(0);
+    //   HTTP.send(200); // sends OK if were just receiving data...
+    // }
+
+    // if (HTTP.hasArg("list")) {
+
+    //   Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
+
+    //   for (uint8_t i = 0; i < lights._numberofpresets; i++) {
+
+    //     char * text = lights._preset_names[i];
+
+
+    //     Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
+
+    //   }
+    // }
+
+  //});
+
+  void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
+
+  HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
+
+  HTTP.begin();
+
+// -------------------------------------------------------- //
+
+
+  install_effects(); 
 
 
   //timer.setTimeout(5000, []() { lights.Start("Marquee");} ) ;
@@ -297,9 +206,6 @@ void setup()
   // timer.setInterval(1000, []() {
   //   Debugf("HEAP: %u\n", ESP.getFreeHeap());
   // });
-
-  //Adalight_Flash();
-
 
   //timer.setTimeout(1000, []() { lights.Start("BobblySquares");} ) ;
 
@@ -312,10 +218,10 @@ void setup()
   //   text2Fn("Wellcome To the Jungle");
   // });
 
-  Serial.print("HEAP: ");
-  Serial.println(ESP.getFreeHeap());
+  Debugf("HEAP: ");
+  Debugf("%u/n",ESP.getFreeHeap());
 
-  Serial.println(F("Melvanimate Ready"));
+  Debugf("Melvanimate Ready\n");
 
   // lights.Current()->GeneralEffect::*pmf()
 
@@ -371,12 +277,12 @@ void loop()
 
   timer.run();
 
-  if (save_flag) {
-    if (millis() - save_flag > 100) {
-      save_flag = 0;
-      lights.save(modechange); //  will only save if actually required.
-    }
-  }
+  // if (save_flag) {
+  //   if (millis() - save_flag > 100) {
+  //     save_flag = 0;
+  //     lights.save(modechange); //  will only save if actually required.
+  //   }
+  // }
 
 
 
@@ -457,15 +363,9 @@ void print_args()
 
 
   for (uint8_t i = 0; i < HTTP.args(); i++) {
-    Serial.print("[ARG:");
-    Serial.print(i);
-    Serial.print("] ");
-    Serial.print(HTTP.argName(i));
-    Serial.print(" = ");
-    Serial.println(HTTP.arg(i));
-    Serial.flush();
+    Debugf("[ARG:%u] %s = %s\n", i, HTTP.argName(i).c_str(), HTTP.arg(i).c_str());
   }
-  Serial.printf("Heap = [%u]\n", ESP.getFreeHeap());
+  Debugf("Heap = [%u]\n", ESP.getFreeHeap());
 
 }
 
@@ -492,7 +392,7 @@ bool check_duplicate_req()
 
   if (memcmp(last_request, this_request, 16) == 0) {
     match = true;
-//    Serial.println("Request ignored: duplicate");
+    Debugf("Request ignored: duplicate");
   }
 
   memcpy(last_request, this_request, 16);
@@ -537,8 +437,7 @@ void handle_data()
   }
 
   if (HTTP.hasArg("mode")) {
-    modechange = lights.Start(HTTP.arg("mode"));
-    //if (HTTP.arg("mode") != "Off") { lights.SetToggle(HTTP.arg("mode").c_str()); }
+     lights.Start(HTTP.arg("mode"));
   }
 
 
@@ -546,7 +445,7 @@ void handle_data()
     uint8_t preset = HTTP.arg("preset").toInt();
     if (lights.Load(preset)) {
       //  try to switch current effect to preset...
-      Serial.printf("[handle] Loaded preset %u\n", preset);
+      Debugf("[handle] Loaded preset %u\n", preset);
     }
 
   }
@@ -609,9 +508,9 @@ void handle_data()
       palettenode["delay"] = HTTP.arg("palette-delay");
 
     }
-    Serial.println("[handle_data] JSON dump");
-    root.prettyPrintTo(Serial);
-    Serial.println();
+    // Serial.println("[handle_data] JSON dump");
+    // root.prettyPrintTo(Serial);
+    // Serial.println();
 
   }
 
@@ -758,7 +657,7 @@ void handle_data()
         String effect =  (HTTP.hasArg("timeroption")) ? HTTP.arg("timeroption") : String();
 
         if (lights.setTimer(HTTP.arg("timer").toInt(), HTTP.arg("timercommand"), effect )) {
-//          Serial.println("[handle] Timer command accepted");
+          Debugf("[handle] Timer command accepted\n");
         }
       }
     } else if (HTTP.arg("enabletimer") == "off") {
@@ -790,8 +689,8 @@ void handle_data()
   send_data(page);
 
 
-  save_flag = millis();
-  Serial.printf("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());
+  //save_flag = millis();
+  Debugf("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());
   return;
 
 }
@@ -1037,14 +936,7 @@ void FadeTo( uint16_t time, RgbColor color)
 }
 
 
-void crashfunc()
-{
 
-  NeoPixelBus * voidpointer;
-
-  voidpointer->Show();
-
-}
 
 
 
