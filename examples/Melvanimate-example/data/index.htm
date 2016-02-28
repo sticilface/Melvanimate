@@ -125,10 +125,12 @@
             </div>              
 
 <div id="effectoptions">
-  
-                <div class="ui-field-contain Palette">
-                    <label for="select-palettes">Palette:</label>
-                    <select name="palette" id="select-palettes" class='mysubmitthis'>
+              
+              <!--("input_textbox"), ("input_textbox_IP"), ("input_slider"), ("input_textbox_rgb"),("input_selectmenu")-->
+
+                <div class="ui-field-contain input_selectmenu_palette Palette">
+                    <label for="input_Palette">Palette:</label>
+                    <select name="palette" id="input_Palette" class='mysubmitthis '>
                         <option value="off" selected="selected">Off</option>
                         <option value="complementary">Complementary</option>
                         <option value="monochromatic">Monochromatic</option>
@@ -141,42 +143,87 @@
                     </select>
                 </div>
 
-                <div class="ui-field-contain form-group color1">
-                    <label for="color1">Color One</label>
-                    <input type="text" name="color1" id="color1" class="color no-alpha" data-control="hue" display="none" value="">
+                <div class="ui-field-contain  input_textbox_rgb color1">
+                    <label for="input_color1">Color One</label>
+                    <input type="text" name="color1" id="input_color1" class="color no-alpha " data-control="hue" display="none" value="">
                 </div>
 
-                <div class="ui-field-contain form-group color2">
-                    <label for="color2">Color Two</label>
-                    <input type="text" name="color2" id="color2" class="color no-alpha" display="none" data-control="hue" value="">
+                <div class="ui-field-contain  input_textbox_rgb color2">
+                    <label for="input_color2">Color Two</label>
+                    <input type="text" name="color2" id="input_color2" class="color no-alpha " display="none" data-control="hue" value="">
                 </div>
-                <div class="ui-field-contain form-group brightness">
-                    <label for="brightness">Brightness:</label>
-                    <input class="myslider" type="range" name="brightness" id="brightness" min="0" max="255" step="1" value="0">
-                </div>
-
-                <div class="ui-field-contain form-group speed">
-                    <label for="speed">Speed:</label>
-                    <input class="myslider" type="range" name="speed" id="speed" min="0" max="255" step="1" value="0">
-                </div>
-                <div class="ui-field-contain form-group randomness ">
-                    <label for="randomness">Randomness:</label>
-                    <input class="myslider" type="range" name="randomness" id="randomness" min="0" max="8" step="1" value="0">
+                <div class="ui-field-contain input_slider brightness">
+                    <label for="input_brightness">Brightness:</label>
+                    <input class="mysubmitthis " type="range" name="brightness" id="input_brightness" min="0" max="255" step="1" value="0">
                 </div>
 
-                <div class="ui-field-contain mysubmittext marqueetext">
+                <div class="ui-field-contain input_slider speed">
+                    <label for="input_speed">Speed:</label>
+                    <input class="mysubmitthis  " type="range" name="speed" id="input_speed" min="0" max="255" step="1" value="0">
+                </div>
+                <div class="ui-field-contain input_slider randomness ">
+                    <label for="input_randomness">Randomness:</label>
+                    <input class="mysubmitthis  " type="range" name="randomness" id="input_randomness" min="0" max="8" step="1" value="0">
+                </div>
+
+                <div class="ui-field-contain input_textbox marqueetext">
                     <label for="input_marqueetext">Text:</label>
-                    <input type="text" name="marqueetext" id="input_marqueetext" value="">
+                    <input class='mysubmitthis ' type="text" name="marqueetext" id="input_marqueetext" value="">
                 </div>
                 
-                 <div class="ui-field-contain mysubmittext udp_multicast_ip_addr">
-                    <label for="input_udp_multicast_ip_addr">Multicast Add:</label>
-                    <input type="text" name="udp_multicast_ip_addr" id="input_udp_multicast_ip_addr" value="">
-                </div>               
+                <div class="ui-field-contain input_selectmenu udp_usemulticast">
+                    <label for="input_udp_usemulticast">Use MultiCast:</label>
+                    <select name="udp_usemulticast" id="input_udp_usemulticast" class="mysubmitthis ">
+                        <option value=true selected="selected">Yes</option>
+                        <option value=false>No</option>
+                    </select>
+                </div>
+                
+                
+                <div class="ui-field-contain input_textbox_IP udp_multicast_ip_addr">
+                    <label for="input_udp_multicast_ip_addr">Multicast Address:</label>
+                    <input type="text" name="udp_multicast_ip_addr" id="input_udp_multicast_ip_addr" value="" class='mysubmitthis'>
+                </div>  
+                
+ <!--DMX-->
+ 
+                <div class="ui-field-contain input_textbox dmx_universe">
+                    <label for="input_dmx_universe">Universe:</label>
+                    <input type="text" name="dmx_universe" id="input_dmx_universe" value="" class="mysubmitthis ">
+                </div> 
+ 
+                 <div class="ui-field-contain input_textbox dmx_ppu">
+                    <label for="input_dmx_ppu">PPU:</label>
+                    <input type="text" name="dmx_ppu" id="input_dmx_ppu" value="" class="mysubmitthis ">
+                </div>
 
-                <div class="ui-field-contain rotation">
+                 <div class="ui-field-contain input_textbox dmx_channel_start">
+                    <label for="input_dmx_channel_start">Channel Start:</label>
+                    <input type="text" name="dmx_channel_start" id="input_dmx_channel_start" value="" class="mysubmitthis ">
+                </div>
+                
+                 <div class="ui-field-contain input_textbox dmx_port">
+                    <label for="input_dmx_port">UDP Port:</label>
+                    <input type="text" name="dmx_port" id="input_dmx_port" value="" class="mysubmitthis ">
+                </div>
+                
+                <div class="ui-field-contain input_selectmenu dmx_usemulticast">
+                    <label for="input_dmx_usemulticast">MultiCast:</label>
+                    <select name="dmx_usemulticast" id="input_dmx_usemulticast" class="mysubmitthis ">
+                        <option value=true selected="selected">Yes</option>
+                        <option value=false>No</option>
+                    </select>
+                </div>                
+            
+                 <div class="ui-field-contain input_textbox_IP dmx_multicast_ip_addr">
+                    <label for="input_dmx_multicast_ip_addr">MultiCast IP:</label>
+                    <input class='mysubmitthis ' type="text" name="dmx_multicast_ip_addr" id="input_dmx_multicast_ip_addr" value="">
+                </div>
+                
+                
+                <div class="ui-field-contain input_selectmenu rotation">
                     <label for="input-rotation">Rotation:</label>
-                    <select name="rotation" id="input-rotation" class="mysubmitthis">
+                    <select name="rotation" id="input-rotation" class="mysubmitthis ">
                         <option value="0" selected="selected">0</option>
                         <option value="1">90</option>
                         <option value="2">180</option>
@@ -184,9 +231,9 @@
                     </select>
                 </div>
 
-                <div class="ui-field-contain serialspeed">
+                <div class="ui-field-contain input_selectmenu serialspeed">
                     <label for="adalight-serialspeed">Serial Speed:</label>
-                    <select name="serialspeed" id="adalight-serialspeed" class="mysubmitthis">
+                    <select name="serialspeed" id="adalight-serialspeed" class="mysubmitthis ">
                         <option value="115200" selected="selected">115200</option>
                         <option value="234000">234000</option>
                         <option value="460800">460800</option>
@@ -1198,36 +1245,45 @@
                         
                         });
                         
-                        if (settings.hasOwnProperty('brightness')) {
-                            $("#brightness").val(settings.brightness).slider("refresh");
-                        }
-                        if (settings.hasOwnProperty('speed')) {
-                            $("#speed").val(settings.speed).slider("refresh");
-                        }
-                        if (settings.hasOwnProperty('color1')) {
-                            $("#color1").val("rgb(" + settings.color1.R + "," + settings.color1.G + "," + settings.color1.B + ")").colorPicker();
-                        }
-                        if (settings.hasOwnProperty('color2')) {
-                            $("#color2").val("rgb(" + settings.color2.R + "," + settings.color2.G + "," + settings.color2.B + ")").colorPicker();
-                        }
+                        $.each(settings, function(key, value) {
 
-                        if (settings.hasOwnProperty('serialspeed')) {
-                            $('#adalight-serialspeed').val(settings.serialspeed).selectmenu('refresh');
-                        }
+                          $( '#effectoptions > .input_textbox').find("#input_" + key).closest('input').val(value); 
+                          $( '#effectoptions > .input_textbox_IP').find("#input_" + key).closest('input').val(value[0] + "." + value[1] + "." + value[2] + "." + value[3]); 
+                          $( '#effectoptions > .input_slider').find("#input_" + key).val(value).closest('input').slider("refresh");
+                          $( '#effectoptions > .input_textbox_rgb').find("#input_" + key).val("rgb(" + value.R + "," + value.G + "," + value.B + ")").colorPicker();
+                          $( '#effectoptions > .input_selectmenu').find("#input_" + key).closest('input').val(value).selectmenu('refresh');
+                          $( '#effectoptions > .input_selectmenu_palette').find("#input_" + key).closest('input').val(value.name).selectmenu('refresh');
+                        });
+                        
+                        
+                        // if (settings.hasOwnProperty('brightness')) {
+                        //     $("#brightness").val(settings.brightness).slider("refresh");
+                        // }
+                        // if (settings.hasOwnProperty('speed')) {
+                        //     $("#speed").val(settings.speed).slider("refresh");
+                        // }
+                        // if (settings.hasOwnProperty('color1')) {
+                        //     $("#color1").val("rgb(" + settings.color1.R + "," + settings.color1.G + "," + settings.color1.B + ")").colorPicker();
+                        // }
+                        // if (settings.hasOwnProperty('color2')) {
+                        //     $("#color2").val("rgb(" + settings.color2.R + "," + settings.color2.G + "," + settings.color2.B + ")").colorPicker();
+                        // }
 
-                        if (settings.hasOwnProperty('rotation')) {
-                            $('#input-rotation').val(settings.rotation).selectmenu('refresh');
-                        }
+                        // if (settings.hasOwnProperty('serialspeed')) {
+                        //     $('#adalight-serialspeed').val(settings.serialspeed).selectmenu('refresh');
+                        // }
 
-                        if (settings.hasOwnProperty('marqueetext')) {
-                            $('#input_marqueetext').val(settings.marqueetext);
-                        }
+                        // if (settings.hasOwnProperty('rotation')) {
+                        //     $('#input-rotation').val(settings.rotation).selectmenu('refresh');
+                        // }
 
+                        // if (settings.hasOwnProperty('marqueetext')) {
+                        //     $('#input_marqueetext').val(settings.marqueetext);
+                        // }
 
-
-                        if (settings.hasOwnProperty('udp_multicast_ip_addr')) {
-                            $('#input_udp_multicast_ip_addr').val(settings.udp_multicast_ip_addr[0] + "." + settings.udp_multicast_ip_addr[1] + "." + settings.udp_multicast_ip_addr[2] + "." + settings.udp_multicast_ip_addr[3]);
-                        }
+                        // if (settings.hasOwnProperty('udp_multicast_ip_addr')) {
+                        //     $('#input_udp_multicast_ip_addr').val(settings.udp_multicast_ip_addr[0] + "." + settings.udp_multicast_ip_addr[1] + "." + settings.udp_multicast_ip_addr[2] + "." + settings.udp_multicast_ip_addr[3]);
+                        // }
                         
                         
                         // OLD METHOD
@@ -1236,9 +1292,9 @@
                         // }
 
                         // NEW METHOD
-                        if (settings.hasOwnProperty('Palette')) {
-                            $('#select-palettes').val(settings.Palette.name).selectmenu('refresh');
-                        }
+                        // if (settings.hasOwnProperty('Palette')) {
+                        //     $('#input_Palette').val(settings.Palette.name).selectmenu('refresh');
+                        // }
                         
 
                         // $('#effectoptions').children('div').each(function(index) {
