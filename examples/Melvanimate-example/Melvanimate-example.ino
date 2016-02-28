@@ -42,7 +42,7 @@
 #define WS2812_PIXELS 64
 
 
-//#define Debug
+#define Debug
 
 #ifdef Debug
 #define Debugf(...) Serial.printf(__VA_ARGS__)
@@ -63,9 +63,9 @@ SimpleTimer timer;
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SONET_1", "tachi123");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
-//ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
+ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
-ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
+//ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
 
 Melvanimate lights(WS2812_PIXELS,2);
 
@@ -360,6 +360,7 @@ void print_args()
   for (uint8_t i = 0; i < HTTP.args(); i++) {
     Debugf("[ARG:%u] %s = %s\n", i, HTTP.argName(i).c_str(), HTTP.arg(i).c_str());
   }
+
   Debugf("Heap = [%u]\n", ESP.getFreeHeap());
 
 }
@@ -405,7 +406,8 @@ void handle_data()
   //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
   if (check_duplicate_req()) { HTTP.setContentLength(0); HTTP.send(200); return; }
 
-  Serial.println();
+  Debugf("\n");
+
   print_args();
 
   if (HTTP.hasArg("plain")) {
