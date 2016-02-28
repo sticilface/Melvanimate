@@ -3,17 +3,12 @@
 #include <MD5Builder.h>
 #include <ArduinoJson.h>
 
-
-
-
 NeoPixelBus * strip = nullptr;
 NeoPixelAnimator * animator = nullptr;
 
-SimpleTimer timer;
-
 Melvanimate::Melvanimate(uint16_t pixels, uint8_t pin): _pixels(pixels), _pin(pin)
 	, _grid_x(8), _grid_y(8), _matrixconfig(0), _matrix(nullptr)
-	, _settings_changed(false), timeoutvar(0)
+	, _settings_changed(false)
 {
 	_matrixconfig = ( NEO_MATRIX_TOP + NEO_MATRIX_LEFT +  NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE );
 	setWaitFn ( std::bind (&Melvanimate::returnWaiting, this)  );   //  this callback gives bool to Effectmanager... "am i waiting..."
@@ -32,7 +27,7 @@ bool Melvanimate::begin()
 		if (!_settings) { DebugMelvanimatef("Failed to create empty file too\n"); }
 	}
 
-	loadGeneral();
+	_loadGeneral();
 	_init_LEDs();
 	_init_matrix();
 }
@@ -40,8 +35,19 @@ bool Melvanimate::begin()
 
 void Melvanimate::Loop()
 {
-	_process(); 
-	
+	_process();
+
+	_timer.run();
+
+	_saveGeneral(); 
+
+	// if (_save_flag) {
+	// 	if (millis() - _save_flag > 100) {
+	// 		_save_flag = 0;
+	// 		saveGeneral(); //  will only save if actually required.
+	// 	}
+	// }
+
 }
 
 void Melvanimate::_init_matrix()
@@ -169,10 +175,11 @@ void Melvanimate::setWaiting(bool wait)
 }
 
 
-bool        Melvanimate::saveGeneral(bool override)
+bool        Melvanimate::_saveGeneral(bool override)
 {
 
 	if (!_settings_changed && !override) { return false; }
+
 	DebugMelvanimatef("Saving Settings: ");
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.createObject();
@@ -199,13 +206,12 @@ bool        Melvanimate::saveGeneral(bool override)
 
 	_settings.seek(0, SeekSet);
 	root.prettyPrintTo(_settings);
-
 	_settings_changed = false;
 	return true;
 }
 
 
-bool        Melvanimate::loadGeneral()
+bool        Melvanimate::_loadGeneral()
 {
 
 	DynamicJsonBuffer jsonBuffer;
@@ -306,9 +312,9 @@ bool        Melvanimate::loadGeneral()
 bool Melvanimate::setTimer(int timeout, String command, String option)
 {
 	// delete current timer if set
-	if (_timer != -1) {
-		timer.deleteTimer(_timer);
-		_timer = -1;
+	if (_timerState != -1) {
+		_timer.deleteTimer(_timerState);
+		_timerState = -1;
 		DebugMelvanimatef("[Melvanimate::setTimer] Timer Cancelled\n");
 	}
 
@@ -317,30 +323,31 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 	// set new timer if there is an interval
 	if (timeout) {
 
-		_timer = timer.setTimeout(timeout, [command, option, this]() {
+		_timerState = _timer.setTimeout(timeout, [command, option, this]() {
 			DynamicJsonBuffer jsonBuffer;
 			JsonObject& root = jsonBuffer.createObject();
+
 			if (command.equalsIgnoreCase("off")) {
 				Start("Off");
 			} else if (command.equalsIgnoreCase("start")) {
 				Start(option);
 			} else if (command.equalsIgnoreCase("brightness")) {
 				if (Current()) {
-					root["brightness"] = option.toInt(); 
+					root["brightness"] = option.toInt();
 					Current()->parseJson(root);
 				}
 			} else if (command.equalsIgnoreCase("speed")) {
 				if (Current()) {
-					root["speed"] = option.toInt(); 
+					root["speed"] = option.toInt();
 					Current()->parseJson(root);
 				}
 			} else if (command.equalsIgnoreCase("loadpreset")) {
 				DebugMelvanimatef("[Melvanimate::setTimer] Load preset: not done yet\n");
 			}
-			_timer = -1 ; //  get ride of flag to timer!
+			_timerState = -1 ; //  get ride of flag to timer!
 		});
 
-		if (_timer > -1 ) { DebugMelvanimatef("[Melvanimate::setTimer] Started (%s,%s)\n", command.c_str(), option.c_str()); }
+		if (_timerState > -1 ) { DebugMelvanimatef("[Melvanimate::setTimer] Started (%s,%s)\n", command.c_str(), option.c_str()); }
 
 	} else {
 		DebugMelvanimatef("[Melvanimate::setTimer] No Timeout, so timer cancelled\n");

@@ -34,7 +34,6 @@
 // globals for neopixels.
 extern NeoPixelBus * strip;
 extern NeoPixelAnimator * animator;
-extern SimpleTimer timer;
 
 
 class Melvanimate : public EffectManager
@@ -42,7 +41,7 @@ class Melvanimate : public EffectManager
 public:
 	Melvanimate(uint16_t pixels, uint8_t pin);
 
-	static const RgbColor 	dim( RgbColor input, const uint8_t brightness);
+	static const RgbColor dim( RgbColor input, const uint8_t brightness);
 
 	void  grid(const uint16_t x, const uint16_t y);
 	void  setmatrix(const uint8_t i);
@@ -53,14 +52,8 @@ public:
 	const uint16_t    getY() {  return _grid_y; }
 	const uint16_t    getPixels() { return _pixels; }
 
-	void        setPixels(const uint16_t pixels);
-
-	inline bool	 saveGeneral() { return saveGeneral(false); }
-	bool	saveGeneral(bool);
-
-	bool	loadGeneral();
-	bool    begin();
-
+	void setPixels(const uint16_t pixels);
+	bool begin();
 	void Loop() override; 
 
 	void setWaiting(bool wait = true);
@@ -68,13 +61,14 @@ public:
 	bool returnWaiting();
 
 	bool setTimer(int timer, String command, String effect = String() );
-	bool isTimerRunning() { return (_timer > -1); }
-	int getTimer() { return _timer;  }
+	inline bool isTimerRunning() const { return (_timerState > -1); }
+	inline int getTimer() const { return _timerState;  }
 
 	bool multiplematrix = false; //
-	int32_t timeoutvar;  //  parameter used by some effects...
 
 private:
+	bool _saveGeneral(bool override = false);
+	bool _loadGeneral();
 	void _init_LEDs();
 	void _init_matrix();
 	uint16_t  _pixels;
@@ -83,13 +77,13 @@ private:
 	uint8_t _matrixconfig;
 	uint16_t _grid_x, _grid_y;
 	bool _settings_changed;
-	File _settings = File();
+	File _settings{};
 
 	uint8_t _waiting;
 	uint32_t _waiting_timeout = 0;
 
-	int _timer = -1;
-
+	int _timerState = -1;
+	SimpleTimer _timer; 
 
 };
 

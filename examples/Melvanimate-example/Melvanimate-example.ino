@@ -58,6 +58,7 @@
 ESP8266WebServer HTTP(80);
 FSBrowser fsbrowser(HTTP);
 IPAddress mqtt_server_ip(192, 168, 1, 1);
+SimpleTimer timer;
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SONET_1", "tachi123");

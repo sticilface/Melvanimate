@@ -658,11 +658,11 @@ bool EffectManager::Load(uint8_t ID)
 
 	EffectHandler* handle = Current();
 
-	if (_currentHandle && !_NextInLine) {
-		handle = _currentHandle;
-	} else if (_NextInLine) {
-		handle = _NextInLine;
-	}
+	// if (_currentHandle && !_NextInLine) {
+	// 	handle = _currentHandle;
+	// } else if (_NextInLine) {
+	// 	handle = _NextInLine;
+	// }
 
 
 	if (handle) {

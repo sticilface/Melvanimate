@@ -49,12 +49,9 @@ public:
 	const char* getName(uint8_t i);
 	//const char* getName();
 
+	// preset hanlding
 	bool Save(uint8_t ID, const char * name, bool overwrite = false);
-
 	bool Load(uint8_t ID);
-	//  Load needs to be moved to the effecthandler... so that the manager can just set the flag..
-	//  load this preset, then the effect can do it when it is ready... so async...
-
 	bool removePreset(uint8_t ID);
 	uint8_t nextFreePreset(JsonObject & root);
 
