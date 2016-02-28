@@ -39,17 +39,6 @@ public:
 		addVar(new Variable<int>("int9"));
 		addVar(new Variable<int>("int10"));
 
-		addVar(new Array<int>("array of int", 0, 10));
-		addVar(new Array<bool>("array of bool", true , 20));
-//		addVar(new Array<const char *>("array char", "" , 5));
-
-
-		for (uint8_t i = 0; i < array<int>("array") ; i++) {
-			array<int>("array of int")[i] = i; 
-		}
-
-		heap = heap - ESP.getFreeHeap();
-		Serial.printf("[Effect2:init] heap used %u\n", heap);
 	}
 
 	bool Stop() override
