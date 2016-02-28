@@ -34,8 +34,8 @@ bool EffectManager::Add(const char * name, EffectHandler* handle, bool animation
 		_firstHandle = handle; //  set the first handle
 		_firstHandle->name(name); // set its name in the handler... abstract it out so user doesn't have to
 		_lastHandle = handle;  // set this so we know first slot gone.
-
 	} else {
+		handle->previous(_lastHandle); //  sets the previous handle..
 		_lastHandle->next(handle); // give the last handler address of next
 		_lastHandle = handle;  // move on..
 		_lastHandle->name(name);  // give it name...
@@ -63,24 +63,14 @@ EffectHandler* EffectManager::_findhandle(const char * handle)
 	}
 }
 
-EffectHandler* EffectManager::Start()
+EffectHandler* EffectManager::Start(EffectHandler* handler)
 {
-	if (_toggleHandle) {
-		return Start(_toggleHandle->name());
-	}
 
-	return nullptr;
-}
-
-EffectHandler* EffectManager::Start(const char * name)
-{
 #ifdef DebugEffectManager
 	uint32_t heap;
 #endif
-
 	Stop();
 
-	EffectHandler* handler = _findhandle(name);
 
 	if (handler) {
 		_NextInLine = handler;
@@ -152,8 +142,7 @@ EffectHandler* EffectManager::Start(const char * name)
 		// if that fails.. bail...
 		return nullptr;
 	}
-
-};
+}
 
 
 EffectHandler* EffectManager::Current()
@@ -169,9 +158,12 @@ EffectHandler* EffectManager::Current()
 // not sure about this implementation....
 bool EffectManager::Next()
 {
-	_currentHandle = _currentHandle->next();
+	Start(_currentHandle->next()->name());
 };
-
+bool EffectManager::Previous()
+{
+	Start(_currentHandle->previous()->name());
+};
 
 bool EffectManager::Stop()
 {
@@ -195,7 +187,7 @@ void EffectManager::Refresh()
 void EffectManager::loop()
 {
 
-	_process(); 
+	_process();
 };
 
 // void EffectManager::SetTimeout(uint32_t time)
@@ -219,7 +211,7 @@ void EffectManager::loop()
 
 void EffectManager::_process()
 {
-		bool waiting = false;
+	bool waiting = false;
 
 	if (_waitFn)  {
 		waiting = _waitFn();

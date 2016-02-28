@@ -30,13 +30,14 @@ public:
 
 	bool Add(const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
 
-	EffectHandler* Start();
-	EffectHandler* Start(const char * name);
-	EffectHandler* Start(const String name) { Start(name.c_str()); };
+	inline EffectHandler* Start()  { return Start(_toggleHandle); }
+	EffectHandler* Start(EffectHandler* handle);
+	inline EffectHandler* Start(const char * name)  { return Start(_findhandle(name)); }
+	inline EffectHandler* Start(const String name)  { return Start(name.c_str()); };
+	
 	void Refresh() ;
 	bool Next() ;
-	bool Previous() {}; //  need to think about how to imlement this... store previous like next maybe...
-
+	bool Previous(); 
 	bool Stop() ;
 	bool Pause() ;
 	virtual void loop(); //  this can be overridden....  but should contain _process() function to operate... 
@@ -47,7 +48,6 @@ public:
 
 	const uint16_t total() const { return _count;}
 	const char* getName(uint8_t i);
-	//const char* getName();
 
 	// preset hanlding
 	bool Save(uint8_t ID, const char * name, bool overwrite = false);

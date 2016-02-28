@@ -39,14 +39,20 @@ public:
 //  Core Very important...
 	EffectHandler* next() const { return _next; } //  ASK what is next
 	void next (EffectHandler* next) { _next = next; } //  Set what is next
+	EffectHandler* previous() const { return _previous; } //  ASK what is next
+	void previous (EffectHandler* previous) { _previous = previous; } //  Set what is next
+
+
 	void name (const char * name) { _name = name; }
 	const char * name() const {return _name; };
 
 private:
-	EffectHandler* _next = nullptr;
+	EffectHandler* _next{nullptr};
+	EffectHandler* _previous{nullptr};
+
 	const char * _name;
+	uint8_t _preset{255};  // no current preset
 	bool _animator{false}; 
-	uint8_t _preset = 255;  // no current preset
 
 protected:
 
