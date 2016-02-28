@@ -33,12 +33,10 @@ bool Melvanimate::begin()
 }
 
 
-void Melvanimate::Loop()
+void Melvanimate::loop()
 {
 	_process();
-
 	_timer.run();
-
 	_saveGeneral(); 
 
 	// if (_save_flag) {
@@ -85,7 +83,7 @@ void Melvanimate::_init_LEDs()
 
 
 
-const RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
+RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
 {
 	if (brightness == 0) { return RgbColor(0); }
 	if (brightness == 255) { return input; }
@@ -175,7 +173,7 @@ void Melvanimate::setWaiting(bool wait)
 }
 
 
-bool        Melvanimate::_saveGeneral(bool override)
+bool Melvanimate::_saveGeneral(bool override)
 {
 
 	if (!_settings_changed && !override) { return false; }
@@ -211,7 +209,7 @@ bool        Melvanimate::_saveGeneral(bool override)
 }
 
 
-bool        Melvanimate::_loadGeneral()
+bool Melvanimate::_loadGeneral()
 {
 
 	DynamicJsonBuffer jsonBuffer;

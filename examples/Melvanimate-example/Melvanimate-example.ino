@@ -272,18 +272,12 @@ void loop()
 
   settings.handle();
 
-  lights.Loop();
+  lights.loop();
 
   Show_pixels(false); // bool is show pixels override...
 
   timer.run();
 
-  // if (save_flag) {
-  //   if (millis() - save_flag > 100) {
-  //     save_flag = 0;
-  //     lights.save(modechange); //  will only save if actually required.
-  //   }
-  // }
 
 
 

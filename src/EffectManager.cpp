@@ -192,7 +192,7 @@ void EffectManager::Refresh()
 
 }
 
-void EffectManager::Loop()
+void EffectManager::loop()
 {
 
 	_process(); 

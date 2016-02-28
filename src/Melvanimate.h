@@ -41,30 +41,34 @@ class Melvanimate : public EffectManager
 public:
 	Melvanimate(uint16_t pixels, uint8_t pin);
 
-	static const RgbColor dim( RgbColor input, const uint8_t brightness);
+	bool begin();
+	void loop() override; 
 
+	// pixel count functions
+	void setPixels(const uint16_t pixels);
+	inline const uint16_t getPixels() const  { return _pixels; }
+
+	// Matrix functions 
 	void  grid(const uint16_t x, const uint16_t y);
 	void  setmatrix(const uint8_t i);
-	const uint8_t getmatrix() { return _matrixconfig; }
-	Melvtrix *  matrix() { return _matrix; } //  returns pointer to the GFX melvtrix
+	inline const uint8_t getmatrix() const { return _matrixconfig; }
+	Melvtrix * matrix() { return _matrix; } //  returns pointer to the GFX melvtrix
+	inline const uint16_t getX() const {  return _grid_x ; }
+	inline const uint16_t getY() const {  return _grid_y; }
+	bool multiplematrix = false; //
 
-	const uint16_t    getX() {  return _grid_x ; }
-	const uint16_t    getY() {  return _grid_y; }
-	const uint16_t    getPixels() { return _pixels; }
-
-	void setPixels(const uint16_t pixels);
-	bool begin();
-	void Loop() override; 
-
+	// autowait functions 
 	void setWaiting(bool wait = true);
 	void autoWait();
 	bool returnWaiting();
 
+	// timer functions
 	bool setTimer(int timer, String command, String effect = String() );
 	inline bool isTimerRunning() const { return (_timerState > -1); }
 	inline int getTimer() const { return _timerState;  }
 
-	bool multiplematrix = false; //
+
+	static RgbColor dim( RgbColor input, const uint8_t brightness);
 
 private:
 	bool _saveGeneral(bool override = false);
