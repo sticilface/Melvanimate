@@ -840,14 +840,14 @@ void send_data(String page)
   //   }
   // }
 
-  if (page == "timer" || page == "all") {
+  if (page == "timer" || page == "all" || page == "homepage") {
 
     JsonObject& timerobj = root.createNestedObject("timer");
-    timerobj["running"] = lights.isTimerRunning();
-    if (lights.isTimerRunning()) {
+    timerobj["running"] = (lights.getTimeLeft() > 0)? true: false;
+    if (lights.getTimeLeft() > 0) {
       JsonArray& remaining = timerobj.createNestedArray("remaining");
-      int minutes = timer.getTimeLeft(lights.getTimer()) / ( 1000 * 60) ;
-      int seconds = timer.getTimeLeft(lights.getTimer()) / 1000 ;
+      int minutes = lights.getTimeLeft() / ( 1000 * 60) ;
+      int seconds = lights.getTimeLeft() / 1000 ;
       seconds %= 60;
       remaining.add(minutes);
       remaining.add(seconds);

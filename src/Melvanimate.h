@@ -42,13 +42,13 @@ public:
 	Melvanimate(uint16_t pixels, uint8_t pin);
 
 	bool begin();
-	void loop() override; 
+	void loop() override;
 
 	// pixel count functions
 	void setPixels(const uint16_t pixels);
 	inline const uint16_t getPixels() const  { return _pixels; }
 
-	// Matrix functions 
+	// Matrix functions
 	void  grid(const uint16_t x, const uint16_t y);
 	void  setmatrix(const uint8_t i);
 	inline const uint8_t getmatrix() const { return _matrixconfig; }
@@ -57,16 +57,23 @@ public:
 	inline const uint16_t getY() const {  return _grid_y; }
 	bool multiplematrix = false; //
 
-	// autowait functions 
+	// autowait functions
 	void setWaiting(bool wait = true);
 	void autoWait();
 	bool returnWaiting();
 
 	// timer functions
 	bool setTimer(int timer, String command, String effect = String() );
-	inline bool isTimerRunning() const { return (_timerState > -1); }
-	inline int getTimer() const { return _timerState;  }
-
+	//inline bool isTimerRunning() const { return (_timerState > -1); }
+	//inline int getTimer() const { return _timerState;  }
+	int getTimeLeft()
+	{
+		if (_timerState >= 0) {
+			return _timer.getTimeLeft(_timerState);
+		} else {
+			return 0;
+		}
+	}
 
 	static RgbColor dim( RgbColor input, const uint8_t brightness);
 
@@ -76,7 +83,7 @@ private:
 	void _init_LEDs();
 	void _init_matrix();
 	uint16_t  _pixels;
-	uint8_t _pin; 
+	uint8_t _pin;
 	Melvtrix * _matrix;
 	uint8_t _matrixconfig;
 	uint16_t _grid_x, _grid_y;
@@ -84,10 +91,10 @@ private:
 	File _settings{};
 
 	uint8_t _waiting;
-	uint32_t _waiting_timeout = 0;
+	uint32_t _waiting_timeout{0};
 
-	int _timerState = -1;
-	SimpleTimer _timer; 
+	int _timerState{-1};
+	SimpleTimer _timer;
 
 };
 

@@ -99,7 +99,7 @@
 
     <div data-role="page" id="homepage">
 
-        <div data-role="content">
+        <div data-role="content" id="content_homepage">
                 <div class="ui-field-contain">
                     <label for="flip-enable">Enable:</label>
                     <select id="flip-enable" name="enable" data-role="flipswitch" class="">
@@ -171,6 +171,13 @@
                     <input class='mysubmitthis ' type="text" name="marqueetext" id="input_marqueetext" value="">
                 </div>
                 
+                
+                <div class="ui-field-contain input_textbox udp_port">
+                    <label for="input_udp_port">Port:</label>
+                    <input type="text" name="udp_port" id="input_udp_port" value="" class='mysubmitthis'>
+                </div>                
+                
+                
                 <div class="ui-field-contain input_selectmenu udp_usemulticast">
                     <label for="input_udp_usemulticast">Use MultiCast:</label>
                     <select name="udp_usemulticast" id="input_udp_usemulticast" class="mysubmitthis ">
@@ -186,7 +193,12 @@
                 </div>  
                 
  <!--DMX-->
- 
+
+                <div class="ui-field-contain input_textbox dmx_bin">
+                    <label for="input_dmx_bin">Bin Pixels:</label>
+                    <input type="text" name="dmx_bin" id="input_dmx_bin" value="" class="mysubmitthis ">
+                </div> 
+                
                 <div class="ui-field-contain input_textbox dmx_universe">
                     <label for="input_dmx_universe">Universe:</label>
                     <input type="text" name="dmx_universe" id="input_dmx_universe" value="" class="mysubmitthis ">
@@ -217,7 +229,7 @@
             
                  <div class="ui-field-contain input_textbox_IP dmx_multicast_ip_addr">
                     <label for="input_dmx_multicast_ip_addr">MultiCast IP:</label>
-                    <input class='mysubmitthis ' type="text" name="dmx_multicast_ip_addr" id="input_dmx_multicast_ip_addr" value="">
+                    <input class='mysubmitthis ' type="text" name="dmx_multicast_ip_addr" id="input_dmx_multicast_ip_addr" value="" disabled>
                 </div>
                 
                 
@@ -970,7 +982,27 @@
                 $('#effectoptions').children('div').each(function(index) {
                     if ($(this).hasClass(mode)) $(this).show();
                 });
+                
+                
+              //   $('#input_udp_usemulticast').change( function() {
+                  
+              // if ( $(this).val() == "true" ) {
+              //     $('#udp_multicast_ip_addr').closest('.ui-field-contain').show(); 
+              //     } else {
+              //     $('#udp_multicast_ip_addr').closest('.ui-field-contain').hide(); 
+              //     } 
 
+              //   });
+                
+              //   $('#input_dmx_usemulticast').change( function() {
+
+              // if ( $(this).val() == "true" ) {
+              //     $('#dmx_multicast_ip_addr').closest('.ui-field-contain').show(); 
+              //     } else {
+              //     $('#dmx_multicast_ip_addr').closest('.ui-field-contain').hide(); 
+              //     }                  
+              //   });
+                
                 $('.color').colorPicker({
                     preventFocus: true,
                     renderCallback: function($elm, toggled) {
@@ -1059,31 +1091,31 @@
                         '.cp-color-picker{z-index:16777271}'
                 });
 
-                $("#brightness").on('slidestop', function() {
-                    $("#status").empty().append("Waiting...").css("color", "blue");;
-                    $.post("data.esp", $(this).serialize())
-                        .success(function(e) {
-                            processJSON(e); 
-                            $("#status").empty().append("Success").css("color", "green");;
-                        })
-                        .error(function() {
-                            $("#status").empty().append("Error").css("color", "red");;
-                        })
-                        .complete(function() {});
-                });
+                // $("#brightness").on('slidestop', function() {
+                //     $("#status").empty().append("Waiting...").css("color", "blue");;
+                //     $.post("data.esp", $(this).serialize())
+                //         .success(function(e) {
+                //             processJSON(e); 
+                //             $("#status").empty().append("Success").css("color", "green");;
+                //         })
+                //         .error(function() {
+                //             $("#status").empty().append("Error").css("color", "red");;
+                //         })
+                //         .complete(function() {});
+                // });
 
-                $("#speed").on('slidestop', function() {
-                    $("#status").empty().append("Waiting...").css("color", "blue");;
-                    $.post("data.esp", $(this).serialize())
-                        .success(function(e) {
-                            processJSON(e); 
-                            $("#status").empty().append("Success").css("color", "green");;
-                        })
-                        .error(function() {
-                            $("#status").empty().append("Error").css("color", "red");;
-                        })
-                        .complete(function() {});
-                });
+                // $("#speed").on('slidestop', function() {
+                //     $("#status").empty().append("Waiting...").css("color", "blue");;
+                //     $.post("data.esp", $(this).serialize())
+                //         .success(function(e) {
+                //             processJSON(e); 
+                //             $("#status").empty().append("Success").css("color", "green");;
+                //         })
+                //         .error(function() {
+                //             $("#status").empty().append("Error").css("color", "red");;
+                //         })
+                //         .complete(function() {});
+                // });
             });
 
             function SendColor() {
@@ -1191,7 +1223,8 @@
 
                             // add time remaining in here
                             if (values.hasOwnProperty('remaining')) {
-                                $("#timer-time-left").empty().append(" " + values.remaining[0] + "min " + values.remaining[1] + "sec remaining");
+                              $("#timer-time-left").empty().append(" " + values.remaining[0] + "min " + values.remaining[1] + "sec remaining");
+                              
                             }
 
                         }
@@ -1224,6 +1257,15 @@
                             }
                             
                         }
+                        
+                                                    // add time remaining in here
+                        if (result.hasOwnProperty("timer") && result.timer.hasOwnProperty('remaining')) {
+                              $('#div_inserted_timer').remove();
+                              $("#content_homepage").prepend("<div id='div_inserted_timer' style='text-align: center'>  Timer " + result.timer.remaining[0] + "min " + result.timer.remaining[1] + "sec remaining </div>");
+                            } else {
+                              $('#div_inserted_timer').remove(); 
+                            }
+                            
                         
                         if (result.hasOwnProperty('settings')) {
                           
