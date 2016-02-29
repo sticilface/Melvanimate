@@ -6,7 +6,7 @@
 
 extern const char * PRESETS_FILE;
 
-//#define DebugEffectManager
+#define DebugEffectManager
 
 #ifdef DebugEffectManager
 #define DebugEffectManagerf(...) Serial.printf(__VA_ARGS__)

@@ -63,7 +63,7 @@ SimpleTimer timer;
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SONET_1", "tachi123");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
-ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
+//ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
 
@@ -80,7 +80,11 @@ void install_effects()
   lights.Add("UDP",         new UDPEffect, false);                        // working
   lights.Add("DMX",         new DMXEffect, false );                       // need to test - requires custom libs included
   
-
+  for (uint8_t i = 0; i < 30; i++) {
+    String in = "CuriousCat" + String(i);
+    const char * string = strdup(in.c_str()); 
+      lights.Add(string ,  new Effect2, true);
+  }
   // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
   // lights.Add("Dummy", new DummyEffect(DummyFn));
   // lights.Add("PropertyTester", new CascadeEffect(CascadeEffectFn));
@@ -115,7 +119,7 @@ void setup()
   //Serial.setDebugOutput(true);
   SPIFFS.begin();
   lights.begin();
-  settings.begin();
+//  settings.begin();
   fsbrowser.begin();
 
   HTTP.on("/data.esp", HTTP_ANY, handle_data);
@@ -211,7 +215,13 @@ void setup()
   //timer.setTimeout(1000, []() { lights.Start("BobblySquares");} ) ;
 
 
-  //timer.setTimeout(2000, []() { lights.Start("Off");} ) ;
+  timer.setTimeout(5000, []() { 
+    Serial.println("\n");   
+    Serial.println("------START-----"); 
+    lights.Load(1);
+    Serial.println("-------END------"); 
+
+  }) ;
 
   lights.Start("Off");
 
@@ -220,7 +230,7 @@ void setup()
   // });
 
   Debugf("HEAP: ");
-  Debugf("%u/n",ESP.getFreeHeap());
+  Debugf("%u\n",ESP.getFreeHeap());
 
   Debugf("Melvanimate Ready\n");
 
@@ -270,7 +280,7 @@ void loop()
 
   HTTP.handleClient();
 
-  settings.handle();
+ // settings.handle();
 
   lights.loop();
 
@@ -399,6 +409,7 @@ bool check_duplicate_req()
   return match & !time_elapsed;
 
 }
+
 void handle_data()
 {
   uint32_t start_time = millis();
@@ -852,6 +863,8 @@ void send_data(String page)
       remaining.add(minutes);
       remaining.add(seconds);
     }
+
+    lights.addAllpresets(jsonBuffer, root);
 
   }
 

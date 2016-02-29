@@ -40,6 +40,11 @@ bool UDPEffect::Run()
 
 bool UDPEffect::Start()
 {
+	if (strip)
+	{
+		strip->ClearTo(0);
+	}
+	
 	if (_udp) {
 		if (*_udp) {
 			_udp->stop();

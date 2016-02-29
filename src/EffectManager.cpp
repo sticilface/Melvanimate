@@ -96,10 +96,14 @@ EffectHandler* EffectManager::Start(EffectHandler* handler)
 #endif
 		_NextInLine->InitVars();
 
-		if (getPresets(_NextInLine, _numberofpresets, _presets, _preset_names)) {
-			// look for default and flag that to load after
-		}
+		bool result = getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
 
+		if (result) {
+			DebugEffectManagerf("[EffectManager::Start] Presets Fetched\n");
+		} else {
+			DebugEffectManagerf("[EffectManager::Start] Presets Fetched Failed\n");
+
+		}
 
 		if (_NextInLine->preset() != 255) {
 			Load(_NextInLine->preset());
@@ -254,7 +258,7 @@ const char * EffectManager::getName(uint8_t i)
 
 
 //  could try and package this up... maybe using a struct... ... maybe...
-bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, JsonObject *& root, const char * file_name)
+bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & parseBuf, JsonObject *& root, const char * file_name)
 {
 	uint32_t starttime = millis();
 
@@ -267,7 +271,7 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, J
 
 	if (f && f.size()) {
 
-		//Serial.println("[parsespiffs] pre-malloc");
+		//DebugEffectManagerf("[parsespiffs] pre-malloc");
 
 		data = new char[f.size()];
 		// prevent nullptr exception if can't allocate
@@ -302,12 +306,18 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, J
 				delay(0);
 			}
 
+			Serial.println("BUFFER:");
+			Serial.write(data, f.size()); 
+			Serial.println();
 
-			root = &jsonBuffer.parseObject(data);
+			root = &parseBuf.parseObject(data);
 
 			if (root->success()) {
 				success = true;
+			} else {
+				DebugEffectManagerf("[parsespiffs] PARSE of data failed\n");
 			}
+
 		} else {
 			DebugEffectManagerf("[parsespiffs] malloc failed\n");
 		}
@@ -383,6 +393,9 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 
 	// delete any existing preset information.
 
+	DebugEffectManagerf("[EffectManager::getPresets] Fetching presets for %s\n", handle->name());
+
+
 	for (uint8_t i = 0; i < numberofpresets; i++) {
 		char * p = preset_names[i];
 		if (p) { free(p); }
@@ -401,11 +414,11 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 	numberofpresets = 0;
 
 	if (handle) {
-		DynamicJsonBuffer jsonBuffer;
+		DynamicJsonBuffer getPresetsjsonBuffer;
 		JsonObject * root = nullptr;
 		uint8_t count = 0;
 
-		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+		if (parsespiffs(data, getPresetsjsonBuffer, root, PRESETS_FILE )) {
 
 			//delay(0);
 
@@ -418,7 +431,7 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 					JsonObject& current = it->value.asObject();
 
 					// compare to the name of current effect
-					//	Serial.printf("[getPresets] Identified presets for %s (%s)\n", handle->name(), key);
+					//	DebugEffectManagerf("[getPresets] Identified presets %s (%s)\n", current["effect"], current["name"] , key);
 					if (current.containsKey("effect")) {
 						if ( strcmp( current["effect"], handle->name() ) == 0) {
 							// if matched then this preset is a valid effect for the current one.
@@ -470,16 +483,20 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 					}
 
 				}
+			} else {
+				DebugEffectManagerf("[getPresets] root is null\n");
 			}
 
-		}
+		} else {
+				DebugEffectManagerf("[getPresets] Parse SPIFFS FAILED\n");
+			}
 
 
 	}
 
 	if (data) { delete[] data; }
 
-	if (numberofpresets) {
+	if (numberofpresets > 0) {
 		return true;
 	} else {
 		return false;
@@ -659,13 +676,13 @@ bool EffectManager::Load(uint8_t ID)
 
 	if (handle) {
 
-		DynamicJsonBuffer jsonBuffer;
-		const char * cID = jsonBuffer.strdup(String(ID).c_str()); //  this is a hack as i couldn't get it to work... can probably try without it now...
+		DynamicJsonBuffer LoadjsonBuffer;
+		const char * cID = LoadjsonBuffer.strdup(String(ID).c_str()); //  this is a hack as i couldn't get it to work... can probably try without it now...
 
 		JsonObject * root = nullptr;
 		char * data = nullptr;
 
-		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+		if (parsespiffs(data, LoadjsonBuffer, root, PRESETS_FILE )) {
 
 			//  Is current effect same effect as is wanted.
 			JsonObject& preset = (*root)[cID];

@@ -340,7 +340,8 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 					Current()->parseJson(root);
 				}
 			} else if (command.equalsIgnoreCase("loadpreset")) {
-				DebugMelvanimatef("[Melvanimate::setTimer] Load preset: not done yet\n");
+				DebugMelvanimatef("[Melvanimate::setTimer] Load preset: %u\n", option.toInt());
+				Load(option.toInt());
 			}
 			_timerState = -1 ; //  get ride of flag to timer!
 		});
