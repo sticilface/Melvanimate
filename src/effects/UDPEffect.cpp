@@ -10,6 +10,7 @@ bool UDPEffect::Run()
 	int packetSize;
 
 	if (!_udp || !strip || !_vars) {
+		Serial.println("ERROR"); 
 		return 0;
 	}
 
@@ -45,10 +46,10 @@ bool UDPEffect::Start()
 		}
 
 		if (usemulticast()) {
-			Serial.printf("[UDPEffect::Start] beginMulticast \n");
+//			Serial.printf("[UDPEffect::Start] beginMulticast port = %u\n", port());
 			_udp->beginMulticast(WiFi.localIP(), multicastaddress(), port() );
 		} else {
-			Serial.printf("[UDPEffect::Start] beginUnicast \n");
+//			Serial.printf("[UDPEffect::Start] beginUnicast port = %u\n", port());
 			_udp->begin(port());
 		}
 	}

@@ -31,7 +31,7 @@ public:
 		
 	}
 
-	inline uint16_t port()  {  return getVar<uint16_t>("UDPlightPort"); }
+	inline uint16_t port()  {  return getVar<uint16_t>("udp_port"); }
 	inline bool usemulticast() { return getVar<bool>("udp_usemulticast");}
 	inline IPAddress multicastaddress() { return getVar<IPAddress>("udp_multicast_ip_addr") ;}
 
