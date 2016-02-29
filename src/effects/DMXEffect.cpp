@@ -17,6 +17,7 @@ bool DMXEffect::InitVars()
 
 	_e131 = new E131;
 
+	addVar(new Variable<uint16_t>("dmx_bin", 8));
 	addVar(new Variable<uint8_t>("dmx_universe", 1));
 	addVar(new Variable<uint8_t>("dmx_ppu", 1));
 	addVar(new Variable<uint8_t>("dmx_channel_start", 1));
@@ -32,8 +33,9 @@ bool DMXEffect::InitVars()
 bool DMXEffect::Start()
 {
 
-	if (_e131 && _vars) {
+	if (_e131 && _vars && strip) {
 		//    if (millis() > 30000) Adalight_Flash();
+		strip->ClearTo(0);
 
 		_vars->count = strip->PixelCount() * 3;
 
@@ -56,18 +58,20 @@ bool DMXEffect::Start()
 			memset(_vars->seqError, 0x00, _vars->uniTotal * 4);
 		}
 
-		Serial.printf("Count = %u, bounds = %u, uniLast = %u, uniTotal = %u\n", _vars->count, _vars->bounds, _vars->uniLast, _vars->uniTotal);
+//		Serial.printf("Count = %u, bounds = %u, uniLast = %u, uniTotal = %u\n", _vars->count, _vars->bounds, _vars->uniLast, _vars->uniTotal);
 
 		// set the port before calling begin..  default 5568
 		_e131->setport(port()); 
 
 		if (usemulticast()) {
 			_e131->begin( E131_MULTICAST , universe() ) ; // E131_MULTICAST // universe is optional and only used for Multicast configuration.
-			Serial.printf("[DMXEffect::Start] Multicast Started\n");
+//			Serial.printf("[DMXEffect::Start] Multicast Started\n");
+			IPAddress add = IPAddress(239, 255, ((universe() >> 8) & 0xff), ((universe() >> 0) & 0xff)); 
+			setVar<IPAddress>("dmx_multicast_ip_addr",  add); 
 
 		} else {
 			_e131->begin( E131_UNICAST, universe());
-			Serial.printf("[DMXEffect::Start] Unicast Started\n");
+//			Serial.printf("[DMXEffect::Start] Unicast Started\n");
 		}
 	}
 
@@ -80,6 +84,7 @@ bool DMXEffect::Run()
 			if ((_e131->universe >= universe()) && (universe() <= _vars->uniLast)) {
 				/* Universe offset and sequence tracking */
 				uint8_t uniOffset = (_e131->universe - universe());
+
 				if (_e131->packet->sequence_number != _vars->seqTracker[uniOffset]++) {
 					_vars->seqError[uniOffset]++;
 					_vars->seqTracker[uniOffset] = _e131->packet->sequence_number + 1;
@@ -105,7 +110,11 @@ bool DMXEffect::Run()
 				for (uint16_t i = pixelStart; i < pixelStop; i++) {
 					uint16_t j = buffloc++ * 3 + offset;
 					//pixels.setPixelColor(i, e131.data[j], e131.data[j+1], e131.data[j+2]);
-					strip->SetPixelColor(i, _e131->data[j], _e131->data[j + 1], _e131->data[j + 2]);
+					for (uint8_t k = 0; k < bin(); k++) {
+						uint16_t pixel = (bin() *i) + k;
+						if (pixel > strip->PixelCount()) { break; }
+					strip->SetPixelColor( pixel, _e131->data[j], _e131->data[j + 1], _e131->data[j + 2]);
+					}
 				}
 
 				/* Refresh when last universe shows up  or within 10ms if missed */

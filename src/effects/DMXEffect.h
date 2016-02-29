@@ -21,6 +21,8 @@ public:
 		Start();
 	}
 
+
+	inline uint16_t bin() { return getVar<uint16_t>("dmx_bin"); }
 	inline uint8_t  universe() { return getVar<uint8_t>("dmx_universe"); }
 	inline uint8_t  ppu() { return getVar<uint8_t>("dmx_ppu"); }
 	inline uint8_t  channelstart() { return getVar<uint8_t>("dmx_channel_start"); }
