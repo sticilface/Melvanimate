@@ -75,22 +75,8 @@ EffectHandler* EffectManager::Start(EffectHandler* handler)
 	if (handler) {
 		_NextInLine = handler;
 
-		if (_NextInLine->animate() && strip->PixelCount() <= MAXLEDANIMATIONS) {
-			if (!animator) {
-				DebugEffectManagerf("[EffectManager::Start] Animator Created\n");
-				animator = new NeoPixelAnimator(strip);
-			} else {
-				DebugEffectManagerf("[EffectManager::Start] Animator Already in Place\n");
-			}
-		} else {
-			if (animator) {
-				DebugEffectManagerf("[EffectManager::Start] Animator Deleted\n");
-				delete animator;
-				animator = nullptr;
-			} else {
-				DebugEffectManagerf("[EffectManager::Start] Animator Already Deleted\n");
-			}
-		}
+		_prepareAnimator();
+
 #ifdef DebugEffectManager
 		heap = ESP.getFreeHeap();
 #endif
@@ -258,9 +244,10 @@ const char * EffectManager::getName(uint8_t i)
 
 
 //  could try and package this up... maybe using a struct... ... maybe...
-bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & parseBuf, JsonObject *& root, const char * file_name)
+bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, JsonObject *& root, const char * file_name)
 {
 	uint32_t starttime = millis();
+	uint32_t filesize;
 
 	File f = SPIFFS.open(file_name, "r");
 	bool success = false;
@@ -270,13 +257,13 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & parseBuf, Jso
 	}
 
 	if (f && f.size()) {
-
-		//DebugEffectManagerf("[parsespiffs] pre-malloc");
+		filesize = f.size();
+		//Serial.println("[parsespiffs] pre-malloc");
 
 		data = new char[f.size()];
 		// prevent nullptr exception if can't allocate
 		if (data) {
-			DebugEffectManagerf("[parsespiffs] Buffer size %u\n", f.size());
+			//DebugEffectManagerf("[parsespiffs] Buffer size %u\n", f.size());
 
 			//  This method give a massive improvement in file reading speed for SPIFFS files..
 
@@ -306,18 +293,12 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & parseBuf, Jso
 				delay(0);
 			}
 
-			Serial.println("BUFFER:");
-			Serial.write(data, f.size()); 
-			Serial.println();
 
-			root = &parseBuf.parseObject(data);
+			root = &jsonBuffer.parseObject(data);
 
 			if (root->success()) {
 				success = true;
-			} else {
-				DebugEffectManagerf("[parsespiffs] PARSE of data failed\n");
 			}
-
 		} else {
 			DebugEffectManagerf("[parsespiffs] malloc failed\n");
 		}
@@ -325,7 +306,7 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & parseBuf, Jso
 
 	f.close();
 
-	DebugEffectManagerf("[parsespiffs] time: %u\n", millis() - starttime);
+	DebugEffectManagerf("[parsespiffs] FileSize: %u, parsetime: %u, jsonBufferSize: %u\n", filesize, millis() - starttime, jsonBuffer.size());
 	if (success) {
 		return true;
 	} else {
@@ -393,7 +374,7 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 
 	// delete any existing preset information.
 
-	DebugEffectManagerf("[EffectManager::getPresets] Fetching presets for %s\n", handle->name());
+	DebugEffectManagerf("[EffectManager::getPresets] Fetching for %s\n", handle->name());
 
 
 	for (uint8_t i = 0; i < numberofpresets; i++) {
@@ -414,11 +395,11 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 	numberofpresets = 0;
 
 	if (handle) {
-		DynamicJsonBuffer getPresetsjsonBuffer;
+		DynamicJsonBuffer jsonBuffer;
 		JsonObject * root = nullptr;
 		uint8_t count = 0;
 
-		if (parsespiffs(data, getPresetsjsonBuffer, root, PRESETS_FILE )) {
+		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
 			//delay(0);
 
@@ -431,11 +412,11 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 					JsonObject& current = it->value.asObject();
 
 					// compare to the name of current effect
-					//	DebugEffectManagerf("[getPresets] Identified presets %s (%s)\n", current["effect"], current["name"] , key);
+					//	Serial.printf("[getPresets] Identified presets for %s (%s)\n", handle->name(), key);
 					if (current.containsKey("effect")) {
 						if ( strcmp( current["effect"], handle->name() ) == 0) {
 							// if matched then this preset is a valid effect for the current one.
-							DebugEffectManagerf("[getPresets] found preset for %s (%s)\n", handle->name(), key);
+							DebugEffectManagerf("[getPresets] Found preset for %s (%s)\n", handle->name(), key);
 							count++;
 						}
 					}
@@ -483,20 +464,16 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 					}
 
 				}
-			} else {
-				DebugEffectManagerf("[getPresets] root is null\n");
 			}
 
-		} else {
-				DebugEffectManagerf("[getPresets] Parse SPIFFS FAILED\n");
-			}
+		}
 
 
 	}
 
 	if (data) { delete[] data; }
 
-	if (numberofpresets > 0) {
+	if (numberofpresets) {
 		return true;
 	} else {
 		return false;
@@ -664,7 +641,7 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 bool EffectManager::Load(uint8_t ID)
 {
 	bool success = false;
-
+	bool modechange = false;
 	EffectHandler* handle = Current();
 
 	// if (_currentHandle && !_NextInLine) {
@@ -672,17 +649,17 @@ bool EffectManager::Load(uint8_t ID)
 	// } else if (_NextInLine) {
 	// 	handle = _NextInLine;
 	// }
-
+	DebugEffectManagerf("[EffectManager::Load] Called. ID %u\n", ID);
 
 	if (handle) {
 
-		DynamicJsonBuffer LoadjsonBuffer;
-		const char * cID = LoadjsonBuffer.strdup(String(ID).c_str()); //  this is a hack as i couldn't get it to work... can probably try without it now...
+		DynamicJsonBuffer jsonBuffer;
+		const char * cID = jsonBuffer.strdup(String(ID).c_str()); //  this is a hack as i couldn't get it to work... can probably try without it now...
 
 		JsonObject * root = nullptr;
 		char * data = nullptr;
 
-		if (parsespiffs(data, LoadjsonBuffer, root, PRESETS_FILE )) {
+		if (parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
 
 			//  Is current effect same effect as is wanted.
 			JsonObject& preset = (*root)[cID];
@@ -693,8 +670,20 @@ bool EffectManager::Load(uint8_t ID)
 
 					if (handle && preset.containsKey("effect")) {
 						if (strcmp(handle->name(), preset["effect"]) != 0) {
-							handle = Start(preset["effect"].asString());
-							DebugEffectManagerf("[EffectManager::newLoad]  Effect changed to %s\n", handle->name());
+							modechange = true;
+							handle = _findhandle(preset["effect"].asString());
+							_NextInLine = handle;
+							_prepareAnimator();
+							_NextInLine->InitVars();
+
+							if (_defaulteffecthandle) {
+								if (handle != _defaulteffecthandle) {
+									_toggleHandle = handle;
+								}
+							}
+
+							//handle = Start(preset["effect"].asString());
+							DebugEffectManagerf("[EffectManager::Load]  Effect changed to %s\n", handle->name());
 						}
 
 					}
@@ -702,7 +691,7 @@ bool EffectManager::Load(uint8_t ID)
 					// now can load the effect using json
 					if (handle) {
 						if (handle->parseJson(preset)) {
-							DebugEffectManagerf("[EffectManager::newLoad] Preset %s loaded\n", cID);
+							DebugEffectManagerf("[EffectManager::Load] Preset %s loaded for %s\n", cID, handle->name());
 							handle->preset(ID);
 							success = true;
 						}
@@ -714,7 +703,14 @@ bool EffectManager::Load(uint8_t ID)
 		if (data) { delete[] data; }
 	}
 
-	return success;
+	if (success) {
+		if (modechange) {
+			getPresets(_currentHandle, _numberofpresets, _presets, _preset_names); // goes here.. to go outofscope of the previous data[] and jsonbuffer... needs lot of heap...
+		}
+		return true;
+	} else {
+		return false;
+	}
 }
 
 
@@ -741,7 +737,25 @@ bool EffectManager::convertcolor(JsonObject & root, const char * node)
 	return false;
 }
 
-
+void EffectManager::_prepareAnimator()
+{
+	if (_NextInLine->animate() && strip->PixelCount() <= MAXLEDANIMATIONS) {
+		if (!animator) {
+			DebugEffectManagerf("[EffectManager::Start] Animator Created\n");
+			animator = new NeoPixelAnimator(strip);
+		} else {
+			DebugEffectManagerf("[EffectManager::Start] Animator Already in Place\n");
+		}
+	} else {
+		if (animator) {
+			DebugEffectManagerf("[EffectManager::Start] Animator Deleted\n");
+			delete animator;
+			animator = nullptr;
+		} else {
+			DebugEffectManagerf("[EffectManager::Start] Animator Already Deleted\n");
+		}
+	}
+}
 
 /*
 

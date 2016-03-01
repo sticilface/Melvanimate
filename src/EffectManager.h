@@ -86,6 +86,7 @@ private:
 
 	// hold a 'new' array of elegible presets for _currenthandler
 	EffectHandler* _findhandle(const char * handle);
+	void _prepareAnimator(); 
 
 };
 
