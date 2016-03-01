@@ -61,9 +61,11 @@ IPAddress mqtt_server_ip(192, 168, 1, 1);
 SimpleTimer timer;
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
+ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "fyffest", "wellcometrust");
+
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SONET_1", "tachi123");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
-ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
+//ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
 
