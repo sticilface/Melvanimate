@@ -3,7 +3,7 @@
 
 bool EffectHandler::save(JsonObject& root, const char *& ID, const char * name)
 {
-	Serial.printf("[save] ID = %s\n", ID);
+	//Serial.printf("[EffectHandler::save] Effect = %s, ID = %s\n", _name, ID);
 
 	if (root.containsKey(ID)) {
 //		Serial.printf("[save] [%s]previous setting identified\n", ID);
@@ -22,7 +22,7 @@ bool EffectHandler::save(JsonObject& root, const char *& ID, const char * name)
 	}
 };
 
-bool EffectHandler::addJson(JsonObject& root)
+bool EffectHandler::addJson(JsonObject & root)
 {
 	bool found = false;
 
@@ -43,11 +43,13 @@ bool EffectHandler::parseJson(JsonObject & root)
 	if (PropertyManager::parseJsonEffect(root)) {
 		found = true;
 	}
+
 	if (parseJsonEffect(root)) { found = true; }
 
 	if (found) {
 		Refresh(); 
 		_preset = 255;
 	}
+
 	return found;
 }

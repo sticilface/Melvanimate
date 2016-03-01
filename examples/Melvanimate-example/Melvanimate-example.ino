@@ -7,6 +7,16 @@
               Connect WS2812 to PIN 2 of ESP8266.
 
   Sticilface - Beerware licence
+
+
+
+
+  TODO urgent...
+
+  Load effect....
+
+  -> get effects used the file flag on effect but this is not passed to webpage...
+  ->  webpage should add it to the
 --------------------------------------------------------------------------------------------------------*/
 
 //#include <GDBStub.h>
@@ -64,26 +74,28 @@ SimpleTimer timer;
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SONET_1", "tachi123");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
-
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
+ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "fyffest", "wellcometrust");
 
-Melvanimate lights(HTTP,WS2812_PIXELS,2);
 
-void install_effects() 
+
+Melvanimate lights(HTTP, WS2812_PIXELS, 2);
+
+void install_effects()
 {
-// bool Add(const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
+// bool Add(bool savefile, const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
 
-  lights.Add("Off",         new SwitchEffect( offFn), true, true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
-  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn), true);       // working
-  lights.Add("CuriousCat",  new Effect2, true);
-  lights.Add("Adalight",    new AdalightEffect(Serial, 115000), true);    // working - need to test
-  lights.Add("UDP",         new UDPEffect, false);                        // working
-  lights.Add("DMX",         new DMXEffect, false );                       // need to test - requires custom libs included
-  
+  lights.Add(1, "Off",         new SwitchEffect( offFn), true, true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
+  lights.Add(2, "SimpleColor", new SimpleEffect(SimpleColorFn), true);       // working
+  lights.Add(3, "CuriousCat",  new Effect2, true);
+  lights.Add(4, "Adalight",    new AdalightEffect(Serial, 115000), true);    // working - need to test
+  lights.Add(5, "UDP",         new UDPEffect, false);                        // working
+  lights.Add(6, "DMX",         new DMXEffect, false );                       // need to test - requires custom libs included
+
   for (uint8_t i = 0; i < 30; i++) {
     String in = "CuriousCat" + String(i);
-    const char * string = strdup(in.c_str()); 
-      lights.Add(string ,  new Effect2, true);
+    const char * string = strdup(in.c_str());
+    lights.Add(7, string ,  new Effect2, true);
   }
   // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
   // lights.Add("Dummy", new DummyEffect(DummyFn));
@@ -95,11 +107,13 @@ void install_effects()
 
 // experimental and in testing
 
-  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn), false);
+  lights.Add(8, "TIMINGfunc", new SwitchEffect(TimingFn), false);
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
   // lights.Add("Object", new SwitchEffect(ObjectFn));
+
+  lights.setPixels(64);
 }
 
 //  MQTT
@@ -114,7 +128,6 @@ void install_effects()
 void setup()
 {
 
-  //WiFi.begin ();
   Serial.begin(115200);
   Serial.println("");
   //Serial.setDebugOutput(true);
@@ -124,12 +137,32 @@ void setup()
 
 
   lights.begin();
- // settings.begin();
+ settings.begin();
   fsbrowser.begin();
 
 
 
-  HTTP.on("/crash", HTTP_ANY, [](){ NeoPixelBus * voidpointer; voidpointer->Show(); });
+
+  Serial.println("SPIFFS FILES:");
+  {
+    Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+      String fileName = dir.fileName();
+      size_t fileSize = dir.fileSize();
+      Serial.printf("     FS File: %s, size: %s\n", fileName.c_str(), String(fileSize).c_str());
+
+      if (fileName.startsWith(PRESETS_FILE)) {
+        // SPIFFS.remove(fileName);
+        // Serial.printf("     Deleted: %s\n", fileName.c_str());
+
+      }
+
+    }
+    Serial.printf("\n");
+  }
+
+
+  HTTP.on("/crash", HTTP_ANY, []() { NeoPixelBus * voidpointer; voidpointer->Show(); });
   HTTP.on("/debug", HTTP_GET, []() {
     static bool debugstate = false;
     debugstate = !debugstate;
@@ -159,42 +192,42 @@ void setup()
   //     HTTP.send(200); // sends OK if were just receiving data...
   //   }
 
-    // if (HTTP.hasArg("print")) {
-    //   File f = SPIFFS.open(PRESETS_FILE, "r");
-    //   Serial.println("SETTINGS_FILE");
+  // if (HTTP.hasArg("print")) {
+  //   File f = SPIFFS.open(PRESETS_FILE, "r");
+  //   Serial.println("SETTINGS_FILE");
 
-    //   do {
-    //     char buf[250];
-    //     uint8_t number = (f.size() - f.position() > 250) ? 250 : f.size() - f.position();
-    //     f.readBytes(buf, number);
-    //     Serial.write(buf, number);
-    //   } while (f.position() < f.size());
+  //   do {
+  //     char buf[250];
+  //     uint8_t number = (f.size() - f.position() > 250) ? 250 : f.size() - f.position();
+  //     f.readBytes(buf, number);
+  //     Serial.write(buf, number);
+  //   } while (f.position() < f.size());
 
-    //   Serial.println("---");
+  //   Serial.println("---");
 
-    //   HTTP.setContentLength(0);
-    //   HTTP.send(200); // sends OK if were just receiving data...
-    // }
+  //   HTTP.setContentLength(0);
+  //   HTTP.send(200); // sends OK if were just receiving data...
+  // }
 
-    // if (HTTP.hasArg("remove")) {
-    //   lights.removePreset(HTTP.arg("remove").toInt());
-    //   HTTP.setContentLength(0);
-    //   HTTP.send(200); // sends OK if were just receiving data...
-    // }
+  // if (HTTP.hasArg("remove")) {
+  //   lights.removePreset(HTTP.arg("remove").toInt());
+  //   HTTP.setContentLength(0);
+  //   HTTP.send(200); // sends OK if were just receiving data...
+  // }
 
-    // if (HTTP.hasArg("list")) {
+  // if (HTTP.hasArg("list")) {
 
-    //   Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
+  //   Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
 
-    //   for (uint8_t i = 0; i < lights._numberofpresets; i++) {
+  //   for (uint8_t i = 0; i < lights._numberofpresets; i++) {
 
-    //     char * text = lights._preset_names[i];
+  //     char * text = lights._preset_names[i];
 
 
-    //     Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
+  //     Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
 
-    //   }
-    // }
+  //   }
+  // }
 
   //});
 
@@ -207,7 +240,7 @@ void setup()
 // -------------------------------------------------------- //
 
 
-  install_effects(); 
+  install_effects();
 
 
   //timer.setTimeout(5000, []() { lights.Start("Marquee");} ) ;
@@ -219,13 +252,109 @@ void setup()
   //timer.setTimeout(1000, []() { lights.Start("BobblySquares");} ) ;
 
 
-  timer.setTimeout(10000, []() { 
-    Serial.println("\n");   
-    Serial.println("------START-----"); 
-    lights.Load(1);
-    Serial.println("-------END------"); 
+  // timer.setTimeout(1000, []() {
+  //   Serial.println("\n");
+  //   Serial.println("------START-----");
+  //   lights.Start("SimpleColor");
+  //   Serial.println("-------END------");
 
-  }) ;
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(255, 0, 0));
+
+  //   lights.Save(1, "RED", true);
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(0, 0, 255));
+
+  //   Serial.println();
+  //   lights.Save(2, "GREEN", true);
+
+  //   Serial.println();
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(0, 255, 0));
+  //   lights.Save(3, "BLUE", true);
+  //   Serial.println();
+
+  // }) ;
+
+  // timer.setTimeout(1500, []() {
+  //   Serial.println("\n");
+  //   Serial.println("------START-----");
+  //   lights.Start("CuriousCat");
+  //   Serial.println("-------END------");
+
+  //   lights.Current()->setVar<uint8_t>("int2", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int3", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int4", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int5", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int6", random(0, 10000));
+
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(255, random(0, 255), random(0, 255)));
+  //   lights.Current()->setVar<RgbColor>("color3", RgbColor(255, random(0, 255), random(0, 255)));
+
+
+  //   lights.Save(1, "CuriousCatRED", true);
+  //   lights.Current()->setVar<uint8_t>("int2", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int3", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int4", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int5", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int6", random(0, 10000));
+
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(0, random(0, 255), 255));
+  //   lights.Current()->setVar<RgbColor>("color3", RgbColor(255, random(0, 255), random(0, 255)));
+
+  //   Serial.println();
+  //   lights.Save(2, "CuriousCatGREEN", true);
+
+  //   Serial.println();
+  //   lights.Current()->setVar<uint8_t>("int2", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int3", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int4", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int5", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int6", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(random(0, 255), 255, 0));
+  //   lights.Current()->setVar<RgbColor>("color3", RgbColor(255, random(0, 255), random(0, 255)));
+
+  //   lights.Save(3, "CuriousCatBLUE", true);
+  //   Serial.println();
+
+  //   lights.Start("Off");
+
+  // }) ;
+
+
+
+  // timer.setTimeout(2000, []() {
+
+  //   DynamicJsonBuffer jsonBuffer;
+  //   JsonObject & root = jsonBuffer.createObject();
+  //   lights.addAllpresets(jsonBuffer, root);
+
+  // }) ;
+
+  // timer.setTimeout(2100, []() {
+
+  //   Serial.println("\n");
+  //   Serial.println("------START-----");
+  //   lights.Load("2.4");
+  //   Serial.println("-------END------");
+
+  // }) ;
+
+
+  // timer.setInterval(5000, []() {
+  //   uint8_t effect = random(2, 4);
+  //   uint8_t id = random(1, 4);
+
+  //   Serial.println("------START-----");
+
+  //   lights.Load(effect, id);
+  //   Serial.println("-------END------\n");
+
+  // });
+
 
   lights.Start("Off");
 
@@ -234,7 +363,7 @@ void setup()
   // });
 
   Debugf("HEAP: ");
-  Debugf("%u\n",ESP.getFreeHeap());
+  Debugf("%u\n", ESP.getFreeHeap());
 
   Debugf("Melvanimate Ready\n");
 
@@ -284,7 +413,7 @@ void loop()
 
   HTTP.handleClient();
 
- // settings.handle();
+ settings.handle();
 
   lights.loop();
 

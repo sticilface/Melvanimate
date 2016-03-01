@@ -15,7 +15,6 @@
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
 #define EFFECT_WAIT_TIMEOUT 20000
 #define DEFAULT_WS2812_PIN 2
-#define DEFAULT_TOTAL_PIXELS 64
 
 
 #include "EffectManager.h"
@@ -86,7 +85,7 @@ private:
 	void _init_LEDs();
 	void _init_matrix();
 
-	void _sendData(String page); 
+	void _sendData(String page, int8_t code); 
 	void _handleWebRequest();
 	template <class T> static void _sendJsontoHTTP( const T& root, ESP8266WebServer & _HTTP) ;
 	bool _check_duplicate_req();
