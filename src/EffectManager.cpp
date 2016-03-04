@@ -10,6 +10,8 @@
 #include "NeopixelBus.h"
 
 #define MAXLEDANIMATIONS 300
+#define MAX_PRESET_FILE_SIZE 2000
+#define MAX_NUMBER_PRESET_FILES 10
 
 extern NeoPixelBus * strip;
 extern NeoPixelAnimator * animator;
@@ -22,7 +24,7 @@ EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandl
 	_NextInLine(nullptr), _defaulteffecthandle(nullptr)
 {};
 
-bool EffectManager::Add(uint8_t file, const char * name, EffectHandler* handle, bool animations, bool defaulteffect)
+bool EffectManager::Add(const char * name, EffectHandler* handle, bool animations, bool defaulteffect)
 {
 	_count++;
 
@@ -42,7 +44,6 @@ bool EffectManager::Add(uint8_t file, const char * name, EffectHandler* handle, 
 	}
 
 	handle->animate(animations);
-	handle->saveFileID = file;
 	DebugEffectManagerf("ADDED EFFECT %u: %s\n", _count, handle->name());
 }
 
@@ -318,18 +319,33 @@ bool EffectManager::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, J
 	}
 }
 
-bool EffectManager::removePreset(String ID)
-{
+// bool EffectManager::removePreset(String ID)
+// {
 
-	uint8_t File = ID.substring(   0 , ID.lastIndexOf(".")  ).toInt();
-	uint8_t IDout = ID.substring(   ID.lastIndexOf(".") + 1, ID.length() ).toInt();
-	return removePreset(File, IDout);
-}
+// 	uint8_t File = ID.substring(   0 , ID.lastIndexOf(".")  ).toInt();
+// 	uint8_t IDout = ID.substring(   ID.lastIndexOf(".") + 1, ID.length() ).toInt();
+// 	return removePreset(File, IDout);
+// }
 
 
-bool EffectManager::removePreset(uint8_t FileID, uint8_t ID)
+bool EffectManager::removePreset(uint8_t ID)
 {
 	bool success = false;
+	int FileID = -1; 
+		// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+		if (ID && _presetS) {
+			for (uint8_t i = 0; i < _presetcountS; i++) {
+				Presets_s * preset = &_presetS[i];
+				if (preset->id == ID) {
+					FileID = preset->file;
+					break; 
+				}
+			}
+		}
+
+	if (FileID == -1) {
+		return false; 
+	}
 
 	{
 		DynamicJsonBuffer jsonBuffer;
@@ -374,7 +390,8 @@ bool EffectManager::removePreset(uint8_t FileID, uint8_t ID)
 	}
 
 	if (success && Current()) {
-		getPresets(Current(), _numberofpresets, _presets, _preset_names); // goes here.. to go outofscope of the previous data[] and jsonbuffer... needs lot of heap...
+		//getPresets(Current(), _numberofpresets, _presets, _preset_names); // goes here.. to go outofscope of the previous data[] and jsonbuffer... needs lot of heap...
+		fillPresetArray(); 
 		return true;
 	} else {
 		return false;
@@ -418,7 +435,7 @@ bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets,
 		JsonObject * root = nullptr;
 		uint8_t count = 0;
 
-		String filename = PRESETS_FILE + String(handle->saveFileID) + ".txt";
+		String filename = " "; //PRESETS_FILE + String(handle->saveFileID) + ".txt";
 
 		// uint8_t FileID = filename.substring(   strlen(PRESETS_FILE) , filename.indexOf(".txt")  ).toInt();
 		// DebugEffectManagerf("[EffectManager::getPresets] ** check from %s, FileID %u\n", filename.c_str(), FileID) ;
@@ -563,53 +580,53 @@ void EffectManager::addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & ro
 	// Serial.println();
 }
 
-uint8_t EffectManager::nextFreePreset(JsonObject & root)
-{
-	DebugEffectManagerf("[EffectManager::nextFreePreset] called\n");
-	uint8_t i = 0;
+// uint8_t EffectManager::nextFreePreset(JsonObject & root)
+// {
+// 	DebugEffectManagerf("[EffectManager::nextFreePreset] called\n");
+// 	uint8_t i = 0;
 
-	bool * array = new bool[255];
-	//memset(array, 0, 255);
-	if (array) {
+// 	bool * array = new bool[255];
+// 	//memset(array, 0, 255);
+// 	if (array) {
 
-		for (uint8_t j = 1; j < 255; j++) {
-			array[j] = false;
-		}
-
-
-		for (JsonObject::iterator it = root.begin(); it != root.end(); ++it) {
-			uint8_t ID = String(it->key).toInt();
-			array[ID] = true;
-		}
+// 		for (uint8_t j = 1; j < 255; j++) {
+// 			array[j] = false;
+// 		}
 
 
-		for (i = 1; i < 255; i++) {
-			if (array[i] == false) {
-				break;
-			}
-		}
+// 		for (JsonObject::iterator it = root.begin(); it != root.end(); ++it) {
+// 			uint8_t ID = String(it->key).toInt();
+// 			array[ID] = true;
+// 		}
 
 
-		delete[] array;
+// 		for (i = 1; i < 255; i++) {
+// 			if (array[i] == false) {
+// 				break;
+// 			}
+// 		}
 
-	} else {
-		DebugEffectManagerf("[EffectManager::nextFreePreset] new array failed\n");
-	}
 
-	if (i == 254) {
-		i = 0;
-	}
-	DebugEffectManagerf("[EffectManager::nextFreePreset] nextFree = %u \n", i);
-	return i;
+// 		delete[] array;
 
-}
+// 	} else {
+// 		DebugEffectManagerf("[EffectManager::nextFreePreset] new array failed\n");
+// 	}
 
-bool EffectManager::Save(String ID, const char * name, bool overwrite)
-{
-	uint8_t IDout = ID.substring( ID.lastIndexOf(".") + 1, ID.length() ).toInt();
-	// save only worked on loaded effect.  so just have to stip out the file bit from the response.
-	return Save(IDout, name, overwrite);
-}
+// 	if (i == 254) {
+// 		i = 0;
+// 	}
+// 	DebugEffectManagerf("[EffectManager::nextFreePreset] nextFree = %u \n", i);
+// 	return i;
+
+// }
+
+// bool EffectManager::Save(String ID, const char * name, bool overwrite)
+// {
+// 	uint8_t IDout = ID.substring( ID.lastIndexOf(".") + 1, ID.length() ).toInt();
+// 	// save only worked on loaded effect.  so just have to stip out the file bit from the response.
+// 	return Save(IDout, name, overwrite);
+// }
 
 bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 {
@@ -622,17 +639,47 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 
 	if (handle && strlen(name) > 0 ) {
 
-		//uint8_t save_ID = handle->saveFileID;
+		int filePostfix = -1;
 
-		String filename = PRESETS_FILE + String(handle->saveFileID) + ".txt";
-		DebugEffectManagerf("[EffectManager::Save] File name: %s\n", filename.c_str());
+		// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+		if (ID && _presetS) {
+			for (uint8_t i = 0; i < _presetcountS; i++) {
+				Presets_s * preset = &_presetS[i];
+				if (preset->id == ID) {
+					filePostfix = preset->file;
+					break;
+				}
+			}
+		}
+
+		// if no file is found use file 0 as default...
+		if (filePostfix == -1) {
+			filePostfix = 0;
+		}
+
+		String filename = PRESETS_FILE + String(filePostfix) + ".txt";
+
 
 		File f = SPIFFS.open(filename, "r");
 
 		if (f) {
-			if ( f.size() > 2000) {
-				DebugEffectManagerf("[EffectManager::Save] File Too Big Delete some effects: %u\n", f.size());
-				return false;
+			DebugEffectManagerf("[EffectManager::Save] Exists File name: %s, size:%u\n", filename.c_str(), f.size());
+		} else {
+			DebugEffectManagerf("[EffectManager::Save] New File name: %s\n", filename.c_str());
+		}
+
+		if (f) {
+			if ( f.size() > MAX_PRESET_FILE_SIZE && !overwrite) {
+				DebugEffectManagerf("[EffectManager::Save] %s too big (%u)creating new file\n", filename.c_str(),  f.size());
+				f.close();
+				filePostfix = _nextFreeFile();
+				DebugEffectManagerf("[EffectManager::Save] _nextfreeFile = %s\n", String(filePostfix).c_str());
+				if (filePostfix != -1) {
+					filename = PRESETS_FILE + String(filePostfix) + ".txt";
+				} else {
+					DebugEffectManagerf("[EffectManager::Save] Unable to create new file\n");
+					return false;
+				}
 			}
 		}
 
@@ -648,9 +695,10 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 			root = &jsonBuffer.createObject();
 		}
 
-		//  temp working
+		//  
 		if (ID == 0 && !overwrite) {
-			ID = nextFreePreset(*root);
+			//ID = nextFreePreset(*root);
+			ID = nextFreePresetID(); 
 		}
 
 
@@ -706,23 +754,34 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 
 }
 
-bool EffectManager::Load(String decimalin)
-{
-	uint8_t File = decimalin.substring(   0 , decimalin.lastIndexOf(".")  ).toInt();
-	uint8_t ID = decimalin.substring(   decimalin.lastIndexOf(".") + 1, decimalin.length() ).toInt();
+// bool EffectManager::Load(String decimalin)
+// {
+// 	uint8_t File = decimalin.substring(   0 , decimalin.lastIndexOf(".")  ).toInt();
+// 	uint8_t ID = decimalin.substring(   decimalin.lastIndexOf(".") + 1, decimalin.length() ).toInt();
 
-	DebugEffectManagerf("[EffectManager::Load] String converted to File (%u) ID (%u)\n", File, ID);
+// 	DebugEffectManagerf("[EffectManager::Load] String converted to File (%u) ID (%u)\n", File, ID);
 
-	if ( File == 0 || ID == 0) {
-		return false;
-	}
+// 	if ( File == 0 || ID == 0) {
+// 		return false;
+// 	}
 
-	return Load(File, ID);
-}
+// 	return Load(File, ID);
+// }
 
 bool EffectManager::Load(uint8_t ID)
 {
-	return Load( Current()->saveFileID, ID );
+	// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+	if (ID && _presetS) {
+		for (uint8_t i = 0; i < _presetcountS; i++) {
+			Presets_s * preset = &_presetS[i];
+			if (preset->id == ID) {
+				return Load(preset->file,ID); 
+				
+			}
+		}
+	}
+
+	return false; 
 }
 
 bool EffectManager::Load(uint8_t File, uint8_t ID)
@@ -976,13 +1035,13 @@ bool EffectManager::fillPresetArray()
 		}
 	}
 
-	DebugEffectManagerf("[EffectManager::fillPresetArray] timetaken: %u\n", millis() - starttime); 
+	DebugEffectManagerf("[EffectManager::fillPresetArray] timetaken: %u\n", millis() - starttime);
 
-	dumpPresetArray(); 
+	dumpPresetArray();
 
-	DebugEffectManagerf("[EffectManager::fillPresetArray] Next Free: %u\n", nextFreePresetID() ); 
+	DebugEffectManagerf("[EffectManager::fillPresetArray] Next Free: %u\n", nextFreePresetID() );
 
-	
+
 
 }
 
@@ -993,7 +1052,7 @@ void EffectManager::dumpPresetArray()
 	for (uint8_t i = 0; i < _presetcountS; i++) {
 		Presets_s * preset = &_presetS[i];
 		if (preset) {
-			DebugEffectManagerf("  [%3u] File: %3u, ID: %3u, effect: %30s, name: %30s\n", i, preset->file, preset->id, preset->handle->name(), preset->name); 
+			DebugEffectManagerf("  [%3u] File: %3u, ID: %3u, effect: %30s, name: %30s\n", i, preset->file, preset->id, preset->handle->name(), preset->name);
 		}
 	}
 }
@@ -1013,7 +1072,7 @@ uint8_t EffectManager::nextFreePresetID()
 
 		for (uint8_t j = 0; j < _presetcountS; j++) {
 			Presets_s * preset = &_presetS[j];
-			array[preset->id] = true; 
+			array[preset->id] = true;
 		}
 
 		for (i = 1; i < 255; i++) {
@@ -1036,6 +1095,60 @@ uint8_t EffectManager::nextFreePresetID()
 	return i;
 }
 
+
+int EffectManager::_nextFreeFile()
+{
+	struct presetfile_s {
+		bool isfile{false};
+		uint32_t size{0};
+	};
+
+	DebugEffectManagerf("[_nextFreeFile] called\n");
+
+	presetfile_s * presetfile = new presetfile_s[MAX_NUMBER_PRESET_FILES];
+
+	if (!presetfile) {
+		return 0;
+	}
+
+	Dir dir = SPIFFS.openDir("/");
+	while (dir.next()) {
+
+		String fileName = dir.fileName();
+
+		if (fileName.startsWith(PRESETS_FILE)) {
+
+			uint8_t FileID = fileName.substring( strlen(PRESETS_FILE) , fileName.lastIndexOf(".txt") ).toInt();
+			presetfile_s * current = &presetfile[FileID];
+			current->isfile = true;
+			File f = SPIFFS.open(fileName, "r");
+			current->size = f.size();
+			f.close();
+		}
+
+	}
+
+#ifdef DebugEffectManager
+
+	DebugEffectManagerf("[_nextFreeFile] Listing all:\n");
+
+	for (uint8_t i = 0; i < MAX_NUMBER_PRESET_FILES; i++) {
+		presetfile_s * current = &presetfile[i];
+		DebugEffectManagerf("  [%u] %s (%u)\n", i, (current->isfile) ? "true" : "false", current->size );
+	}
+
+#endif
+
+	for (uint8_t i = 0; i < MAX_NUMBER_PRESET_FILES; i++) {
+		presetfile_s * current = &presetfile[i];
+		if (current->isfile == false || current->size < MAX_PRESET_FILE_SIZE) {
+			return i;
+		}
+	}
+
+	return -1;
+
+}
 
 
 /*

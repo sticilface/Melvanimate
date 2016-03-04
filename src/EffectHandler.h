@@ -47,7 +47,6 @@ public:
 
 	void name (const char * name) { _name = name; }
 	const char * name() const {return _name; };
-	uint8_t saveFileID{0}; 
 
 private:
 	EffectHandler* _next{nullptr};

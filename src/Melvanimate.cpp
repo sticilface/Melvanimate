@@ -34,6 +34,8 @@ bool Melvanimate::begin()
 	_loadGeneral();
 	_init_LEDs();
 	_init_matrix();
+
+	fillPresetArray(); 
 }
 
 
@@ -377,7 +379,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 		if (Current()) {
 
 			settings["currentpreset"] = Current()->preset();
-			settings["currentpresetFile"] = Current()->saveFileID;
+//			settings["currentpresetFile"] = Current()->saveFileID;
 
 			if (!Current()->addJson(settings)) {
 				settings["effect"] = Current()->name();
@@ -527,7 +529,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 
 			settings["currentpreset"] = Current()->preset();
 			settings["currentpresetname"] = Current()->name();
-			settings["currentpresetFile"] = Current()->saveFileID;
+//			settings["currentpresetFile"] = Current()->saveFileID;
 
 			// if (!Current()->addJson(settings)) {
 			//   settings["effect"] = Current()->name();
@@ -856,13 +858,13 @@ void Melvanimate::_handleWebRequest()
 
 
 		if (_HTTP.arg("presetcommand") == "load") {
-			code = Load(_HTTP.arg("selectedeffect"));
+			code = Load(_HTTP.arg("selectedeffect").toInt());
 		} else if (_HTTP.arg("presetcommand") == "new" ) {
 			code = Save(0, _HTTP.arg("presetsavename").c_str());
 		} else if (_HTTP.arg("presetcommand") == "overwrite" ) {
-			code = Save(_HTTP.arg("selectedeffect"), _HTTP.arg("presetsavename").c_str(), true);
+			code = Save(_HTTP.arg("selectedeffect").toInt(), _HTTP.arg("presetsavename").c_str(), true);
 		} else if (_HTTP.arg("presetcommand") == "delete" ) {
-			code = removePreset(_HTTP.arg("selectedeffect"));
+			code = removePreset(_HTTP.arg("selectedeffect").toInt());
 		}
 
 

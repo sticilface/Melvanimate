@@ -85,12 +85,12 @@ void install_effects()
 {
 // bool Add(bool savefile, const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
 
-  lights.Add(1, "Off",         new SwitchEffect( offFn), true, true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
-  lights.Add(2, "SimpleColor", new SimpleEffect(SimpleColorFn), true);       // working
-  lights.Add(3, "CuriousCat",  new Effect2, true);
-  lights.Add(4, "Adalight",    new AdalightEffect(Serial, 115000), true);    // working - need to test
-  lights.Add(5, "UDP",         new UDPEffect, false);                        // working
-  lights.Add(6, "DMX",         new DMXEffect, false );                       // need to test - requires custom libs included
+  lights.Add("Off",         new SwitchEffect( offFn), true, true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
+  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn), true);       // working
+  lights.Add("CuriousCat",  new Effect2, true);
+  lights.Add("Adalight",    new AdalightEffect(Serial, 115000), true);    // working - need to test
+  lights.Add("UDP",         new UDPEffect, false);                        // working
+  lights.Add("DMX",         new DMXEffect, false );                       // need to test - requires custom libs included
 
   // for (uint8_t i = 0; i < 30; i++) {
   //   String in = "CuriousCat" + String(i);
@@ -107,7 +107,7 @@ void install_effects()
 
 // experimental and in testing
 
-  lights.Add(8, "TIMINGfunc", new SwitchEffect(TimingFn), false);
+  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn), false);
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
@@ -135,8 +135,6 @@ void setup()
 
   //SPIFFS.remove(PRESETS_FILE);
 
-
-  lights.begin();
  settings.begin();
   fsbrowser.begin();
 
@@ -175,67 +173,68 @@ void setup()
     lights.fillPresetArray(); 
   });
 
-  // HTTP.on("/command", HTTP_ANY, []() {
-  //   if (HTTP.hasArg("save")) {
-  //     if (HTTP.hasArg("name")) {
-  //       lights.Save(HTTP.arg("save").toInt(), HTTP.arg("name").c_str());
-  //     } else {
-  //       lights.Save(HTTP.arg("save").toInt(), "No Name");
+   HTTP.on("/command", HTTP_ANY, []() {
+    Serial.println();
+    if (HTTP.hasArg("save")) {
+      if (HTTP.hasArg("name")) {
+        lights.Save(HTTP.arg("save").toInt(), HTTP.arg("name").c_str());
+      } else {
+        lights.Save(HTTP.arg("save").toInt(), "No Name");
 
-  //     }
-  //     Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
-  //     HTTP.setContentLength(0);
-  //     HTTP.send(200); // sends OK if were just receiving data...
-  //   }
+      }
+      Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
+      HTTP.setContentLength(0);
+      HTTP.send(200); // sends OK if were just receiving data...
+    }
 
-  //   if (HTTP.hasArg("load")) {
-  //     lights.Load(HTTP.arg("load").toInt());
-  //     Serial.printf("[load] done, heap: %u\n", ESP.getFreeHeap());
-  //     Serial.printf("[load] current preset = %u\n", lights.Current()->preset());
-  //     HTTP.setContentLength(0);
-  //     HTTP.send(200); // sends OK if were just receiving data...
-  //   }
+    if (HTTP.hasArg("load")) {
+      lights.Load(HTTP.arg("load").toInt());
+      Serial.printf("[load] done, heap: %u\n", ESP.getFreeHeap());
+      Serial.printf("[load] current preset = %u\n", lights.Current()->preset());
+      HTTP.setContentLength(0);
+      HTTP.send(200); // sends OK if were just receiving data...
+    }
 
-  // if (HTTP.hasArg("print")) {
-  //   File f = SPIFFS.open(PRESETS_FILE, "r");
-  //   Serial.println("SETTINGS_FILE");
+  if (HTTP.hasArg("print")) {
+    File f = SPIFFS.open(PRESETS_FILE, "r");
+    Serial.println("SETTINGS_FILE");
 
-  //   do {
-  //     char buf[250];
-  //     uint8_t number = (f.size() - f.position() > 250) ? 250 : f.size() - f.position();
-  //     f.readBytes(buf, number);
-  //     Serial.write(buf, number);
-  //   } while (f.position() < f.size());
+    do {
+      char buf[250];
+      uint8_t number = (f.size() - f.position() > 250) ? 250 : f.size() - f.position();
+      f.readBytes(buf, number);
+      Serial.write(buf, number);
+    } while (f.position() < f.size());
 
-  //   Serial.println("---");
+    Serial.println("---");
 
-  //   HTTP.setContentLength(0);
-  //   HTTP.send(200); // sends OK if were just receiving data...
-  // }
+    HTTP.setContentLength(0);
+    HTTP.send(200); // sends OK if were just receiving data...
+  }
 
-  // if (HTTP.hasArg("remove")) {
-  //   lights.removePreset(HTTP.arg("remove").toInt());
-  //   HTTP.setContentLength(0);
-  //   HTTP.send(200); // sends OK if were just receiving data...
-  // }
+  if (HTTP.hasArg("remove")) {
+    lights.removePreset(HTTP.arg("remove").toInt());
+    HTTP.setContentLength(0);
+    HTTP.send(200); // sends OK if were just receiving data...
+  }
 
-  // if (HTTP.hasArg("list")) {
+  if (HTTP.hasArg("list")) {
 
-  //   Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
+    Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
 
-  //   for (uint8_t i = 0; i < lights._numberofpresets; i++) {
+    for (uint8_t i = 0; i < lights._numberofpresets; i++) {
 
-  //     char * text = lights._preset_names[i];
+      char * text = lights._preset_names[i];
 
 
-  //     Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
+      Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
 
-  //   }
-  // }
+    }
+  }
 
-  //});
+  });
 
-  void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
+  //void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
 
   HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
 
@@ -244,7 +243,6 @@ void setup()
 // -------------------------------------------------------- //
 
 
-  install_effects();
 
 
   //timer.setTimeout(5000, []() { lights.Start("Marquee");} ) ;
@@ -359,6 +357,9 @@ void setup()
 
   // });
 
+  install_effects();
+
+  lights.begin();
 
   lights.Start("Off");
 
