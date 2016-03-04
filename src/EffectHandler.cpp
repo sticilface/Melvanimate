@@ -29,9 +29,6 @@ bool EffectHandler::save(JsonArray& array, uint8_t ID, const char * name)
 
 	}
 
-
-
-
 	JsonObject& current = array.createNestedObject();
 
 	current["ID"] = ID;
@@ -56,14 +53,15 @@ bool EffectHandler::addJson(JsonObject & root)
 	}
 
 	if (addEffectJson(root)) { found = true; }
+
 	return found;
 
 };
 
 
-bool EffectHandler::parseJson(JsonObject & root)
+bool EffectHandler::parseJson(JsonObject & root, bool override)
 {
-	bool found = false;
+	bool found = override;
 
 	if (PropertyManager::parseJsonEffect(root)) {
 		found = true;

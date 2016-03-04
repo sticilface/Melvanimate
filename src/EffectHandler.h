@@ -30,7 +30,7 @@ public:
 	virtual bool jsonSize(uint8_t &obj, uint8_t &array ) { return false; }
 //	virtual void SetTimeout(uint32_t) {}
 
-	bool parseJson(JsonObject & root); // calls parseJsonEffect internally after calling propertymanager...
+	bool parseJson(JsonObject & root, bool override = false); // calls parseJsonEffect internally after calling propertymanager...
 	virtual bool parseJsonEffect(JsonObject & root) { return false;} // allows JSON to be acted on within the effect
 
 	// needs to NOT be virtual... call parsejson instead... but then call a virtual member..

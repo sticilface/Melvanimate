@@ -6,6 +6,7 @@ extern NeoPixelBus * strip;
 
 bool DMXEffect::InitVars()
 {
+	Serial.println("[DMXEffect::InitVars] Called\n"); 
 	if (_vars) { delete _vars;}
 
 	_vars = new DMXEffectVars;

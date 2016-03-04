@@ -9,8 +9,8 @@
 #include "FS.h"
 #include "NeopixelBus.h"
 
-#define MAXLEDANIMATIONS 300
-#define MAX_PRESET_FILE_SIZE 2000
+#define MAXLEDANIMATIONS 300 // number of pixels before animtor is not created
+#define MAX_PRESET_FILE_SIZE 1000 // max size of permitted settings files... 
 #define MAX_NUMBER_PRESET_FILES 10
 
 extern NeoPixelBus * strip;
@@ -97,19 +97,51 @@ bool EffectManager::Start(EffectHandler* handler)
 			Load(_NextInLine->preset());
 		} else {
 			// try to load defaut...
-			for (uint8_t i = 0; i < _numberofpresets; i++) {
-				if (_preset_names[i]) {
-					const char * name = (const char *)_preset_names[i];
-					if (!strcmp(name, "Default") || !strcmp( name, "default")) {
 
-						if (Load(_presets[i])) {
-							DebugEffectManagerf("[Start] Default Loaded %u\n", _presets[i]);
-						} else {
-							DebugEffectManagerf("[Start] ERROR loading Default %u\n", _presets[i]);
+			// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+			if (_presetcountS && _presetS) {
+				for (uint8_t i = 0; i < _presetcountS; i++) {
+					Presets_s * preset = &_presetS[i];
+					if (preset->handle == _NextInLine) {
+
+						if (!strcmp(preset->name, "Default") || !strcmp( preset->name, "default")) {
+
+							if (Load(preset->file, preset->id  )) {
+								DebugEffectManagerf("[Start] Default Loaded %u\n", _presets[i]);
+							} else {
+								DebugEffectManagerf("[Start] ERROR loading Default %u\n", _presets[i]);
+							}
+
+
+							break;
 						}
+
 					}
 				}
 			}
+
+
+
+
+
+
+			//for (uint8_t i = 0; i < _presetcountS; i++) {
+
+
+
+
+			// if (_preset_names[i]) {
+			// 	const char * name = (const char *)_preset_names[i];
+			// 	if (!strcmp(name, "Default") || !strcmp( name, "default")) {
+
+			// 		if (Load(_presets[i])) {
+			// 			DebugEffectManagerf("[Start] Default Loaded %u\n", _presets[i]);
+			// 		} else {
+			// 			DebugEffectManagerf("[Start] ERROR loading Default %u\n", _presets[i]);
+			// 		}
+			// 	}
+			// }
+			//}
 		}
 
 		//  This sets the toggle... as long as it is not the default handle... ie... Off....
@@ -806,6 +838,7 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 		//
 
 		if (root) {
+
 			if (handle->save(*root, ID, name)) {
 
 				DebugEffectManagerf("[EffectManager::Save] New Settings Added to json\n");
@@ -925,7 +958,7 @@ bool EffectManager::Load(uint8_t File, uint8_t ID)
 									handle = _findhandle(preset["effect"].asString());
 									_NextInLine = handle;
 									_prepareAnimator();
-									_NextInLine->InitVars();
+									handle->InitVars();
 
 									if (_defaulteffecthandle) {
 										if (handle != _defaulteffecthandle) {
@@ -941,7 +974,7 @@ bool EffectManager::Load(uint8_t File, uint8_t ID)
 
 								// now can load the effect using json
 								if (handle) {
-									if (handle->parseJson(preset)) {
+									if (handle->parseJson(preset, true)) {
 										DebugEffectManagerf("[EffectManager::Load] Preset %u loaded for %s\n", ID, handle->name());
 										handle->preset(ID);
 										success = true;

@@ -6,9 +6,7 @@
 
 #define PRESETS_FILE "/presets_"
 
-//extern const char * PRESETS_FILE; 
-
-#define DebugEffectManager
+//#define DebugEffectManager
 
 #ifdef DebugEffectManager
 #define DebugEffectManagerf(...) Serial.printf(__VA_ARGS__)
@@ -67,7 +65,6 @@ public:
 	// fetches info from SPIFFS valid presests for current effect
 //	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
 	void addAllpresets(JsonObject & root); 
-
 	bool addCurrentPresets(JsonObject & root); 
 
 

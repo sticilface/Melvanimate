@@ -1,5 +1,13 @@
 
 
+// ToDo
+
+//  Delete empty settings Files
+//  Delete corrupt settings files.. or rename them... 
+
+// [EffectManager::Save] save handler (addJson) returned false
+	// add override to addjson..... in save
+
 
 #pragma once
 
