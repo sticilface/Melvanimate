@@ -704,7 +704,7 @@
 
                 $('#modeslist').change(function() {
 
-                    console.log("mode change");
+                    //console.log("mode change");
                     //var mode = $(this).val();
 
                     // $('#effectoptions').children('div').each(function(index) {
@@ -776,7 +776,7 @@
             $(document).on('click', '.mysubmit', function() {
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).closest("form").find('input,select').filter(':visible').serialize(), function(data) {
-                        console.log("Data Sent");
+                        //console.log("Data Sent");
                     }).success(function(e) {
                       processJSON(e);
                         $("#status").empty().append("Success").css("color", "green");;
@@ -790,7 +790,7 @@
             $(document).on('change', '.mysubmitthis', function(e) {
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
-                        console.log("Data Sent");
+                        //console.log("Data Sent");
                     }).success(function(e) {
                         processJSON(e); 
                         $("#status").empty().append("Success").css("color", "green");;
@@ -806,7 +806,7 @@
             $(document).on('change', '.mysubmittext', function(e) {
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).find('input'), function(data) {
-                        console.log("Data Sent");
+                        //console.log("Data Sent");
                     }).success(function(e) {
                         $("#status").empty().append("Success").css("color", "green");;
                         processJSON(e); 
@@ -820,7 +820,7 @@
             $(document).on('change', '.mysubmitdropdown', function(e) {
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
-                        console.log("Data Sent");
+                        //console.log("Data Sent");
                     }).success(function(e) {
                         processJSON(e); 
                         $("#status").empty().append("Success").css("color", "green");;
@@ -1363,7 +1363,7 @@
                       
                       
                       if (result.hasOwnProperty('currentpresets') && result.currentpresets.length ) {
-                        console.log("Currentpreset length " + result.currentpresets.length); 
+                        //console.log("Currentpreset length " + result.currentpresets.length); 
                         
                         $("#currentpresetslist").find('option').remove();
                             //console.log("currentmode = " + result.currentmode);
@@ -1536,7 +1536,7 @@
         function sortmatrix(e) {
 
             var mode = $(e).val();
-            console.log("Matrix mode changed:" + mode);
+            //console.log("Matrix mode changed:" + mode);
 
             if (mode === "multiplematrix") {
                 $('#singlematrix-config').fadeIn();
