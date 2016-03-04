@@ -3,10 +3,8 @@
 // ToDo
 
 //  Delete empty settings Files
-//  Delete corrupt settings files.. or rename them... 
+//  add device name to toolbar in jquery
 
-// [EffectManager::Save] save handler (addJson) returned false
-	// add override to addjson..... in save
 
 
 #pragma once
@@ -74,16 +72,8 @@ public:
 
 	// timer functions
 	bool setTimer(int timer, String command, String effect = String() );
-	//inline bool isTimerRunning() const { return (_timerState > -1); }
-	//inline int getTimer() const { return _timerState;  }
-	int getTimeLeft()
-	{
-		if (_timerState >= 0) {
-			return _timer.getTimeLeft(_timerState);
-		} else {
-			return 0;
-		}
-	}
+
+	int getTimeLeft(); 
 
 	static RgbColor dim( RgbColor input, const uint8_t brightness);
 
