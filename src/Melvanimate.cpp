@@ -389,12 +389,10 @@ void Melvanimate::_sendData(String page, int8_t code)
 				settings["effect"] = Current()->name();
 			}
 
-			if (_numberofpresets) {
-				JsonObject& currentpresets = root.createNestedObject("currentpresets");
-				for (uint8_t i = 0; i < _numberofpresets; i++ ) {
-					currentpresets[ String(_presets[i])] = _preset_names[i];
-				}
-			}
+
+		addCurrentPresets(root); 
+
+
 		}
 
 
@@ -517,7 +515,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 		}
 		// only add them all for the actual timer page... 
 		if (page == "timer") {
-			addAllpresets(jsonBuffer, root);
+			addAllpresets(root);
 		}
 	}
 
@@ -547,7 +545,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 			}
 		}
 
-		addAllpresets(jsonBuffer, root);
+		addAllpresets(root);
 	}
 
 	// Serial.println("JSON REPLY");

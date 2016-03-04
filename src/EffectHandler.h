@@ -7,6 +7,15 @@
 					Dummy implementation (required)
 --------------------------------------------------------------------------*/
 
+#define DebugEffectHandler
+
+#ifdef DebugEffectHandler
+#define DebugEffectHandlerf(...) Serial.printf(__VA_ARGS__)
+#else
+#define DebugEffectHandlerf(...) {}
+#endif
+
+
 class EffectHandler: public PropertyManager
 {
 
@@ -30,7 +39,7 @@ public:
 	virtual bool addEffectJson(JsonObject& settings) const { return false; };
 
 	// save does NOT have to be overridden.  it calls addJson instead.
-	virtual bool save(JsonObject& root, const char *& ID, const char * name);
+	virtual bool save(JsonArray& root, uint8_t ID, const char * name);
 
 	uint8_t preset() const { return _preset; }
 	void preset(uint8_t preset) { _preset = preset; }

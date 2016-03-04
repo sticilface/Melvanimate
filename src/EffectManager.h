@@ -65,8 +65,11 @@ public:
 //	uint8_t nextFreePreset(JsonObject & root);
 
 	// fetches info from SPIFFS valid presests for current effect
-	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
-	void addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & root); 
+//	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
+	void addAllpresets(JsonObject & root); 
+
+	bool addCurrentPresets(JsonObject & root); 
+
 
 
 	// NEW....manage all presets... 
@@ -77,6 +80,7 @@ public:
 	// maybe move this into a helper header file....
 	static bool convertcolor(JsonObject & root, const char * colorstring);
 	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
+	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonArray *& root, const char * file);
 
 	uint8_t _numberofpresets = 0;
 	char ** _preset_names = nullptr;
@@ -104,7 +108,6 @@ private:
 	struct Presets_s {
 		~Presets_s(){
 			if (name) {
-				DebugEffectManagerf("[Presets_s] ~ free strdup for %s\n",name); 
 				free((void*)name); 
 			}
 		}

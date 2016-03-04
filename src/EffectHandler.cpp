@@ -1,17 +1,40 @@
 #include "EffectHandler.h"
 
 
-bool EffectHandler::save(JsonObject& root, const char *& ID, const char * name)
+bool EffectHandler::save(JsonArray& array, uint8_t ID, const char * name)
 {
 	//Serial.printf("[EffectHandler::save] Effect = %s, ID = %s\n", _name, ID);
 
-	if (root.containsKey(ID)) {
-//		Serial.printf("[save] [%s]previous setting identified\n", ID);
-		root.remove(ID) ;
+	int index = 0;
+
+	for (JsonArray::iterator it = array.begin(); it != array.end(); ++it) {
+		// *it contains the JsonVariant which can be casted as usuals
+		//const char* value = *it;
+
+		JsonObject& preset = *it;
+
+		if (preset.containsKey("ID")) {
+
+			if ( preset["ID"] == ID) {
+				array.removeAt(index) ;
+				DebugEffectHandlerf("[EffectHandler::save] preset %u removed\n", ID);
+				break; 
+			}
+
+		}
+
+		index++;
+		// this also works:
+		//value = it->as<const char*>();
+
 	}
 
-	JsonObject& current = root.createNestedObject(ID);
 
+
+
+	JsonObject& current = array.createNestedObject();
+
+	current["ID"] = ID;
 	current["name"] = name;
 	current["effect"] = _name;
 
@@ -20,6 +43,8 @@ bool EffectHandler::save(JsonObject& root, const char *& ID, const char * name)
 	} else {
 		return false;
 	}
+
+
 };
 
 bool EffectHandler::addJson(JsonObject & root)
@@ -47,7 +72,7 @@ bool EffectHandler::parseJson(JsonObject & root)
 	if (parseJsonEffect(root)) { found = true; }
 
 	if (found) {
-		Refresh(); 
+		Refresh();
 		_preset = 255;
 	}
 

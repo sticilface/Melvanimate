@@ -1225,13 +1225,14 @@
                         
                       $("#select-timer-preset").find('option').remove();
                       if (result.hasOwnProperty('Presets')) {
+                        
                             $.each(result.Presets, function(key, value) {
                                 var isconnected = " ";
                                 if (result.hasOwnProperty('settings')) {
-                                if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
+                                if (result.settings.currentpreset == value.ID) isconnected = "selected=\"selected\"";
                                 }
                                   //console.log("KEY = " + key + ", VALUE = " + value); 
-                                $("#select-timer-preset").append('<option value=' + key + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
+                                $("#select-timer-preset").append('<option value=' + value.ID + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
                             }); 
                         $('#select-timer-preset').selectmenu('refresh');   
                       }
@@ -1357,7 +1358,7 @@
                       }
                       
                       
-                      if (result.hasOwnProperty('currentpresets')) {
+                      if (result.hasOwnProperty('currentpresets') && result.currentpresets.length > 0) {
                         console.log("has currentpresets"); 
                         
                         $("#currentpresetslist").find('option').remove();
@@ -1366,10 +1367,10 @@
                             $.each(result.currentpresets, function(key, value) {
                                 var isconnected = " ";
                                 if (result.hasOwnProperty('settings')) {
-                                if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
+                                if (result.settings.currentpreset == value.ID) isconnected = "selected=\"selected\"";
                                 }
                                   
-                                $("#currentpresetslist").append('<option value=' + key + " " + isconnected + '>' + value + '</option>');
+                                $("#currentpresetslist").append('<option value=' + value.ID + " " + isconnected + '>' + value.name + '</option>');
                             }); 
                         $('#currentpresetslist').selectmenu('refresh');
 
@@ -1377,6 +1378,7 @@
                         
                         
                       } else {
+                        
                         $("#currentpresetslist").find('option').remove();
                         $('.presetlistclass').hide();
 
@@ -1394,10 +1396,10 @@
                             $.each(result.Presets, function(key, value) {
                                 var isconnected = " ";
                                 if (result.hasOwnProperty('settings')) {
-                                if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
+                                if (result.settings.currentpreset == value.ID) isconnected = "selected=\"selected\"";
                                 }
-                                  console.log("KEY = " + key + ", VALUE = " + value); 
-                                $("#savepage_effects_list_select").append('<option value=' + key + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
+                                  //console.log("KEY = " + key + ", VALUE = " + value); 
+                                $("#savepage_effects_list_select").append('<option value=' + value.ID + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
                             }); 
                         $('#savepage_effects_list_select').selectmenu('refresh');                      
                       

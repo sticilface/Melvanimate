@@ -84,10 +84,6 @@ bool Variable<RgbColor>::addJsonProperty(JsonObject & root)
 	color.add(_var.R);
 	color.add(_var.G);
 	color.add(_var.B);
-	Serial.println("RGB:");
-	color.prettyPrintTo(Serial);
-	Serial.println(); 
-
 	return true;
 }
 
@@ -97,7 +93,7 @@ bool Variable<RgbColor>::parseJsonProperty(JsonObject & root)
 	if (root.containsKey(_name)) {
 
 		if (root[_name].is<const char*>() ) {
-			Serial.printf("[Variable<RgbColor>::parseJsonProperty] Color converted from String\n");
+//			Serial.printf("[Variable<RgbColor>::parseJsonProperty] Color converted from String\n");
 			EffectManager::convertcolor(root, _name);
 		}
 
@@ -118,7 +114,7 @@ bool Variable<RgbColor>::parseJsonProperty(JsonObject & root)
 			changed = true;
 		}
 
-		Serial.printf("[Variable<RgbColor>::parseJsonProperty] color1 (%u,%u,%u)\n", _var.R, _var.G, _var.B);
+//		Serial.printf("[Variable<RgbColor>::parseJsonProperty] color1 (%u,%u,%u)\n", _var.R, _var.G, _var.B);
 
 	}
 
