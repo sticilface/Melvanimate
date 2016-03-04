@@ -107,13 +107,13 @@ bool EffectManager::Start(EffectHandler* handler)
 						if (!strcmp(preset->name, "Default") || !strcmp( preset->name, "default")) {
 
 							if (Load(preset->file, preset->id  )) {
-								DebugEffectManagerf("[Start] Default Loaded %u\n", _presets[i]);
+								DebugEffectManagerf("[Start] Default Loaded %u\n", preset->id);
+								break;
 							} else {
-								DebugEffectManagerf("[Start] ERROR loading Default %u\n", _presets[i]);
+								DebugEffectManagerf("[Start] ERROR loading Default %u\n", preset->id);
 							}
 
-
-							break;
+							
 						}
 
 					}
@@ -1083,7 +1083,7 @@ bool EffectManager::fillPresetArray()
 		while (dir.next()) {
 			String fileName = dir.fileName();
 
-			if (fileName.startsWith(PRESETS_FILE)) {
+			if (fileName.startsWith(PRESETS_FILE) && fileName.endsWith(".txt") && !fileName.endsWith(".corrupt.txt")) {
 
 				uint8_t FileID = fileName.substring(   strlen(PRESETS_FILE) , fileName.lastIndexOf(".txt")  ).toInt();
 				//	DebugEffectManagerf("[EffectManager::fillPresetArray] Adding presets from %s, FileID %u\n", fileName.c_str(), FileID);
@@ -1106,6 +1106,11 @@ bool EffectManager::fillPresetArray()
 						}
 					}
 
+				} else {
+					String newFileName = fileName.substring(0, fileName.length() - 3) + "corrupt.txt"; 
+					SPIFFS.rename(fileName, newFileName);
+					DebugEffectManagerf("[EffectManager::fillPresetArray] %s parse failed. File renamed to %s\n", fileName.c_str(), newFileName.c_str()); 
+					continue; 
 				}
 
 				if (data) { delete[] data; }
@@ -1132,10 +1137,10 @@ bool EffectManager::fillPresetArray()
 		while (dir.next()) {
 			String fileName = dir.fileName();
 
-			if (fileName.startsWith(PRESETS_FILE)) {
+			if (fileName.startsWith(PRESETS_FILE) && fileName.endsWith(".txt") && !fileName.endsWith(".corrupt.txt")) {
 
 				uint8_t FileID = fileName.substring(   strlen(PRESETS_FILE) , fileName.lastIndexOf(".txt")  ).toInt();
-				DebugEffectManagerf("[EffectManager::addAllpresets] Adding presets from %s, FileID %u\n", fileName.c_str(), FileID);
+				//DebugEffectManagerf("[EffectManager::addAllpresets] Adding presets from %s, FileID %u\n", fileName.c_str(), FileID);
 
 				DynamicJsonBuffer jsonBuffer2(2000);
 				JsonArray * root2 = nullptr;
