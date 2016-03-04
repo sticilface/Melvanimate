@@ -26,19 +26,12 @@ bool Melvanimate::begin()
 
 	_HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this));
 	_HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
-	// _settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
-
-	// if (!_settings) {
-	// 	DebugMelvanimatef("ERROR File open for failed!\n");
-	// 	_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
-	// 	if (!_settings) { DebugMelvanimatef("Failed to create empty file too\n"); }
-	// }
 
 	_loadGeneral();
 	_init_LEDs();
 	_init_matrix();
 
-	fillPresetArray(); 
+	fillPresetArray();
 }
 
 
@@ -152,6 +145,16 @@ bool Melvanimate::returnWaiting()
 
 }
 
+int Melvanimate::getTimeLeft()
+{
+	if (_timerState >= 0) {
+		return _timer.getTimeLeft(_timerState);
+	} else {
+		return 0;
+	}
+}
+
+
 void Melvanimate::autoWait()
 {
 	DebugMelvanimatef("[Melvanimate::autoWait] Auto wait set (%u)\n", millis());
@@ -193,16 +196,19 @@ bool Melvanimate::_saveGeneral(bool override)
 	}
 
 
+
+
+
 	//  need to check this... think it overwrites leaving old stuff behind...
-	if (!_settings) {
-		DebugMelvanimatef("ERROR File NOT open!\n");
-		_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
-		if (!_settings) {
+	// if (!_settings) {
+	// 	DebugMelvanimatef("ERROR File NOT open!\n");
+		//_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
+		//if (!_settings) {
 			_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
-			DebugMelvanimatef("Failed to create empty file too\n");
-			if (_settings) { return false; }
-		}
-	}
+			//DebugMelvanimatef("Failed to create empty file too\n");
+			if (!_settings) { return false; }
+		//}
+	//}
 
 	_settings.seek(0, SeekSet);
 	root.prettyPrintTo(_settings);
@@ -393,7 +399,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 			}
 
 
-		addCurrentPresets(root); 
+			addCurrentPresets(root);
 
 
 		}
@@ -516,7 +522,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 			remaining.add(minutes);
 			remaining.add(seconds);
 		}
-		// only add them all for the actual timer page... 
+		// only add them all for the actual timer page...
 		if (page == "timer") {
 			addAllpresets(root);
 		}
@@ -546,9 +552,9 @@ void Melvanimate::_sendData(String page, int8_t code)
 			// 		currentpresets[ String(_presets[i])] = _preset_names[i];
 			// 	}
 			// }
-		addCurrentPresets(root); 
+			addCurrentPresets(root);
 
-			
+
 		}
 
 		addAllpresets(root);
