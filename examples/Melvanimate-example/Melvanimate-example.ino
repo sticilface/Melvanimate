@@ -49,7 +49,7 @@
 #include "effects/AdalightEffect.h"
 #include "effects/UDPEffect.h"
 
-#define WS2812_PIXELS 64
+#define WS2812_PIXELS 118
 
 
 #define Debug
@@ -75,7 +75,7 @@ SimpleTimer timer;
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
-ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "fyffest", "wellcometrust");
+ESPmanager settings(HTTP, SPIFFS, "TvLights", "fyffest", "wellcometrust");
 
 
 
@@ -92,11 +92,11 @@ void install_effects()
   lights.Add(5, "UDP",         new UDPEffect, false);                        // working
   lights.Add(6, "DMX",         new DMXEffect, false );                       // need to test - requires custom libs included
 
-  for (uint8_t i = 0; i < 30; i++) {
-    String in = "CuriousCat" + String(i);
-    const char * string = strdup(in.c_str());
-    lights.Add(7, string ,  new Effect2, true);
-  }
+  // for (uint8_t i = 0; i < 30; i++) {
+  //   String in = "CuriousCat" + String(i);
+  //   const char * string = strdup(in.c_str());
+  //   lights.Add(7, string ,  new Effect2, true);
+  // }
   // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
   // lights.Add("Dummy", new DummyEffect(DummyFn));
   // lights.Add("PropertyTester", new CascadeEffect(CascadeEffectFn));
@@ -113,7 +113,7 @@ void install_effects()
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
   // lights.Add("Object", new SwitchEffect(ObjectFn));
 
-  lights.setPixels(64);
+//  lights.setPixels(64);
 }
 
 //  MQTT

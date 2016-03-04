@@ -61,25 +61,30 @@ bool DMXEffect::Start()
 //		Serial.printf("Count = %u, bounds = %u, uniLast = %u, uniTotal = %u\n", _vars->count, _vars->bounds, _vars->uniLast, _vars->uniTotal);
 
 		// set the port before calling begin..  default 5568
-		_e131->setport(port()); 
+		_e131->setport(port());
 
 		if (usemulticast()) {
 			_e131->begin( E131_MULTICAST , universe() ) ; // E131_MULTICAST // universe is optional and only used for Multicast configuration.
 //			Serial.printf("[DMXEffect::Start] Multicast Started\n");
-			IPAddress add = IPAddress(239, 255, ((universe() >> 8) & 0xff), ((universe() >> 0) & 0xff)); 
-			setVar<IPAddress>("dmx_multicast_ip_addr",  add); 
+			IPAddress add = IPAddress(239, 255, ((universe() >> 8) & 0xff), ((universe() >> 0) & 0xff));
+			setVar<IPAddress>("dmx_multicast_ip_addr",  add);
 
 		} else {
 			_e131->begin( E131_UNICAST, universe());
 //			Serial.printf("[DMXEffect::Start] Unicast Started\n");
 		}
+
+		_vars->bin = getVar<uint16_t>("dmx_bin"); 
+		_vars->universe = getVar<uint8_t>("dmx_universe");
+		_vars->ppu = getVar<uint8_t>("dmx_ppu");
+
 	}
 
 }
 
 bool DMXEffect::Run()
 {
-	if (_e131 && _vars) {
+	if (_e131 && _vars && strip) {
 		if (_e131->parsePacket()) {
 			if ((_e131->universe >= universe()) && (universe() <= _vars->uniLast)) {
 				/* Universe offset and sequence tracking */
@@ -94,10 +99,11 @@ bool DMXEffect::Run()
 				uint16_t pixelStart = uniOffset * ppu();
 
 				/* Calculate how many pixels we need from this buffer */
-				uint16_t pixelStop = strip->PixelCount();
-				if ((pixelStart + ppu()) < pixelStop) {
-					pixelStop = pixelStart + ppu();
-				}
+				uint16_t pixelStop = strip->PixelCount() / bin(); 
+
+				// if ((pixelStart + ppu()) < pixelStop) {
+				// 	pixelStop = pixelStart + ppu();
+				// }
 
 				/* Offset the channel if required for the first universe */
 				uint16_t offset = 0;
@@ -107,14 +113,23 @@ bool DMXEffect::Run()
 
 				/* Set the pixel data */
 				uint16_t buffloc = 0;
+
+
 				for (uint16_t i = pixelStart; i < pixelStop; i++) {
+
 					uint16_t j = buffloc++ * 3 + offset;
+
 					//pixels.setPixelColor(i, e131.data[j], e131.data[j+1], e131.data[j+2]);
 					for (uint8_t k = 0; k < bin(); k++) {
-						uint16_t pixel = (bin() *i) + k;
-						if (pixel > strip->PixelCount()) { break; }
-					strip->SetPixelColor( pixel, _e131->data[j], _e131->data[j + 1], _e131->data[j + 2]);
+
+						uint16_t pixel = ( bin() * i ) + k;
+
+					//	if (pixel > strip->PixelCount()) { break; }
+
+						strip->SetPixelColor( pixel, _e131->data[j], _e131->data[j + 1], _e131->data[j + 2]);
+						//Serial.printf("[%u]%u\n",i,pixel);
 					}
+
 				}
 
 				/* Refresh when last universe shows up  or within 10ms if missed */

@@ -2,7 +2,7 @@
 
 #include "EffectHandler.h"
 
-
+#define SEND_ADA_TIMEOUT 1000
 
 class AdalightEffect : public EffectHandler
 {
@@ -46,6 +46,6 @@ private:
 	};
 
 	AdalightEffectVars * _vars; 
-	const unsigned long serialTimeout = 15000;
+	const unsigned long serialTimeout = 10000;
 
 };

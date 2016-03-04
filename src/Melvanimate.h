@@ -97,7 +97,7 @@ private:
 	uint8_t _matrixconfig;
 	uint16_t _grid_x, _grid_y;
 	bool _settings_changed;
-	File _settings{};
+	//File _settings;
 
 	uint8_t _waiting;
 	uint32_t _waiting_timeout{0};

@@ -23,13 +23,13 @@ bool Melvanimate::begin()
 
 	DebugMelvanimatef("Begin Melvana called\n");
 
-	_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
+	// _settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
 
-	if (!_settings) {
-		DebugMelvanimatef("ERROR File open for failed!\n");
-		_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
-		if (!_settings) { DebugMelvanimatef("Failed to create empty file too\n"); }
-	}
+	// if (!_settings) {
+	// 	DebugMelvanimatef("ERROR File open for failed!\n");
+	// 	_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
+	// 	if (!_settings) { DebugMelvanimatef("Failed to create empty file too\n"); }
+	// }
 
 	_loadGeneral();
 	_init_LEDs();
@@ -170,6 +170,7 @@ void Melvanimate::setWaiting(bool wait)
 
 bool Melvanimate::_saveGeneral(bool override)
 {
+	File _settings;
 
 	if (!_settings_changed && !override) { return false; }
 
@@ -187,6 +188,7 @@ bool Melvanimate::_saveGeneral(bool override)
 	}
 
 
+	//  need to check this... think it overwrites leaving old stuff behind...
 	if (!_settings) {
 		DebugMelvanimatef("ERROR File NOT open!\n");
 		_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
@@ -200,12 +202,14 @@ bool Melvanimate::_saveGeneral(bool override)
 	_settings.seek(0, SeekSet);
 	root.prettyPrintTo(_settings);
 	_settings_changed = false;
+	_settings.close();
 	return true;
 }
 
 
 bool Melvanimate::_loadGeneral()
 {
+	File _settings;
 
 	DynamicJsonBuffer jsonBuffer;
 	if (!_settings) {
@@ -293,6 +297,7 @@ bool Melvanimate::_loadGeneral()
 
 		} else { DebugMelvanimatef("[Melvanimate::load] No effect settings\n"); }
 
+		_settings.close();
 
 		return true;
 
@@ -508,9 +513,10 @@ void Melvanimate::_sendData(String page, int8_t code)
 			remaining.add(minutes);
 			remaining.add(seconds);
 		}
-
-		addAllpresets(jsonBuffer, root);
-
+		// only add them all for the actual timer page... 
+		if (page == "timer") {
+			addAllpresets(jsonBuffer, root);
+		}
 	}
 
 	if (page == "presetspage") {

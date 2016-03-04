@@ -558,9 +558,9 @@ void EffectManager::addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & ro
 			}
 		}
 	}
-	Serial.println();
-	root.prettyPrintTo(Serial);
-	Serial.println(); 
+	// Serial.println();
+	// root.prettyPrintTo(Serial);
+	// Serial.println(); 
 }
 
 uint8_t EffectManager::nextFreePreset(JsonObject & root)

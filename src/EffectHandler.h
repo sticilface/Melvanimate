@@ -17,6 +17,8 @@ public:
 	virtual bool Stop() {return false; }
 	virtual bool Pause() {return false; }
 	virtual void Refresh() {}
+
+	virtual bool jsonSize(uint8_t &obj, uint8_t &array ) { return false; }
 //	virtual void SetTimeout(uint32_t) {}
 
 	bool parseJson(JsonObject & root); // calls parseJsonEffect internally after calling propertymanager...
