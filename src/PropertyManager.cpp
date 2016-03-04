@@ -80,10 +80,10 @@ bool PropertyManager::addEffectJson(JsonObject & root)
 
 bool Variable<RgbColor>::addJsonProperty(JsonObject & root)
 {
-	JsonObject& color = root.createNestedObject(_name);
-	color["R"] = _var.R;
-	color["G"] = _var.G;
-	color["B"] = _var.B;
+	JsonArray& color = root.createNestedArray(_name);
+	color.add(_var.R);
+	color.add(_var.G);
+	color.add(_var.B);
 	return true;
 }
 
@@ -92,15 +92,14 @@ bool Variable<RgbColor>::parseJsonProperty(JsonObject & root)
 	bool changed = false;
 	if (root.containsKey(_name)) {
 
-
 		if (root[_name].is<const char*>() ) {
 //			Serial.printf("[Variable<RgbColor>::parseJsonProperty] Color converted from String\n");
 			EffectManager::convertcolor(root, _name);
 		}
 
-		uint8_t R = root[_name]["R"].as<long>();
-		uint8_t G = root[_name]["G"].as<long>();
-		uint8_t B = root[_name]["B"].as<long>();
+		uint8_t R = root[_name][0];
+		uint8_t G = root[_name][1];
+		uint8_t B = root[_name][2];
 
 		if (_var.R != R) {
 			_var.R = R;

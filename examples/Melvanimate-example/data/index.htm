@@ -485,10 +485,10 @@
                         <label for="select-timer-command">Action:</label>
                         <select name="timercommand" id="select-timer-command">
                             <option value="off" selected="selected">Off</option>
-                            <option value="start">Start Effect</option>
-                            <option value="loadpreset">Load Preset</option>
+                            <!--<option value="start">Start</option>-->
+                            <option value="loadpreset">Start</option>
                             <option value="brightness">Set Brightness</option>
-                            <option value="speed">Set Speed</option>
+                            <!--<option value="speed">Set Speed</option>-->
                         </select>
                     </div>
                     <div id="timeroptionsdiv">
@@ -504,11 +504,6 @@
                         <div class="ui-field-contain loadpreset">
                             <label for="select-timer-preset">Preset:</label>
                             <select name="timeroption" id="select-timer-preset" class="presetlist">
-                            <option value="1" selected="selected">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>                              
                             </select>
                         </div>                        
                         
@@ -561,7 +556,7 @@
 
                         });
                         RUNDOCUMENT();
-                        GetData("homepage");
+                  //      GetData("homepage");
                         $("body").css("visibility", "visible");
                     });
                 });
@@ -659,7 +654,7 @@
 
             $(document).on("pagebeforeshow", "#layout", function() {
 
-                GetData();
+             //   GetData();
                 console.log("layoutpage data:" + globaldata)
 
                 if (globaldata) {
@@ -705,11 +700,11 @@
 
             $(document).on("pagecreate", "#homepage", function() {
 
-                GetData("all");
+              //  GetData("all");
 
                 $('#modeslist').change(function() {
 
-                    console.log("mode change");
+                    //console.log("mode change");
                     //var mode = $(this).val();
 
                     // $('#effectoptions').children('div').each(function(index) {
@@ -764,7 +759,10 @@
 
             });
 
-            $(document).on('touchstart click', '#myheader', function() {
+
+            //  
+            $(document).on('touchstart click', '#myheader', function(e) {
+                e.preventDefault();
                 GetData($.mobile.activePage.attr('id'));
                 console.log("#myheader click"); 
             });
@@ -778,7 +776,7 @@
             $(document).on('click', '.mysubmit', function() {
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).closest("form").find('input,select').filter(':visible').serialize(), function(data) {
-                        console.log("Data Sent");
+                        //console.log("Data Sent");
                     }).success(function(e) {
                       processJSON(e);
                         $("#status").empty().append("Success").css("color", "green");;
@@ -792,7 +790,7 @@
             $(document).on('change', '.mysubmitthis', function(e) {
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
-                        console.log("Data Sent");
+                        //console.log("Data Sent");
                     }).success(function(e) {
                         processJSON(e); 
                         $("#status").empty().append("Success").css("color", "green");;
@@ -808,7 +806,7 @@
             $(document).on('change', '.mysubmittext', function(e) {
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).find('input'), function(data) {
-                        console.log("Data Sent");
+                        //console.log("Data Sent");
                     }).success(function(e) {
                         $("#status").empty().append("Success").css("color", "green");;
                         processJSON(e); 
@@ -822,7 +820,7 @@
             $(document).on('change', '.mysubmitdropdown', function(e) {
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
-                        console.log("Data Sent");
+                        //console.log("Data Sent");
                     }).success(function(e) {
                         processJSON(e); 
                         $("#status").empty().append("Success").css("color", "green");;
@@ -859,7 +857,7 @@
                     $('#select-timer-option').selectmenu('refresh');
                 }
 
-                GetData();
+              //  GetData();
 
 
                 $("#flip-enable-timer").change(function() {
@@ -912,18 +910,19 @@
                 $('#select-saveasnew').change(function() {
                     var command = $(this).val();
               
+
                 if (command == "new") {
                   $('#input_savename').closest('div.ui-field-contain').show();
                   $('#savepage_effects_list_select').closest('div.ui-field-contain').hide();
                   
                 }
                 
-                if (command == "overwrite" || command == "delete") {
+                if (command == "overwrite") {
                   $('#input_savename').closest('div.ui-field-contain').show();
                   $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
                 }
 
-                if (command == "delete") {
+                if (command == "delete" || command == "load") {
                   $('#input_savename').closest('div.ui-field-contain').hide();
                   $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
                 }
@@ -1175,7 +1174,7 @@
       
                 $("#status").empty().append("Waiting...").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
-                        console.log("Data Sent");
+                        //console.log("Data Sent");
                     }).success(function(e) {
                         $("#status").empty().append("Success").css("color", "green");;
                         //GetData(); 
@@ -1191,23 +1190,23 @@
       
       if (!result) { return; } 
       
-      console.log("              DUMP         ");
-      console.log(result);
-      console.log("              DUMP END"); 
+      // console.log("              DUMP         ");
+      // console.log(result);
+      // console.log("              DUMP END"); 
                       // trying to get the json for settings in before
                       if (result.hasOwnProperty('settings')) {
                           settings = result.settings; 
-                          console.log("Settings Allocated");
+                          //console.log("Settings Allocated");
                       }
       
                   if (!pagevar) { pagevar = $.mobile.activePage.attr('id'); } 
                 
-                    console.log("RESULT:")
-                    console.log(result);
+                    //console.log("RESULT:")
+                    //console.log(result);
                     if (pagevar === "all") {
                         globaldata = result;
-                        console.log("GLOBALDATA:");
-                        console.log(globaldata);
+                        //console.log("GLOBALDATA:");
+                        //console.log(globaldata);
                     }
 
                     if ($.mobile.activePage.attr('id') == 'timer') {
@@ -1226,8 +1225,21 @@
                               $("#timer-time-left").empty().append(" " + values.remaining[0] + "min " + values.remaining[1] + "sec remaining");
                               
                             }
-
                         }
+                        
+                      $("#select-timer-preset").find('option').remove();
+                      if (result.hasOwnProperty('Presets')) {
+                        
+                            $.each(result.Presets, function(key, value) {
+                                var isconnected = " ";
+                                if (result.hasOwnProperty('settings')) {
+                                if (result.settings.currentpreset == value.ID) isconnected = "selected=\"selected\"";
+                                }
+                                  //console.log("KEY = " + key + ", VALUE = " + value); 
+                                $("#select-timer-preset").append('<option value=' + value.ID + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
+                            }); 
+                        $('#select-timer-preset').selectmenu('refresh');   
+                      }
                     }
 
                     // Homepage        
@@ -1258,7 +1270,7 @@
                             
                         }
                         
-                                                    // add time remaining in here
+                        // add time remaining in here
                         if (result.hasOwnProperty("timer") && result.timer.hasOwnProperty('remaining')) {
                               $('#div_inserted_timer').remove();
                               $("#content_homepage").prepend("<div id='div_inserted_timer' style='text-align: center'>  Timer " + result.timer.remaining[0] + "min " + result.timer.remaining[1] + "sec remaining </div>");
@@ -1281,7 +1293,7 @@
                           //console.log("[" + key + "] " + value); 
                           if (currentdiv.hasClass(key)) { 
                             currentdiv.show();
-                            console.log("SHOW: " + key); 
+                            //console.log("SHOW: " + key); 
                           }; 
                         });
                         
@@ -1292,7 +1304,7 @@
                           $( '#effectoptions > .input_textbox').find("#input_" + key).closest('input').val(value); 
                           $( '#effectoptions > .input_textbox_IP').find("#input_" + key).closest('input').val(value[0] + "." + value[1] + "." + value[2] + "." + value[3]); 
                           $( '#effectoptions > .input_slider').find("#input_" + key).val(value).closest('input').slider("refresh");
-                          $( '#effectoptions > .input_textbox_rgb').find("#input_" + key).val("rgb(" + value.R + "," + value.G + "," + value.B + ")").colorPicker();
+                          $( '#effectoptions > .input_textbox_rgb').find("#input_" + key).val("rgb(" + value[0] + "," + value[1] + "," + value[2] + ")").colorPicker();
                           $( '#effectoptions > .input_selectmenu').find("#input_" + key).closest('input').val(value).selectmenu('refresh');
                           $( '#effectoptions > .input_selectmenu_palette').find("#input_" + key).closest('input').val(value.name).selectmenu('refresh');
                         });
@@ -1350,8 +1362,8 @@
                       }
                       
                       
-                      if (result.hasOwnProperty('currentpresets')) {
-                        console.log("has currentpresets"); 
+                      if (result.hasOwnProperty('currentpresets') && result.currentpresets.length ) {
+                        //console.log("Currentpreset length " + result.currentpresets.length); 
                         
                         $("#currentpresetslist").find('option').remove();
                             //console.log("currentmode = " + result.currentmode);
@@ -1359,10 +1371,10 @@
                             $.each(result.currentpresets, function(key, value) {
                                 var isconnected = " ";
                                 if (result.hasOwnProperty('settings')) {
-                                if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
+                                if (result.settings.currentpreset == value.ID) isconnected = "selected=\"selected\"";
                                 }
                                   
-                                $("#currentpresetslist").append('<option value=' + key + " " + isconnected + '>' + value + '</option>');
+                                $("#currentpresetslist").append('<option value=' + value.ID + " " + isconnected + '>' + value.name + '</option>');
                             }); 
                         $('#currentpresetslist').selectmenu('refresh');
 
@@ -1370,6 +1382,7 @@
                         
                         
                       } else {
+                        
                         $("#currentpresetslist").find('option').remove();
                         $('.presetlistclass').hide();
 
@@ -1387,10 +1400,10 @@
                             $.each(result.Presets, function(key, value) {
                                 var isconnected = " ";
                                 if (result.hasOwnProperty('settings')) {
-                                if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
+                                if (result.settings.currentpreset == value.ID) isconnected = "selected=\"selected\"";
                                 }
-                                  console.log("KEY = " + key + ", VALUE = " + value); 
-                                $("#savepage_effects_list_select").append('<option value=' + key + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
+                                  //console.log("KEY = " + key + ", VALUE = " + value); 
+                                $("#savepage_effects_list_select").append('<option value=' + value.ID + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
                             }); 
                         $('#savepage_effects_list_select').selectmenu('refresh');                      
                       
@@ -1466,9 +1479,9 @@
 
                         if (palettevars.hasOwnProperty('randmodeString')) {
                             $("#select-palettes-randomness").val(palettevars.randmodeString).selectmenu("refresh");
-                            console.log("randmodeString = " + palettevars.randmodeString); 
+                            //console.log("randmodeString = " + palettevars.randmodeString); 
                         } else {
-                            console.log("randmodeString not found in palettevars");
+                            //console.log("randmodeString not found in palettevars");
                             $("#select-palettes-randomness").val("off").selectmenu("refresh");
                           
                         }
@@ -1481,7 +1494,7 @@
                         }
                         
                        } else {
-                         console.log("NO PALETTE");
+                         //console.log("NO PALETTE");
                          $("#select-palettes2").val("off").selectmenu("refresh");
                          $("#select-palettes-randomness").val("off").selectmenu("refresh");
                          
@@ -1492,13 +1505,16 @@
   var pagevar; 
   
         function GetData(pagevar) {
-            console.log("pagevar = " + pagevar);
-            if (!pagevar) {
-                pagevar = $.mobile.activePage.attr('id');
-                console.log("Pagevar empty");
-            } else {
-                console.log("Pagevar NOT empty");
-            }
+          
+//            console.log("pagevar = " + pagevar);
+          // if (!pagevar) {
+          //       pagevar = $.mobile.activePage.attr('id');
+          //       //console.log("Pagevar empty");
+          //   } else {
+          //       //console.log("Pagevar NOT empty");
+          //     // return; 
+          //   }
+
 
             $("#status").empty().append("Waiting...").css("color", "blue");;
 
@@ -1520,7 +1536,7 @@
         function sortmatrix(e) {
 
             var mode = $(e).val();
-            console.log("Matrix mode changed:" + mode);
+            //console.log("Matrix mode changed:" + mode);
 
             if (mode === "multiplematrix") {
                 $('#singlematrix-config').fadeIn();

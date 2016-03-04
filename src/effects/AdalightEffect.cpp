@@ -11,10 +11,12 @@ extern NeoPixelAnimator * animator;
 bool AdalightEffect::Start()
 {
 
+	if (millis() > 30000) { Adalight_Flash(); }
+
 	if (_Serial) {
 		_Serial.flush();
 		delay(500);
-		//Serial.end();
+		//Serial.end(); //  this seems to cause reboot 
 	}
 
 	uint32_t speed = 115200;
@@ -25,9 +27,6 @@ bool AdalightEffect::Start()
 		_Serial.begin(speed);
 	}
 
-	Serial.printf("Init: Adalight [%u]\n", speed);
-
-	if (millis() > 30000) { Adalight_Flash(); }
 
 
 }
@@ -51,7 +50,6 @@ bool AdalightEffect::Stop()
 void  AdalightEffect::Adalight_Flash()
 {
 
-
 	for (int pixel = 0; pixel < strip->PixelCount(); pixel++) {
 
 		RgbColor originalcolor = strip->GetPixelColor(pixel);
@@ -72,7 +70,7 @@ void  AdalightEffect::Adalight_Flash()
 		};
 
 		if (animator) {
-			animator->StartAnimation(pixel, 2000, animUpdate);
+			animator->StartAnimation(pixel, 1000, animUpdate);
 		}
 
 
@@ -111,7 +109,7 @@ bool AdalightEffect::Run()
 					break;
 				} // end of if prefix == 3
 			} // end of for loop going through serial....
-		} else if (!_Serial.available() && (_vars->ada_sent + 5000) < millis()) {
+		} else if (!_Serial.available() && (_vars->ada_sent + SEND_ADA_TIMEOUT) < millis()) {
 			_Serial.print("Ada\n"); // Send "Magic Word" string to host
 			_vars->ada_sent = millis();
 		} // end of serial available....
@@ -137,7 +135,6 @@ bool AdalightEffect::Run()
 
 	case MODE_DATA:
 
-		//  this bit is what might... be causing the flashing... as it extends past memory stuctures....
 		while (_Serial.available() && _vars->effectbuf_position < 3 * strip->PixelCount()) {  // was <=
 
 			strip->Pixels()[_vars->effectbuf_position++] = _Serial.read();
@@ -150,18 +147,16 @@ bool AdalightEffect::Run()
 
 		if ((_vars->effect_timeout + 1000) < millis()) { _vars->state = MODE_HEADER; } // RESET IF BUFFER NOT FILLED WITHIN 1 SEC.
 
-
 		break;
 
 	case MODE_SHOW:
 
 	{
 		if (strip) {
-			strip->Dirty(); // MUST USE if you're using the direct buffer copy...
+			strip->Dirty(); 
 			_vars->pixellatchtime = millis();
 			strip->Show();
 		}
-		//Show_pixels(true);
 		_vars->state = MODE_HEADER;
 	}
 	break;

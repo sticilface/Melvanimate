@@ -4,7 +4,7 @@
 #include <ArduinoJson.h>
 #include "EffectHandler.h"
 
-extern const char * PRESETS_FILE;
+#define PRESETS_FILE "/presets_"
 
 //#define DebugEffectManager
 
@@ -30,10 +30,10 @@ public:
 
 	bool Add(const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
 
-	inline EffectHandler* Start()  { return Start(_toggleHandle); }
-	EffectHandler* Start(EffectHandler* handle);
-	inline EffectHandler* Start(const char * name)  { return Start(_findhandle(name)); }
-	inline EffectHandler* Start(const String name)  { return Start(name.c_str()); };
+	inline bool Start()  { return Start(_toggleHandle); }
+	bool Start(EffectHandler* handle);
+	inline bool Start(const char * name)  { return Start(_findhandle(name)); }
+	inline bool Start(const String name)  { return Start(name.c_str()); };
 	
 	void Refresh() ;
 	bool Next() ;
@@ -51,22 +51,37 @@ public:
 
 	// preset hanlding
 	bool Save(uint8_t ID, const char * name, bool overwrite = false);
-	bool Load(uint8_t ID);
+//	bool Save(String ID, const char * name, bool overwrite = false);
+	
+	//bool Load(String value);  //  loads effects using file number... 1.2 3.4 etc.... needed for presets page, or presets that change running effect
+	bool Load(uint8_t ID);    //  loads effect for the current running effect.. works from homepage... 
+	bool Load(uint8_t File, uint8_t ID); //  they all call this eventually.... 
 	bool removePreset(uint8_t ID);
-	uint8_t nextFreePreset(JsonObject & root);
+	//bool removePreset(String ID);
+
+	//old...
+//	uint8_t nextFreePreset(JsonObject & root);
 
 	// fetches info from SPIFFS valid presests for current effect
-	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
-	void addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & root); 
+//	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
+	void addAllpresets(JsonObject & root); 
+	bool addCurrentPresets(JsonObject & root); 
+
+
+
+	// NEW....manage all presets... 
+	bool fillPresetArray();
+	void dumpPresetArray(); 
+	uint8_t nextFreePresetID(); 
 
 	// maybe move this into a helper header file....
 	static bool convertcolor(JsonObject & root, const char * colorstring);
 	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
+	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonArray *& root, const char * file);
 
-
-	uint8_t _numberofpresets = 0;
-	uint8_t * _presets = nullptr;
-	char ** _preset_names = nullptr;
+//	uint8_t _numberofpresets = 0;
+//	char ** _preset_names = nullptr;
+//	uint8_t * _presets = nullptr;
 
 protected:
 
@@ -79,13 +94,34 @@ protected:
 
 	uint16_t _count;
 
-	void _process();  //  this must be called by derived classes in loop. 
+	void _process();  //  this must be called by any derived classes in loop. 
 
 private:
 	std::function<bool()>  _waitFn = nullptr;
 
-	// hold a 'new' array of elegible presets for _currenthandler
 	EffectHandler* _findhandle(const char * handle);
+	void _prepareAnimator(); 
+
+	struct Presets_s {
+		~Presets_s(){
+			if (name) {
+				free((void*)name); 
+			}
+		}
+		uint8_t file{0};
+		uint8_t id{};
+		EffectHandler * handle;
+		const char * name; 
+		void setname(const char * namein) {
+			name = strdup(namein); 
+		}
+	};
+
+	Presets_s * _presetS{nullptr}; 
+	uint8_t _presetcountS{0}; 
+
+	int _nextFreeFile(); 
+
 
 };
 

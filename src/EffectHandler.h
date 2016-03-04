@@ -7,6 +7,15 @@
 					Dummy implementation (required)
 --------------------------------------------------------------------------*/
 
+#define DebugEffectHandler
+
+#ifdef DebugEffectHandler
+#define DebugEffectHandlerf(...) Serial.printf(__VA_ARGS__)
+#else
+#define DebugEffectHandlerf(...) {}
+#endif
+
+
 class EffectHandler: public PropertyManager
 {
 
@@ -17,9 +26,11 @@ public:
 	virtual bool Stop() {return false; }
 	virtual bool Pause() {return false; }
 	virtual void Refresh() {}
+
+	virtual bool jsonSize(uint8_t &obj, uint8_t &array ) { return false; }
 //	virtual void SetTimeout(uint32_t) {}
 
-	bool parseJson(JsonObject & root); // calls parseJsonEffect internally after calling propertymanager...
+	bool parseJson(JsonObject & root, bool override = false); // calls parseJsonEffect internally after calling propertymanager...
 	virtual bool parseJsonEffect(JsonObject & root) { return false;} // allows JSON to be acted on within the effect
 
 	// needs to NOT be virtual... call parsejson instead... but then call a virtual member..
@@ -28,7 +39,7 @@ public:
 	virtual bool addEffectJson(JsonObject& settings) const { return false; };
 
 	// save does NOT have to be overridden.  it calls addJson instead.
-	virtual bool save(JsonObject& root, const char *& ID, const char * name);
+	virtual bool save(JsonArray& root, uint8_t ID, const char * name);
 
 	uint8_t preset() const { return _preset; }
 	void preset(uint8_t preset) { _preset = preset; }

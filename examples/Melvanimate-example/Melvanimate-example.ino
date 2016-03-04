@@ -7,6 +7,16 @@
               Connect WS2812 to PIN 2 of ESP8266.
 
   Sticilface - Beerware licence
+
+
+
+
+  TODO urgent...
+
+  Load effect....
+
+  -> get effects used the file flag on effect but this is not passed to webpage...
+  ->  webpage should add it to the
 --------------------------------------------------------------------------------------------------------*/
 
 //#include <GDBStub.h>
@@ -39,7 +49,7 @@
 #include "effects/AdalightEffect.h"
 #include "effects/UDPEffect.h"
 
-#define WS2812_PIXELS 64
+#define WS2812_PIXELS 118
 
 
 #define Debug
@@ -61,19 +71,22 @@ IPAddress mqtt_server_ip(192, 168, 1, 1);
 SimpleTimer timer;
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SKY", "wellcometrust");
-ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "fyffest", "wellcometrust");
+//ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "fyffest", "wellcometrust");
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate-square", "SONET_1", "tachi123");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "VodafoneMobileWiFi-CDD1C0", "WCZ8J89175");
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
+ESPmanager settings(HTTP, SPIFFS, "TvLights", "fyffest", "wellcometrust");
 
-Melvanimate lights(WS2812_PIXELS,2);
 
-void install_effects() 
+
+Melvanimate lights(HTTP, WS2812_PIXELS, 2);
+
+void install_effects()
 {
-// bool Add(const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
+// bool Add(bool savefile, const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
 
   lights.Add("Off",         new SwitchEffect( offFn), true, true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
   lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn), true);       // working
@@ -81,8 +94,12 @@ void install_effects()
   lights.Add("Adalight",    new AdalightEffect(Serial, 115000), true);    // working - need to test
   lights.Add("UDP",         new UDPEffect, false);                        // working
   lights.Add("DMX",         new DMXEffect, false );                       // need to test - requires custom libs included
-  
 
+  // for (uint8_t i = 0; i < 30; i++) {
+  //   String in = "CuriousCat" + String(i);
+  //   const char * string = strdup(in.c_str());
+  //   lights.Add(7, string ,  new Effect2, true);
+  // }
   // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
   // lights.Add("Dummy", new DummyEffect(DummyFn));
   // lights.Add("PropertyTester", new CascadeEffect(CascadeEffectFn));
@@ -98,6 +115,8 @@ void install_effects()
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
   // lights.Add("Object", new SwitchEffect(ObjectFn));
+
+//  lights.setPixels(64);
 }
 
 //  MQTT
@@ -116,14 +135,35 @@ void setup()
   Serial.println("");
   //Serial.setDebugOutput(true);
   SPIFFS.begin();
-  lights.begin();
-  settings.begin();
+
+  //SPIFFS.remove(PRESETS_FILE);
+
+ settings.begin();
   fsbrowser.begin();
 
-  HTTP.on("/data.esp", HTTP_ANY, handle_data);
 
 
-  HTTP.on("/crash", HTTP_ANY, [](){ NeoPixelBus * voidpointer; voidpointer->Show(); });
+
+  Serial.println("SPIFFS FILES:");
+  {
+    Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+      String fileName = dir.fileName();
+      size_t fileSize = dir.fileSize();
+      Serial.printf("     FS File: %s, size: %s\n", fileName.c_str(), String(fileSize).c_str());
+
+      if (fileName.startsWith(PRESETS_FILE)) {
+        // SPIFFS.remove(fileName);
+        // Serial.printf("     Deleted: %s\n", fileName.c_str());
+
+      }
+
+    }
+    Serial.printf("\n");
+  }
+
+
+  HTTP.on("/crash", HTTP_ANY, []() { NeoPixelBus * voidpointer; voidpointer->Show(); });
   HTTP.on("/debug", HTTP_GET, []() {
     static bool debugstate = false;
     debugstate = !debugstate;
@@ -132,76 +172,79 @@ void setup()
     HTTP.send(200); // sends OK if were just receiving data...
   });
 
-  // HTTP.on("/command", HTTP_ANY, []() {
-  //   if (HTTP.hasArg("save")) {
-  //     if (HTTP.hasArg("name")) {
-  //       lights.Save(HTTP.arg("save").toInt(), HTTP.arg("name").c_str());
-  //     } else {
-  //       lights.Save(HTTP.arg("save").toInt(), "No Name");
+  HTTP.on("/array", HTTP_ANY, [] () {
+    lights.fillPresetArray(); 
+  });
 
-  //     }
-  //     Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
-  //     HTTP.setContentLength(0);
-  //     HTTP.send(200); // sends OK if were just receiving data...
+   HTTP.on("/command", HTTP_ANY, []() {
+    Serial.println();
+    if (HTTP.hasArg("save")) {
+      if (HTTP.hasArg("name")) {
+        lights.Save(HTTP.arg("save").toInt(), HTTP.arg("name").c_str());
+      } else {
+        lights.Save(HTTP.arg("save").toInt(), "No Name");
+
+      }
+      Serial.printf("[HTTP.on/command] done, heap: %u\n", ESP.getFreeHeap());
+      HTTP.setContentLength(0);
+      HTTP.send(200); // sends OK if were just receiving data...
+    }
+
+    if (HTTP.hasArg("load")) {
+      lights.Load(HTTP.arg("load").toInt());
+      Serial.printf("[load] done, heap: %u\n", ESP.getFreeHeap());
+      Serial.printf("[load] current preset = %u\n", lights.Current()->preset());
+      HTTP.setContentLength(0);
+      HTTP.send(200); // sends OK if were just receiving data...
+    }
+
+  if (HTTP.hasArg("print")) {
+    File f = SPIFFS.open(PRESETS_FILE, "r");
+    Serial.println("SETTINGS_FILE");
+
+    do {
+      char buf[250];
+      uint8_t number = (f.size() - f.position() > 250) ? 250 : f.size() - f.position();
+      f.readBytes(buf, number);
+      Serial.write(buf, number);
+    } while (f.position() < f.size());
+
+    Serial.println("---");
+
+    HTTP.setContentLength(0);
+    HTTP.send(200); // sends OK if were just receiving data...
+  }
+
+  if (HTTP.hasArg("remove")) {
+    lights.removePreset(HTTP.arg("remove").toInt());
+    HTTP.setContentLength(0);
+    HTTP.send(200); // sends OK if were just receiving data...
+  }
+
+  // if (HTTP.hasArg("list")) {
+
+  //   Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
+
+  //   for (uint8_t i = 0; i < lights._numberofpresets; i++) {
+
+  //     char * text = lights._preset_names[i];
+
+
+  //     Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
+
   //   }
+  // }
 
-  //   if (HTTP.hasArg("load")) {
-  //     lights.Load(HTTP.arg("load").toInt());
-  //     Serial.printf("[load] done, heap: %u\n", ESP.getFreeHeap());
-  //     Serial.printf("[load] current preset = %u\n", lights.Current()->preset());
-  //     HTTP.setContentLength(0);
-  //     HTTP.send(200); // sends OK if were just receiving data...
-  //   }
+  });
 
-    // if (HTTP.hasArg("print")) {
-    //   File f = SPIFFS.open(PRESETS_FILE, "r");
-    //   Serial.println("SETTINGS_FILE");
+  //void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
 
-    //   do {
-    //     char buf[250];
-    //     uint8_t number = (f.size() - f.position() > 250) ? 250 : f.size() - f.position();
-    //     f.readBytes(buf, number);
-    //     Serial.write(buf, number);
-    //   } while (f.position() < f.size());
-
-    //   Serial.println("---");
-
-    //   HTTP.setContentLength(0);
-    //   HTTP.send(200); // sends OK if were just receiving data...
-    // }
-
-    // if (HTTP.hasArg("remove")) {
-    //   lights.removePreset(HTTP.arg("remove").toInt());
-    //   HTTP.setContentLength(0);
-    //   HTTP.send(200); // sends OK if were just receiving data...
-    // }
-
-    // if (HTTP.hasArg("list")) {
-
-    //   Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
-
-    //   for (uint8_t i = 0; i < lights._numberofpresets; i++) {
-
-    //     char * text = lights._preset_names[i];
-
-
-    //     Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
-
-    //   }
-    // }
-
-  //});
-
-  void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
-
-  HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
 
   HTTP.begin();
 
 // -------------------------------------------------------- //
 
 
-  install_effects(); 
 
 
   //timer.setTimeout(5000, []() { lights.Start("Marquee");} ) ;
@@ -213,7 +256,112 @@ void setup()
   //timer.setTimeout(1000, []() { lights.Start("BobblySquares");} ) ;
 
 
-  //timer.setTimeout(2000, []() { lights.Start("Off");} ) ;
+  // timer.setTimeout(1000, []() {
+  //   Serial.println("\n");
+  //   Serial.println("------START-----");
+  //   lights.Start("SimpleColor");
+  //   Serial.println("-------END------");
+
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(255, 0, 0));
+
+  //   lights.Save(1, "RED", true);
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(0, 0, 255));
+
+  //   Serial.println();
+  //   lights.Save(2, "GREEN", true);
+
+  //   Serial.println();
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(0, 255, 0));
+  //   lights.Save(3, "BLUE", true);
+  //   Serial.println();
+
+  // }) ;
+
+  // timer.setTimeout(1500, []() {
+  //   Serial.println("\n");
+  //   Serial.println("------START-----");
+  //   lights.Start("CuriousCat");
+  //   Serial.println("-------END------");
+
+  //   lights.Current()->setVar<uint8_t>("int2", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int3", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int4", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int5", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int6", random(0, 10000));
+
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(255, random(0, 255), random(0, 255)));
+  //   lights.Current()->setVar<RgbColor>("color3", RgbColor(255, random(0, 255), random(0, 255)));
+
+
+  //   lights.Save(1, "CuriousCatRED", true);
+  //   lights.Current()->setVar<uint8_t>("int2", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int3", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int4", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int5", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int6", random(0, 10000));
+
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(0, random(0, 255), 255));
+  //   lights.Current()->setVar<RgbColor>("color3", RgbColor(255, random(0, 255), random(0, 255)));
+
+  //   Serial.println();
+  //   lights.Save(2, "CuriousCatGREEN", true);
+
+  //   Serial.println();
+  //   lights.Current()->setVar<uint8_t>("int2", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int3", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int4", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int5", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("int6", random(0, 10000));
+  //   lights.Current()->setVar<uint8_t>("brightness", random(0, 255));
+  //   lights.Current()->setVar<RgbColor>("color1", RgbColor(random(0, 255), 255, 0));
+  //   lights.Current()->setVar<RgbColor>("color3", RgbColor(255, random(0, 255), random(0, 255)));
+
+  //   lights.Save(3, "CuriousCatBLUE", true);
+  //   Serial.println();
+
+  //   lights.Start("Off");
+
+  // }) ;
+
+
+
+  // timer.setTimeout(2000, []() {
+
+  //   DynamicJsonBuffer jsonBuffer;
+  //   JsonObject & root = jsonBuffer.createObject();
+  //   lights.addAllpresets(jsonBuffer, root);
+
+  // }) ;
+
+  // timer.setTimeout(2100, []() {
+
+  //   Serial.println("\n");
+  //   Serial.println("------START-----");
+  //   lights.Load("2.4");
+  //   Serial.println("-------END------");
+
+  // }) ;
+
+
+  // timer.setInterval(5000, []() {
+  //   uint8_t effect = random(2, 4);
+  //   uint8_t id = random(1, 4);
+
+  //   Serial.println("------START-----");
+
+  //   lights.Load(effect, id);
+  //   Serial.println("-------END------\n");
+
+  // });
+
+  install_effects();
+
+  lights.begin();
 
   lights.Start("Off");
 
@@ -222,7 +370,7 @@ void setup()
   // });
 
   Debugf("HEAP: ");
-  Debugf("%u/n",ESP.getFreeHeap());
+  Debugf("%u\n", ESP.getFreeHeap());
 
   Debugf("Melvanimate Ready\n");
 
@@ -272,7 +420,7 @@ void loop()
 
   HTTP.handleClient();
 
-  settings.handle();
+ settings.handle();
 
   lights.loop();
 
@@ -355,542 +503,13 @@ void OnOff(uint16_t pixel, RgbColor color, uint16_t time)
 }
 
 
-void print_args()
-{
 
 
-  for (uint8_t i = 0; i < HTTP.args(); i++) {
-    Debugf("[ARG:%u] %s = %s\n", i, HTTP.argName(i).c_str(), HTTP.arg(i).c_str());
-  }
 
-  Debugf("Heap = [%u]\n", ESP.getFreeHeap());
 
-}
 
-//  this is required as some
-bool check_duplicate_req()
-{
-  static uint32_t last_time = 0;
-  static char last_request[16] = {0};
-  if (HTTP.hasArg("data")) { return false; }
 
-  MD5Builder md5;
-  md5.begin();
 
-  for (uint8_t args = 0; args < HTTP.args(); args++) {
-    String req = HTTP.argName(args) + HTTP.arg(args);
-    md5.add(req);
-  }
-
-  md5.calculate();
-  bool match = false;
-  //Serial.printf("[MD5] %s\n", md5.toString().c_str());
-  char this_request[16] = {0};
-  md5.getChars(this_request);
-
-  if (memcmp(last_request, this_request, 16) == 0) {
-    match = true;
-    Debugf("Request ignored: duplicate");
-  }
-
-  memcpy(last_request, this_request, 16);
-
-  bool time_elapsed = (millis() - last_time > 10000) ? true : false;
-  last_time = millis();
-
-  return match & !time_elapsed;
-
-}
-void handle_data()
-{
-  uint32_t start_time = millis();
-  String page = "homepage";
-  //  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
-  if (check_duplicate_req()) { HTTP.setContentLength(0); HTTP.send(200); return; }
-
-  Debugf("\n");
-
-  print_args();
-
-  if (HTTP.hasArg("plain")) {
-    //  ABANDONED
-    // DynamicJsonBuffer jsonBufferplain;
-    // JsonObject& root = jsonBufferplain.parseObject(HTTP.arg("plain").c_str());
-    // if (root.success()) {
-
-    //   if (lights.Current()) {
-    //     if (lights.Current()->parseJsonArgs(root)) {
-    //       Serial.println("[handle] JSON (via Plain) Setting applied");
-    //     }
-    //   }
-
-    // }
-  }
-
-  if (HTTP.hasArg("enable")) {
-    if (HTTP.arg("enable").equalsIgnoreCase("on")) {
-      lights.Start();
-    } else if (HTTP.arg("enable").equalsIgnoreCase("off")) {
-      lights.Start("Off");
-    }
-  }
-
-  if (HTTP.hasArg("mode")) {
-     lights.Start(HTTP.arg("mode"));
-  }
-
-
-  if (HTTP.hasArg("preset")) {
-    uint8_t preset = HTTP.arg("preset").toInt();
-    if (lights.Load(preset)) {
-      //  try to switch current effect to preset...
-      Debugf("[handle] Loaded preset %u\n", preset);
-    }
-
-  }
-
-
-
-  // puts all the args into json...
-  // might be better to send pallette by json instead..
-
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject & root = jsonBuffer.createObject();
-
-  for (uint8_t i = 0; i < HTTP.args(); i++) {
-    root[HTTP.argName(i)] = HTTP.arg(i);
-  }
-
-
-
-  if (HTTP.hasArg("nopixels") && HTTP.arg("nopixels").length() != 0) {
-    lights.setPixels(HTTP.arg("nopixels").toInt());
-    page = "layout";
-
-  }
-
-  if (HTTP.hasArg("palette")) {
-    //lights.palette().mode(HTTP.arg("palette").c_str());
-    page = "palette"; //  this line might not be needed... palette details are now handled entirely by the effect for which they belong
-
-    /*
-    [ARG:0] palette = complementary
-    [ARG:1] palette-random = timebased
-    [ARG:2] palette-spread =
-    [ARG:3] palette-delay =
-
-      palette["mode"] = (uint8_t)_mode;
-      palette["total"] = _total;
-      palette["available"] = _available;
-      palette["randmode"] = (uint8_t)_random;
-      palette["range"] = _range;
-      palette["delay"] = _delay;
-    */
-
-
-    //  this is a bit of a bodge...  Capital P for object with all parameters...
-    JsonObject & palettenode = root.createNestedObject("Palette");
-
-    palettenode["mode"] = (uint8_t)Palette::stringToEnum(HTTP.arg("palette").c_str());
-
-
-    if (HTTP.hasArg("palette-random")) {
-      palettenode["randmode"] = (uint8_t)Palette::randommodeStringtoEnum(HTTP.arg("palette-random").c_str());
-    }
-
-    if (HTTP.hasArg("palette-spread")) {
-      palettenode["range"] = HTTP.arg("palette-spread");
-
-    }
-
-    if (HTTP.hasArg("palette-delay")) {
-      palettenode["delay"] = HTTP.arg("palette-delay");
-
-    }
-    // Serial.println("[handle_data] JSON dump");
-    // root.prettyPrintTo(Serial);
-    // Serial.println();
-
-  }
-
-
-
-
-//  this has to go last for the JSON to be passed to the current effect
-  if (lights.Current()) {
-    if (lights.Current()->parseJson(root)) {
-//      Serial.println("[handle] JSON Setting applied");
-    }
-  }
-
-// matrixmode stuff
-// #define NEO_MATRIX_TOP         0x00 // Pixel 0 is at top of matrix
-// #define NEO_MATRIX_BOTTOM      0x01 // Pixel 0 is at bottom of matrix
-// #define NEO_MATRIX_LEFT        0x00 // Pixel 0 is at left of matrix
-// #define NEO_MATRIX_RIGHT       0x02 // Pixel 0 is at right of matrix
-// #define NEO_MATRIX_CORNER      0x03 // Bitmask for pixel 0 matrix corner
-// #define NEO_MATRIX_ROWS        0x00 // Matrix is row major (horizontal)
-// #define NEO_MATRIX_COLUMNS     0x04 // Matrix is column major (vertical)
-// #define NEO_MATRIX_AXIS        0x04 // Bitmask for row/column layout
-// #define NEO_MATRIX_PROGRESSIVE 0x00 // Same pixel order across each line
-// #define NEO_MATRIX_ZIGZAG      0x08 // Pixel order reverses between lines
-// #define NEO_MATRIX_SEQUENCE    0x08 // Bitmask for pixel line order
-
-// #define NEO_TILE_TOP           0x00 // First tile is at top of matrix
-// #define NEO_TILE_BOTTOM        0x10 // First tile is at bottom of matrix
-// #define NEO_TILE_LEFT          0x00 // First tile is at left of matrix
-// #define NEO_TILE_RIGHT         0x20 // First tile is at right of matrix
-// #define NEO_TILE_CORNER        0x30 // Bitmask for first tile corner
-// #define NEO_TILE_ROWS          0x00 // Tiles ordered in rows
-// #define NEO_TILE_COLUMNS       0x40 // Tiles ordered in columns
-// #define NEO_TILE_AXIS          0x40 // Bitmask for tile H/V orientation
-// #define NEO_TILE_PROGRESSIVE   0x00 // Same tile order across each line
-// #define NEO_TILE_ZIGZAG        0x80 // Tile order reverses between lines
-// #define NEO_TILE_SEQUENCE      0x80 // Bitmask for tile line order
-
-  if (HTTP.hasArg("grid_x") && HTTP.hasArg("grid_y")) {
-    lights.grid(HTTP.arg("grid_x").toInt(), HTTP.arg("grid_y").toInt() );
-    page = "layout";
-  }
-
-  if (HTTP.hasArg("matrixmode")) {
-    page = "layout";
-    uint8_t matrixvar = 0;
-    if (HTTP.arg("matrixmode") == "singlematrix") { lights.multiplematrix = false; }
-    if (HTTP.arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
-    if (HTTP.arg("firstpixel") == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
-    if (HTTP.arg("firstpixel") == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
-    if (HTTP.arg("firstpixel") == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
-
-    if (HTTP.arg("axis") == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
-    if (HTTP.arg("axis") == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
-
-    if (HTTP.arg("sequence") == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
-    if (HTTP.arg("sequence") == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
-
-    if (HTTP.arg("matrixmode") == "multiplematrix") {
-      lights.multiplematrix = true;
-      if (HTTP.arg("multimatrixtile") == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
-      if (HTTP.arg("multimatrixtile") == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
-      if (HTTP.arg("multimatrixtile") == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
-      if (HTTP.arg("multimatrixtile") == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
-      if (HTTP.arg("multimatrixaxis") == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
-      if (HTTP.arg("multimatrixaxis") == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
-      if (HTTP.arg("multimatrixseq") == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
-      if (HTTP.arg("multimatrixseq") == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
-    }
-
-    Debugf("NEW Matrix params: %u\n", matrixvar);
-    lights.setmatrix(matrixvar);
-  }
-
-
-  if (HTTP.hasArg("flashfirst")) {
-    page = "layout";
-    lights.Start("Off");
-    lights.Stop();
-    strip->ClearTo(0);
-    AnimUpdateCallback animUpdate = [] (float progress) {
-      strip->SetPixelColor(0, Palette::wheel( (uint8_t)(progress * 255) ));
-      if (progress == 1.0) { strip->SetPixelColor(0, 0); }
-    };
-    StartAnimation(0, 5000 , animUpdate);
-
-
-
-  }
-
-  if (HTTP.hasArg("revealorder")) {
-    page = "layout";
-    lights.Start("Off");
-    lights.Stop();
-    strip->ClearTo(0);
-    // ToDo
-    float ratio = 1.0 / strip->PixelCount();
-
-    for (uint16_t pixel = 0; pixel < strip->PixelCount() ; pixel++) {
-      AnimUpdateCallback animUpdate = [ratio, pixel] (float progress) {
-        if ( (uint8_t)(progress * 100) == (uint8_t)(pixel * ratio * 100)) {
-          strip->SetPixelColor(pixel, Palette::wheel( (uint8_t)(ratio * 255)));
-          strip->SetPixelColor( (pixel > 2) ? pixel - 2 : 0 , 0 );
-
-        }
-        if (progress == 1.0) { lights.Start("Off"); }
-      };
-      StartAnimation(pixel, 5000 , animUpdate);
-    }
-
-
-  }
-
-
-
-  // if (HTTP.hasArg("palette-random")) {
-  //   lights.palette().randommode(HTTP.arg("palette-random").c_str());
-  //   page = "palette";
-  // }
-
-
-  // if (HTTP.hasArg("palette-spread")) {
-  //   lights.palette().range(HTTP.arg("palette-spread").toFloat());
-  //   page = "palette";
-  // }
-
-  // if (HTTP.hasArg("palette-delay")) {
-  //   lights.palette().delay(HTTP.arg("palette-delay").toInt());
-  //   page = "palette";
-  // }
-
-
-  if (HTTP.hasArg("data")) {
-    send_data(HTTP.arg("data")); // sends JSON data for whatever page is currently being viewed
-    return;
-  }
-
-  if (HTTP.hasArg("enabletimer")) {
-    page = "timer";
-    if (HTTP.arg("enabletimer") == "on") {
-
-      if (HTTP.hasArg("timer") && HTTP.hasArg("timercommand")) {
-
-        String effect =  (HTTP.hasArg("timeroption")) ? HTTP.arg("timeroption") : String();
-
-        if (lights.setTimer(HTTP.arg("timer").toInt(), HTTP.arg("timercommand"), effect )) {
-          Debugf("[handle] Timer command accepted\n");
-        }
-      }
-    } else if (HTTP.arg("enabletimer") == "off") {
-      lights.setTimer(0, "off");
-    }
-
-  }
-
-
-
-
-  if (HTTP.hasArg("presetcommand")) {
-
-    if (HTTP.arg("presetcommand") == "load") {
-      lights.Load(HTTP.arg("selectedeffect").toInt());
-    } else if (HTTP.arg("presetcommand") == "new" ) {
-      lights.Save(0, HTTP.arg("presetsavename").c_str());
-    } else if (HTTP.arg("presetcommand") == "overwrite" ) {
-      lights.Save(HTTP.arg("selectedeffect").toInt(), HTTP.arg("presetsavename").c_str(), true);
-    } else if (HTTP.arg("presetcommand") == "delete" ) {
-      lights.removePreset(HTTP.arg("selectedeffect").toInt()); 
-    }
-
-
-
-  }
-  //HTTP.setContentLength(0);
-  //HTTP.send(200); // sends OK if were just receiving data...
-  send_data(page);
-
-
-  //save_flag = millis();
-  Debugf("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());
-  return;
-
-}
-
-
-
-
-
-
-void send_data(String page)
-{
-  DynamicJsonBuffer jsonBuffer;
-  JsonObject& root = jsonBuffer.createObject();
-
-  /*
-        Home page
-  */
-
-  if (page == "homepage" || page == "palette" || page == "all") {
-    JsonArray& modes = root.createNestedArray("modes");
-    //Serial.printf("Total effects: %u\n", lights.total());
-    for (uint8_t i = 0; i < lights.total(); i++) {
-      modes.add(lights.getName(i));
-    }
-    // creates settings node for web page
-    JsonObject& settings = root.createNestedObject("settings");
-    // adds minimum current effect name, if there if addJson returns false.
-    if (lights.Current()) {
-      settings["currentpreset"] = lights.Current()->preset();
-
-      if (!lights.Current()->addJson(settings)) {
-        settings["effect"] = lights.Current()->name();
-      }
-
-      if (!settings.containsKey("effect")) {
-        settings["effect"] = lights.Current()->name();
-      }
-
-      if (lights._numberofpresets) {
-        JsonObject& currentpresets = root.createNestedObject("currentpresets");
-        for (uint8_t i = 0; i < lights._numberofpresets; i++ ) {
-          currentpresets[ String(lights._presets[i])] = lights._preset_names[i];
-        }
-      }
-    }
-
-
-
-// *  Not needed as palette is added within the add of a secific effect..
-
-    // Palette * palette = lights.Current()->getPalette();
-    // if (palette) {
-    //   root["palettename"] = String(palette->getModeString());
-    // }
-
-
-
-  }
-  /*
-        Layout Page
-
-  [ARG:3] matrixmode = singlematrix
-  [ARG:4] firstpixel = topleft
-  [ARG:5] axis = rowmajor
-  [ARG:6] sequence = progressive
-  [ARG:7] multimatrixtile = topleft
-  [ARG:8] multimatrixaxis = rowmajor
-  [ARG:9] multimatrixseq = progressive
-  */
-  if (page == "layout" || page == "all") {
-    root["pixels"] = lights.getPixels();
-    root["grid_x"] = lights.getX();
-    root["grid_y"] = lights.getY();
-    root["multiplematrix"] = lights.multiplematrix;
-
-    root["matrixconfig"] = lights.getmatrix();
-
-    uint8_t matrixconfig = lights.getmatrix();
-    bool bottom = (matrixconfig & NEO_MATRIX_BOTTOM) ;
-    bool right = (matrixconfig & NEO_MATRIX_RIGHT) ;
-
-// single matrix
-    if (!bottom && !right) { root["firstpixel"] = "topleft"; }
-    if (!bottom && right) { root["firstpixel"] = "topright"; }
-    if (bottom && !right) { root["firstpixel"] = "bottomleft"; }
-    if (bottom && right ) { root["firstpixel"] = "bottomright"; }
-
-    if ((matrixconfig & NEO_MATRIX_AXIS) == NEO_MATRIX_ROWS) {
-      root["axis"] = "rowmajor";
-    } else {
-      root["axis"] = "columnmajor";
-    }
-
-    if ((matrixconfig & NEO_MATRIX_SEQUENCE) == NEO_MATRIX_PROGRESSIVE) {
-      root["sequence"] = "progressive";
-    } else {
-      root["sequence"] = "zigzag";
-    }
-
-
-// Tiles
-
-    bottom = (matrixconfig & NEO_TILE_BOTTOM) ;
-    right = (matrixconfig & NEO_TILE_RIGHT) ;
-
-    if (!bottom && !right) { root["multimatrixtile"] = "topleft"; }
-    if (!bottom && right) { root["multimatrixtile"] = "topright"; }
-    if (bottom && !right) { root["multimatrixtile"] = "bottomleft"; }
-    if (bottom && right ) { root["multimatrixtile"] = "bottomright"; }
-
-    if ((matrixconfig & NEO_TILE_AXIS) == NEO_TILE_ROWS) {
-      root["multimatrixaxis"] = "rowmajor";
-    } else {
-      root["multimatrixaxis"] = "columnmajor";
-    }
-
-
-    if ((matrixconfig & NEO_TILE_SEQUENCE) == NEO_TILE_PROGRESSIVE) {
-      root["multimatrixseq"] = "progressive";
-    } else {
-      root["multimatrixseq"] = "zigzag";
-    }
-
-
-  }
-
-  /*
-        palette page
-  */
-
-  // Palette is now handled by each effect handler... WICKED
-
-  // if (page == "palette" || page == "all") {
-
-  //   Palette * palette = lights.Current()->getPalette();
-
-  //   if (palette) {
-
-  //     if (page != "all") { root["palette"] = String(palette->getModeString()); } // ignore if already sent
-  //     root["paletterandom"] = String(palette->randommodeAsString());
-  //     root["palettespread"] = String(palette->range());
-  //     root["palettedelay"] = String(palette->delay());
-
-  //     if (palette->addJson( root)) {
-  //       Serial.println("[send_data] palette data added");
-  //       JsonObject& Palette = root["Palette"];
-  //       Palette["modeString"] = String(palette->getModeString()); //  This adds it as string.. saves having it saved to SPIFFS.
-  //     }
-
-  //   }
-  // }
-
-  if (page == "timer" || page == "all" || page == "homepage") {
-
-    JsonObject& timerobj = root.createNestedObject("timer");
-    timerobj["running"] = (lights.getTimeLeft() > 0)? true: false;
-    if (lights.getTimeLeft() > 0) {
-      JsonArray& remaining = timerobj.createNestedArray("remaining");
-      int minutes = lights.getTimeLeft() / ( 1000 * 60) ;
-      int seconds = lights.getTimeLeft() / 1000 ;
-      seconds %= 60;
-      remaining.add(minutes);
-      remaining.add(seconds);
-    }
-
-  }
-
-  if (page == "presetspage") {
-
-    JsonObject& settings = root.createNestedObject("settings");
-    // adds minimum current effect name, if there if addJson returns false.
-    if (lights.Current()) {
-      settings["currentpreset"] = lights.Current()->preset();
-      settings["currentpresetname"] = lights.Current()->name();
-
-      // if (!lights.Current()->addJson(settings)) {
-      //   settings["effect"] = lights.Current()->name();
-      // }
-
-      // if (!settings.containsKey("effect")) {
-      //   settings["effect"] = lights.Current()->name();
-      // }
-
-      if (lights._numberofpresets) {
-        JsonObject& currentpresets = root.createNestedObject("currentpresets");
-        for (uint8_t i = 0; i < lights._numberofpresets; i++ ) {
-          currentpresets[ String(lights._presets[i])] = lights._preset_names[i];
-        }
-      }
-    }
-
-    lights.addAllpresets(jsonBuffer, root);
-  }
-
-  // Serial.println("JSON REPLY");
-  // root.prettyPrintTo(Serial);
-  // Serial.println();
-
-  ESPmanager::sendJsontoHTTP(root, HTTP);
-
-}
 
 void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdate)
 {

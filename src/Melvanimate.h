@@ -1,10 +1,21 @@
 
 
+// ToDo
+
+//  Delete empty settings Files
+//  Delete corrupt settings files.. or rename them... 
+
+// [EffectManager::Save] save handler (addJson) returned false
+	// add override to addjson..... in save
+
 
 #pragma once
 
 #include "Arduino.h"
 #include <functional>
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include "BufferedPrint.h"
 
 #include <NeoPixelBus.h>
 #include <FS.h>
@@ -12,7 +23,6 @@
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
 #define EFFECT_WAIT_TIMEOUT 20000
 #define DEFAULT_WS2812_PIN 2
-#define DEFAULT_TOTAL_PIXELS 64
 
 
 #include "EffectManager.h"
@@ -39,7 +49,7 @@ extern NeoPixelAnimator * animator;
 class Melvanimate : public EffectManager
 {
 public:
-	Melvanimate(uint16_t pixels, uint8_t pin);
+	Melvanimate(ESP8266WebServer & HTTP, uint16_t pixels, uint8_t pin);
 
 	bool begin();
 	void loop() override;
@@ -82,19 +92,28 @@ private:
 	bool _loadGeneral();
 	void _init_LEDs();
 	void _init_matrix();
+
+	void _sendData(String page, int8_t code); 
+	void _handleWebRequest();
+	template <class T> static void _sendJsontoHTTP( const T& root, ESP8266WebServer & _HTTP) ;
+	bool _check_duplicate_req();
+
+
 	uint16_t  _pixels;
 	uint8_t _pin;
 	Melvtrix * _matrix;
 	uint8_t _matrixconfig;
 	uint16_t _grid_x, _grid_y;
 	bool _settings_changed;
-	File _settings{};
+	//File _settings;
 
 	uint8_t _waiting;
 	uint32_t _waiting_timeout{0};
 
 	int _timerState{-1};
 	SimpleTimer _timer;
+
+	ESP8266WebServer & _HTTP;
 
 };
 
