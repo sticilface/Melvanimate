@@ -872,12 +872,17 @@ bool EffectManager::convertcolor(JsonObject & root, const char * node)
 		String colorstring = root[node];
 
 		DebugEffectManagerf("[EffectManager::convertcolor] bcolorstring = %s\n", colorstring.c_str());
-		JsonObject& colorroot = root.createNestedObject(node);
+		JsonArray& colorroot = root.createNestedArray(node);
 
-		colorroot["R"] = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+
+		uint8_t R = colorstring.substring(0, colorstring.indexOf(",")).toInt();
 		colorstring = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length());
-		colorroot["G"] = colorstring.substring(0, colorstring.indexOf(",")).toInt();
-		colorroot["B"] = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length()).toInt();
+		uint8_t G = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+		uint8_t B = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length()).toInt();
+
+		colorroot.add(R);
+		colorroot.add(G);
+		colorroot.add(B);
 
 //		Serial.println("[EffectManager::convertcolor] root" );
 //		root.prettyPrintTo(Serial);

@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>TvLights</title>
+    <title>NODEMCU-new</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <!--
@@ -485,10 +485,10 @@
                         <label for="select-timer-command">Action:</label>
                         <select name="timercommand" id="select-timer-command">
                             <option value="off" selected="selected">Off</option>
-                            <option value="start">Start Effect</option>
-                            <option value="loadpreset">Load Preset</option>
+                            <!--<option value="start">Start</option>-->
+                            <option value="loadpreset">Start</option>
                             <option value="brightness">Set Brightness</option>
-                            <option value="speed">Set Speed</option>
+                            <!--<option value="speed">Set Speed</option>-->
                         </select>
                     </div>
                     <div id="timeroptionsdiv">
@@ -504,11 +504,6 @@
                         <div class="ui-field-contain loadpreset">
                             <label for="select-timer-preset">Preset:</label>
                             <select name="timeroption" id="select-timer-preset" class="presetlist">
-                            <option value="1" selected="selected">1</option>
-                            <option value="2">2</option>
-                            <option value="3">3</option>
-                            <option value="4">4</option>
-                            <option value="5">5</option>                              
                             </select>
                         </div>                        
                         
@@ -1226,8 +1221,20 @@
                               $("#timer-time-left").empty().append(" " + values.remaining[0] + "min " + values.remaining[1] + "sec remaining");
                               
                             }
-
                         }
+                        
+                      $("#select-timer-preset").find('option').remove();
+                      if (result.hasOwnProperty('Presets')) {
+                            $.each(result.Presets, function(key, value) {
+                                var isconnected = " ";
+                                if (result.hasOwnProperty('settings')) {
+                                if (result.settings.currentpreset == key) isconnected = "selected=\"selected\"";
+                                }
+                                  //console.log("KEY = " + key + ", VALUE = " + value); 
+                                $("#select-timer-preset").append('<option value=' + key + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
+                            }); 
+                        $('#select-timer-preset').selectmenu('refresh');   
+                      }
                     }
 
                     // Homepage        
@@ -1258,7 +1265,7 @@
                             
                         }
                         
-                                                    // add time remaining in here
+                        // add time remaining in here
                         if (result.hasOwnProperty("timer") && result.timer.hasOwnProperty('remaining')) {
                               $('#div_inserted_timer').remove();
                               $("#content_homepage").prepend("<div id='div_inserted_timer' style='text-align: center'>  Timer " + result.timer.remaining[0] + "min " + result.timer.remaining[1] + "sec remaining </div>");
@@ -1292,7 +1299,7 @@
                           $( '#effectoptions > .input_textbox').find("#input_" + key).closest('input').val(value); 
                           $( '#effectoptions > .input_textbox_IP').find("#input_" + key).closest('input').val(value[0] + "." + value[1] + "." + value[2] + "." + value[3]); 
                           $( '#effectoptions > .input_slider').find("#input_" + key).val(value).closest('input').slider("refresh");
-                          $( '#effectoptions > .input_textbox_rgb').find("#input_" + key).val("rgb(" + value.R + "," + value.G + "," + value.B + ")").colorPicker();
+                          $( '#effectoptions > .input_textbox_rgb').find("#input_" + key).val("rgb(" + value[0] + "," + value[1] + "," + value[2] + ")").colorPicker();
                           $( '#effectoptions > .input_selectmenu').find("#input_" + key).closest('input').val(value).selectmenu('refresh');
                           $( '#effectoptions > .input_selectmenu_palette').find("#input_" + key).closest('input').val(value.name).selectmenu('refresh');
                         });
