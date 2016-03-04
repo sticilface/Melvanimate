@@ -129,7 +129,7 @@ bool EffectManager::Start(EffectHandler* handler)
 		//  if no handle.. try to start default....
 		if (_defaulteffecthandle) {
 			Start(_defaulteffecthandle->name());
-			return false; 
+			return false;
 		}
 		// if that fails.. bail...
 		return false;
@@ -323,7 +323,7 @@ bool EffectManager::removePreset(String ID)
 
 	uint8_t File = ID.substring(   0 , ID.lastIndexOf(".")  ).toInt();
 	uint8_t IDout = ID.substring(   ID.lastIndexOf(".") + 1, ID.length() ).toInt();
-	return removePreset(File, IDout); 
+	return removePreset(File, IDout);
 }
 
 
@@ -537,14 +537,14 @@ void EffectManager::addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & ro
 							// compare to the name of current effect
 							if (current.containsKey("effect") && current.containsKey("name")) {
 
-								String fullkey = String(FileID) + "." + key; 
+								String fullkey = String(FileID) + "." + key;
 
 								const char * presetkey = jsonBuffer.strdup(fullkey.c_str());
 								const char * presetname = jsonBuffer.strdup(current["name"].asString());
 								const char * preseteffect = jsonBuffer.strdup(current["effect"].asString());
 
 								JsonObject & effect = presets.createNestedObject(presetkey);
-								//effect["FileID"] = FileID; 
+								//effect["FileID"] = FileID;
 								effect["name"] = presetname;
 								effect["effect"] = preseteffect;
 
@@ -560,7 +560,7 @@ void EffectManager::addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & ro
 	}
 	// Serial.println();
 	// root.prettyPrintTo(Serial);
-	// Serial.println(); 
+	// Serial.println();
 }
 
 uint8_t EffectManager::nextFreePreset(JsonObject & root)
@@ -607,7 +607,7 @@ uint8_t EffectManager::nextFreePreset(JsonObject & root)
 bool EffectManager::Save(String ID, const char * name, bool overwrite)
 {
 	uint8_t IDout = ID.substring( ID.lastIndexOf(".") + 1, ID.length() ).toInt();
-	// save only worked on loaded effect.  so just have to stip out the file bit from the response. 
+	// save only worked on loaded effect.  so just have to stip out the file bit from the response.
 	return Save(IDout, name, overwrite);
 }
 
@@ -697,7 +697,7 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 	}
 
 	if (success && handle) {
-		// puts the new saved effect into memory 
+		// puts the new saved effect into memory
 		getPresets(handle, _numberofpresets, _presets, _preset_names); // goes here.. to go outofscope of the previous data[] and jsonbuffer... needs lot of heap...
 		return true;
 	} else {
@@ -711,19 +711,18 @@ bool EffectManager::Load(String decimalin)
 	uint8_t File = decimalin.substring(   0 , decimalin.lastIndexOf(".")  ).toInt();
 	uint8_t ID = decimalin.substring(   decimalin.lastIndexOf(".") + 1, decimalin.length() ).toInt();
 
-	DebugEffectManagerf("[EffectManager::Load] String converted to File (%u) ID (%u)\n", File, ID); 
+	DebugEffectManagerf("[EffectManager::Load] String converted to File (%u) ID (%u)\n", File, ID);
 
-	if ( File == 0 || ID == 0) 
-	{
-		return false; 
+	if ( File == 0 || ID == 0) {
+		return false;
 	}
 
-	return Load(File, ID); 
+	return Load(File, ID);
 }
 
 bool EffectManager::Load(uint8_t ID)
 {
-	return Load( Current()->saveFileID, ID ); 
+	return Load( Current()->saveFileID, ID );
 }
 
 bool EffectManager::Load(uint8_t File, uint8_t ID)
@@ -784,7 +783,7 @@ bool EffectManager::Load(uint8_t File, uint8_t ID)
 						} else {
 							DebugEffectManagerf("[EffectManager::Load] ERROR Preset %s for %s, parseJson returned false\n", cID, handle->name());
 							//preset.prettyPrintTo(Serial);
-							//Serial.println(); 
+							//Serial.println();
 						}
 					}
 				} else {
@@ -849,6 +848,195 @@ void EffectManager::_prepareAnimator()
 		}
 	}
 }
+
+bool EffectManager::fillPresetArray()
+{
+#ifdef DebugEffectManagerf
+	uint32_t starttime = millis();
+#endif
+
+
+	uint8_t numberofpresets = 0;
+
+	if (_presetS) {
+		delete[] _presetS;
+		_presetS = nullptr;
+	}
+
+
+	//  iterate through all files and count the presets
+	{
+		Dir dir = SPIFFS.openDir("/");
+		while (dir.next()) {
+			String fileName = dir.fileName();
+
+			if (fileName.startsWith(PRESETS_FILE)) {
+
+				uint8_t FileID = fileName.substring(   strlen(PRESETS_FILE) , fileName.lastIndexOf(".txt")  ).toInt();
+				//	DebugEffectManagerf("[EffectManager::fillPresetArray] Adding presets from %s, FileID %u\n", fileName.c_str(), FileID);
+
+				DynamicJsonBuffer jsonBuffer2(2000);
+				JsonObject * root2 = nullptr;
+				char * data = nullptr;
+
+				if (parsespiffs(data, jsonBuffer2, root2, fileName.c_str() )) {
+
+					for (JsonObject::iterator it = root2->begin(); it != root2->end(); ++it) {
+						// get id of preset
+						const char * key = it->key;
+						// extract the json object for each effect
+
+						JsonObject& current = it->value.asObject();
+
+						// compare to the name of current effect
+						if (current.containsKey("effect") && current.containsKey("name")) {
+
+							numberofpresets++;
+
+						}
+					}
+
+				}
+
+				if (data) { delete[] data; }
+			}
+		}
+	}
+
+	//  now create the presetS structure the correct size
+
+	if (numberofpresets) {
+		_presetS = new Presets_s[numberofpresets];
+		_presetcountS = numberofpresets;
+	}
+
+	uint8_t arrayposition = 0;
+
+	// now iterate through again.. and assign variables to presetS
+
+	if (_presetS)
+
+	{
+
+		Dir dir = SPIFFS.openDir("/");
+		while (dir.next()) {
+			String fileName = dir.fileName();
+
+			if (fileName.startsWith(PRESETS_FILE)) {
+
+				uint8_t FileID = fileName.substring(   strlen(PRESETS_FILE) , fileName.lastIndexOf(".txt")  ).toInt();
+				DebugEffectManagerf("[EffectManager::addAllpresets] Adding presets from %s, FileID %u\n", fileName.c_str(), FileID);
+
+				DynamicJsonBuffer jsonBuffer2(2000);
+				JsonObject * root2 = nullptr;
+				char * data = nullptr;
+
+				if (parsespiffs(data, jsonBuffer2, root2, fileName.c_str() )) {
+
+					for (JsonObject::iterator it = root2->begin(); it != root2->end(); ++it) {
+						// get id of preset
+						const char * key = it->key;
+						// extract the json object for each effect
+
+						JsonObject& current = it->value.asObject();
+
+						// compare to the name of current effect
+						if (current.containsKey("effect") && current.containsKey("name")) {
+
+
+							Presets_s * preset = &_presetS[arrayposition];
+
+							if (preset) {
+								preset->file = FileID;
+								preset->id = String(key).toInt();
+								preset->handle = _findhandle(current["effect"].asString());
+								preset->setname(current["name"]);
+							}
+
+							// String fullkey = String(FileID) + "." + key;
+
+							// const char * presetkey = jsonBuffer.strdup(fullkey.c_str());
+							// const char * presetname = jsonBuffer.strdup(current["name"].asString());
+							// const char * preseteffect = jsonBuffer.strdup(current["effect"].asString());
+
+							// JsonObject & effect = presets.createNestedObject(presetkey);
+							// //effect["FileID"] = FileID;
+							// effect["name"] = presetname;
+							// effect["effect"] = preseteffect;
+
+							arrayposition++;
+
+						}
+					}
+
+				}
+
+				if (data) { delete[] data; }
+			}
+		}
+	}
+
+	DebugEffectManagerf("[EffectManager::fillPresetArray] timetaken: %u\n", millis() - starttime); 
+
+	dumpPresetArray(); 
+
+	DebugEffectManagerf("[EffectManager::fillPresetArray] Next Free: %u\n", nextFreePresetID() ); 
+
+	
+
+}
+
+void EffectManager::dumpPresetArray()
+{
+	DebugEffectManagerf("[dumpPresetArray] %u presets found \n", _presetcountS);
+
+	for (uint8_t i = 0; i < _presetcountS; i++) {
+		Presets_s * preset = &_presetS[i];
+		if (preset) {
+			DebugEffectManagerf("  [%3u] File: %3u, ID: %3u, effect: %30s, name: %30s\n", i, preset->file, preset->id, preset->handle->name(), preset->name); 
+		}
+	}
+}
+
+uint8_t EffectManager::nextFreePresetID()
+{
+	DebugEffectManagerf("[EffectManager::nextFreePresetArray] called\n");
+	uint8_t i = 0;
+
+	bool * array = new bool[255];
+	//memset(array, 0, 255);
+	if (array) {
+
+		for (uint8_t j = 0; j < 255; j++) {
+			array[j] = false;
+		}
+
+		for (uint8_t j = 0; j < _presetcountS; j++) {
+			Presets_s * preset = &_presetS[j];
+			array[preset->id] = true; 
+		}
+
+		for (i = 1; i < 255; i++) {
+			if (array[i] == false) {
+				break;
+			}
+		}
+
+
+		delete[] array;
+
+	} else {
+		DebugEffectManagerf("[EffectManager::nextFreePresetArray] new array failed\n");
+	}
+
+	if (i == 254) {
+		i = 0;
+	}
+	DebugEffectManagerf("[EffectManager::nextFreePresetArray] nextFree = %u \n", i);
+	return i;
+}
+
+
 
 /*
 

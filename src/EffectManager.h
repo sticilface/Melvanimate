@@ -8,7 +8,7 @@
 
 //extern const char * PRESETS_FILE; 
 
-//#define DebugEffectManager
+#define DebugEffectManager
 
 #ifdef DebugEffectManager
 #define DebugEffectManagerf(...) Serial.printf(__VA_ARGS__)
@@ -67,6 +67,12 @@ public:
 	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
 	void addAllpresets(DynamicJsonBuffer& jsonBuffer, JsonObject & root); 
 
+
+	// NEW....manage all presets... 
+	bool fillPresetArray();
+	void dumpPresetArray(); 
+	uint8_t nextFreePresetID(); 
+
 	// maybe move this into a helper header file....
 	static bool convertcolor(JsonObject & root, const char * colorstring);
 	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
@@ -93,6 +99,26 @@ private:
 
 	EffectHandler* _findhandle(const char * handle);
 	void _prepareAnimator(); 
+
+	struct Presets_s {
+		~Presets_s(){
+			if (name) {
+				DebugEffectManagerf("[Presets_s] ~ free strdup for %s\n",name); 
+				free((void*)name); 
+			}
+		}
+		uint8_t file{0};
+		uint8_t id{};
+		EffectHandler * handle;
+		const char * name; 
+		void setname(const char * namein) {
+			name = strdup(namein); 
+		}
+	};
+
+	Presets_s * _presetS{nullptr}; 
+	uint8_t _presetcountS{0}; 
+
 
 };
 

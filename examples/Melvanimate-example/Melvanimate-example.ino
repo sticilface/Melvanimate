@@ -171,6 +171,10 @@ void setup()
     HTTP.send(200); // sends OK if were just receiving data...
   });
 
+  HTTP.on("/array", HTTP_ANY, [] () {
+    lights.fillPresetArray(); 
+  });
+
   // HTTP.on("/command", HTTP_ANY, []() {
   //   if (HTTP.hasArg("save")) {
   //     if (HTTP.hasArg("name")) {
