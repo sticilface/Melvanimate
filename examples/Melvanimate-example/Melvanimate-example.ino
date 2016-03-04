@@ -218,25 +218,24 @@ void setup()
     HTTP.send(200); // sends OK if were just receiving data...
   }
 
-  if (HTTP.hasArg("list")) {
+  // if (HTTP.hasArg("list")) {
 
-    Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
+  //   Serial.printf("[list] _numberofpresets = %u\n", lights._numberofpresets);
 
-    for (uint8_t i = 0; i < lights._numberofpresets; i++) {
+  //   for (uint8_t i = 0; i < lights._numberofpresets; i++) {
 
-      char * text = lights._preset_names[i];
+  //     char * text = lights._preset_names[i];
 
 
-      Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
+  //     Serial.printf("[%u] %u (%s)\n", i, lights._presets[i], text) ;
 
-    }
-  }
+  //   }
+  // }
 
   });
 
   //void serveStatic(const char* uri, fs::FS & fs, const char* path, const char* cache_header = NULL );
 
-  HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
 
   HTTP.begin();
 

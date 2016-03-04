@@ -19,10 +19,13 @@ Melvanimate::Melvanimate(ESP8266WebServer & HTTP, uint16_t pixels, uint8_t pin):
 
 bool Melvanimate::begin()
 {
-	_HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this));
+
+
 
 	DebugMelvanimatef("Begin Melvana called\n");
 
+	_HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this));
+	_HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
 	// _settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
 
 	// if (!_settings) {
@@ -537,12 +540,15 @@ void Melvanimate::_sendData(String page, int8_t code)
 			//   settings["effect"] = Current()->name();
 			// }
 
-			if (_numberofpresets) {
-				JsonObject& currentpresets = root.createNestedObject("currentpresets");
-				for (uint8_t i = 0; i < _numberofpresets; i++ ) {
-					currentpresets[ String(_presets[i])] = _preset_names[i];
-				}
-			}
+			// if (_numberofpresets) {
+			// 	JsonObject& currentpresets = root.createNestedObject("currentpresets");
+			// 	for (uint8_t i = 0; i < _numberofpresets; i++ ) {
+			// 		currentpresets[ String(_presets[i])] = _preset_names[i];
+			// 	}
+			// }
+		addCurrentPresets(root); 
+
+			
 		}
 
 		addAllpresets(root);

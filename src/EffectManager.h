@@ -79,9 +79,9 @@ public:
 	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
 	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonArray *& root, const char * file);
 
-	uint8_t _numberofpresets = 0;
-	char ** _preset_names = nullptr;
-	uint8_t * _presets = nullptr;
+//	uint8_t _numberofpresets = 0;
+//	char ** _preset_names = nullptr;
+//	uint8_t * _presets = nullptr;
 
 protected:
 
