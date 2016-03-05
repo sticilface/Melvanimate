@@ -1,9 +1,12 @@
 #include "AdalightEffect.h"
 
 
-#include "NeopixelBus.h"
+#include <NeopixelBus.h>
+#include <NeoPixelAnimator.h>
 
-extern NeoPixelBus * strip;
+
+
+extern NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip;
 extern NeoPixelAnimator * animator;
 
 
@@ -52,26 +55,26 @@ void  AdalightEffect::Adalight_Flash()
 
 	for (int pixel = 0; pixel < strip->PixelCount(); pixel++) {
 
-		RgbColor originalcolor = strip->GetPixelColor(pixel);
+		// RgbColor originalcolor = strip->GetPixelColor(pixel);
 
-		AnimUpdateCallback animUpdate = [pixel, originalcolor] (float progress) {
-			RgbColor updatedColor;
+		// AnimUpdateCallback animUpdate = [pixel, originalcolor] (float progress) {
+		// 	RgbColor updatedColor;
 
-			if (progress < 0.25) {
-				updatedColor = RgbColor::LinearBlend(originalcolor, RgbColor(100, 0, 0), progress * 4 );
-			} else if (progress < 0.5) {
-				updatedColor = RgbColor::LinearBlend(RgbColor(100, 0, 0), RgbColor(0, 100, 0) , (progress - 0.25) * 4 );
-			} else if (progress < 0.75) {
-				updatedColor = RgbColor::LinearBlend(RgbColor(0, 100, 0), RgbColor(0, 0, 100), (progress - 0.5) * 4 );
-			} else {
-				updatedColor = RgbColor::LinearBlend(RgbColor(0, 0, 100), RgbColor(0, 0, 0), (progress - 0.75) * 4 );
-			}
-			strip->SetPixelColor(pixel, updatedColor);
-		};
+		// 	if (progress < 0.25) {
+		// 		updatedColor = RgbColor::LinearBlend(originalcolor, RgbColor(100, 0, 0), progress * 4 );
+		// 	} else if (progress < 0.5) {
+		// 		updatedColor = RgbColor::LinearBlend(RgbColor(100, 0, 0), RgbColor(0, 100, 0) , (progress - 0.25) * 4 );
+		// 	} else if (progress < 0.75) {
+		// 		updatedColor = RgbColor::LinearBlend(RgbColor(0, 100, 0), RgbColor(0, 0, 100), (progress - 0.5) * 4 );
+		// 	} else {
+		// 		updatedColor = RgbColor::LinearBlend(RgbColor(0, 0, 100), RgbColor(0, 0, 0), (progress - 0.75) * 4 );
+		// 	}
+		// 	strip->SetPixelColor(pixel, updatedColor);
+		// };
 
-		if (animator) {
-			animator->StartAnimation(pixel, 1000, animUpdate);
-		}
+		// if (animator) {
+		// 	animator->StartAnimation(pixel, 1000, animUpdate);
+		// }
 
 
 	}

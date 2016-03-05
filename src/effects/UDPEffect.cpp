@@ -1,8 +1,9 @@
 #include "UDPEffect.h"
 
-#include "NeopixelBus.h"
+#include <NeopixelBus.h>
+#include <NeoPixelAnimator.h>
 
-extern NeoPixelBus * strip;
+extern NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip;
 extern NeoPixelAnimator * animator;
 
 bool UDPEffect::Run()
@@ -30,7 +31,7 @@ bool UDPEffect::Run()
 	}
 
 	if (millis() - _vars->timeoutvar > 5000)  {
-		strip->ClearTo(0, 0, 0);
+		strip->ClearTo( RgbColor(0, 0, 0));
 		_vars->timeoutvar = millis();
 	}
 
@@ -42,7 +43,7 @@ bool UDPEffect::Start()
 {
 	if (strip)
 	{
-		strip->ClearTo(0);
+		strip->ClearTo( RgbColor(0, 0, 0));
 	}
 	
 	if (_udp) {
@@ -65,7 +66,7 @@ bool UDPEffect::Start()
 bool UDPEffect::Stop()
 {
 	if (strip) {
-		strip->ClearTo(0);
+		strip->ClearTo( RgbColor(0, 0, 0));
 	}
 	
 	if (_udp) {
@@ -79,8 +80,8 @@ bool UDPEffect::Stop()
 		_vars = nullptr;
 	}
 
-	if (animator) {
-		animator->FadeTo(250, 0);
-	}
+	// if (animator) {
+	// 	animator->FadeTo(250, 0);
+	// }
 
 }

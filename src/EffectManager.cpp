@@ -6,15 +6,14 @@
 
 
 #include "EffectManager.h"
-#include "FS.h"
-#include "NeopixelBus.h"
+#include <FS.h>
+
 
 #define MAXLEDANIMATIONS 300 // number of pixels before animtor is not created
 #define MAX_PRESET_FILE_SIZE 1000 // max size of permitted settings files... 
 #define MAX_NUMBER_PRESET_FILES 10
 
-extern NeoPixelBus * strip;
-extern NeoPixelAnimator * animator;
+
 
 //#define jsonprettyprint //  uses prettyPrintTo to send to SPIFFS... uses a lot more chars to pad the json.. a lot more..
 
@@ -867,14 +866,21 @@ bool EffectManager::Load(uint8_t File, uint8_t ID)
 }
 
 
-
+// Possible values from 1 to 32768, and there some helpful constants defined as...
+// NEO_MILLISECONDS        1    // ~65 seconds max duration, ms updates
+// NEO_CENTISECONDS       10    // ~10.9 minutes max duration, centisecond updates
+// NEO_DECISECONDS       100    // ~1.8 hours max duration, decisecond updates
+// NEO_SECONDS          1000    // ~18.2 hours max duration, second updates
+// NEO_DECASECONDS     10000    // ~7.5 days, 10 second updates
 
 void EffectManager::_prepareAnimator()
 {
 	if (_NextInLine->animate() && strip->PixelCount() <= MAXLEDANIMATIONS) {
 		if (!animator) {
 			DebugEffectManagerf("[EffectManager::Start] Animator Created\n");
-			animator = new NeoPixelAnimator(strip);
+
+			animator = new NeoPixelAnimator(strip->PixelCount(),NEO_MILLISECONDS);
+		
 		} else {
 			DebugEffectManagerf("[EffectManager::Start] Animator Already in Place\n");
 		}

@@ -166,7 +166,7 @@ void setup()
   }
 
 
-  HTTP.on("/crash", HTTP_ANY, []() { NeoPixelBus * voidpointer; voidpointer->Show(); });
+  //HTTP.on("/crash", HTTP_ANY, []() { NeoPixelBus * voidpointer; voidpointer->Show(); });
 
   HTTP.on("/stack", HTTP_ANY, []() {
      //size_t freemem = cont_get_free_stack(&g_cont);
@@ -457,66 +457,66 @@ void Show_pixels(bool override)
   if (override) { tick = 0; }
   if ( millis() - tick < 30) { return; }
   if (animator) {
-    if ( animator->IsAnimating() ) { animator->UpdateAnimations(100); }
+    if ( animator->IsAnimating() ) {
+     animator->UpdateAnimations(); 
+   }
   }
   strip->Show();
   tick = millis();
 }
 
-void testshapegenerater()
-{
-  uint16_t pixels[4] ;
-  Palette localP(WHEEL, 8 * 4);
-  static uint8_t position = 0;
-  static uint8_t counter = 0;
-  RgbColor next = Palette::wheel(counter);
+// void testshapegenerater()
+// {
+//   uint16_t pixels[4] ;
+//   Palette localP(WHEEL, 8 * 4);
+//   static uint8_t position = 0;
+//   static uint8_t counter = 0;
+//   RgbColor next = Palette::wheel(counter);
 
-  Melvtrix& matrix = *lights.matrix();
+//   Melvtrix& matrix = *lights.matrix();
 
-  matrix.setShapeFn( [&localP, &next] (uint16_t pixel, int16_t x, int16_t y) {
-    FadeToAndBack(pixel, next, 400);
-  });
+//   matrix.setShapeFn( [&localP, &next] (uint16_t pixel, int16_t x, int16_t y) {
+//     FadeToAndBack(pixel, next, 400);
+//   });
 
-  matrix.drawRect(0 + position, 0 + position, 8 -  2 * position, 8 - 2 * position, 0);
+//   matrix.drawRect(0 + position, 0 + position, 8 -  2 * position, 8 - 2 * position, 0);
 
-  int16_t circle[20] { -1};
-  int16_t line[20] { -1};
-
-
-  position++;
-  position %= 4;
-  counter += 10;
-}
-
-void FadeToAndBack(uint16_t pixel, RgbColor color, uint16_t time)
-{
-  RgbColor originalcolor = strip->GetPixelColor(pixel);
-  AnimUpdateCallback animUpdate = [pixel, originalcolor, color] (float progress) {
-    RgbColor updatedColor;
-    if (progress < 0.5) {
-      updatedColor = RgbColor::LinearBlend(originalcolor, color, progress * 2 );
-    } else {
-      updatedColor = RgbColor::LinearBlend(color, 0, (progress - 0.5) * 2 );
-    }
-    strip->SetPixelColor(pixel, updatedColor);
-  };
-  StartAnimation(pixel, time , animUpdate);
-}
-
-void OnOff(uint16_t pixel, RgbColor color, uint16_t time)
-{
-  AnimUpdateCallback animUpdate = [pixel, color] (float progress) {
-    if (progress < 1.0) {
-      strip->SetPixelColor(pixel, color);
-    } else {
-      strip->SetPixelColor(pixel, RgbColor(0));
-    }
-
-  };
-  StartAnimation(pixel, time , animUpdate);
-}
+//   int16_t circle[20] { -1};
+//   int16_t line[20] { -1};
 
 
+//   position++;
+//   position %= 4;
+//   counter += 10;
+// }
+
+// void FadeToAndBack(uint16_t pixel, RgbColor color, uint16_t time)
+// {
+  // RgbColor originalcolor = strip->GetPixelColor(pixel);
+  // AnimUpdateCallback animUpdate = [pixel, originalcolor, color] (float progress) {
+  //   RgbColor updatedColor;
+  //   if (progress < 0.5) {
+  //     updatedColor = RgbColor::LinearBlend(originalcolor, color, progress * 2 );
+  //   } else {
+  //     updatedColor = RgbColor::LinearBlend(color, 0, (progress - 0.5) * 2 );
+  //   }
+  //   strip->SetPixelColor(pixel, updatedColor);
+  // };
+  // StartAnimation(pixel, time , animUpdate);
+//}
+
+// void OnOff(uint16_t pixel, RgbColor color, uint16_t time)
+// {
+//   AnimUpdateCallback animUpdate = [pixel, color] (float progress) {
+//     if (progress < 1.0) {
+//       strip->SetPixelColor(pixel, color);
+//     } else {
+//       strip->SetPixelColor(pixel, RgbColor(0));
+//     }
+
+//   };
+//   StartAnimation(pixel, time , animUpdate);
+// }
 
 
 
@@ -525,47 +525,49 @@ void OnOff(uint16_t pixel, RgbColor color, uint16_t time)
 
 
 
-void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdate)
-{
-  if (animator) {
-    animator->StartAnimation(pixel, time, animUpdate);
-  }
 
-}
 
-void FadeTo(RgbColor color)
-{
-  uint32_t current_brightness = 0;
-  uint32_t target_brightness = color.CalculateBrightness();
-  uint32_t brightness = 0;
+// void StartAnimation( uint16_t pixel, uint16_t time, AnimUpdateCallback animUpdate)
+// {
+//   if (animator) {
+//     animator->StartAnimation(pixel, time, animUpdate);
+//   }
 
-  for (uint16_t i = 0; i < strip->PixelCount(); i++) {
-    current_brightness += strip->GetPixelColor(i).CalculateBrightness();
-  }
-  current_brightness /= strip->PixelCount();
+// }
 
-  if (current_brightness > target_brightness) {
-    brightness = current_brightness;
-  } else {
-    brightness = target_brightness;
-  }
+// void FadeTo(RgbColor color)
+// {
+//   uint32_t current_brightness = 0;
+//   uint32_t target_brightness = color.CalculateBrightness();
+//   uint32_t brightness = 0;
 
-  //int32_t difference = abs(brightness - color.CalculateBrightness() );
+//   for (uint16_t i = 0; i < strip->PixelCount(); i++) {
+//     current_brightness += strip->GetPixelColor(i).CalculateBrightness();
+//   }
+//   current_brightness /= strip->PixelCount();
 
-//  Serial.printf("[FadeTo] current brightness %u, target brightness %u, Brightness Diff = %u, time %ums\n", current_brightness, target_brightness, brightness, brightness * 8);
+//   if (current_brightness > target_brightness) {
+//     brightness = current_brightness;
+//   } else {
+//     brightness = target_brightness;
+//   }
 
-  FadeTo(brightness * 8, color);
-}
+//   //int32_t difference = abs(brightness - color.CalculateBrightness() );
 
-void FadeTo( uint16_t time, RgbColor color)
-{
-  if (animator) {
-    animator->FadeTo(time, color);
-  } else {
-    strip->ClearTo(color);
-  }
+// //  Serial.printf("[FadeTo] current brightness %u, target brightness %u, Brightness Diff = %u, time %ums\n", current_brightness, target_brightness, brightness, brightness * 8);
 
-}
+//   FadeTo(brightness * 8, color);
+// }
+
+// void FadeTo( uint16_t time, RgbColor color)
+// {
+//   if (animator) {
+//     animator->FadeTo(time, color);
+//   } else {
+//     strip->ClearTo(color);
+//   }
+
+// }
 
 
 

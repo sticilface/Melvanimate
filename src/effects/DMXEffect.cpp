@@ -1,7 +1,7 @@
 #include "DMXEffect.h"
 #include "NeopixelBus.h"
 
-extern NeoPixelBus * strip;
+extern NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip;
 
 
 bool DMXEffect::InitVars()
@@ -127,7 +127,7 @@ bool DMXEffect::Run()
 
 					//	if (pixel > strip->PixelCount()) { break; }
 
-						strip->SetPixelColor( pixel, _e131->data[j], _e131->data[j + 1], _e131->data[j + 2]);
+						strip->SetPixelColor( pixel, RgbColor(_e131->data[j], _e131->data[j + 1], _e131->data[j + 2]));
 						//Serial.printf("[%u]%u\n",i,pixel);
 					}
 

@@ -17,6 +17,8 @@
 #include "helperfunc.h"
 
 #include <NeoPixelBus.h>
+#include <NeoPixelAnimator.h>
+
 #include <FS.h>
 
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
@@ -42,7 +44,7 @@
 using namespace helperfunc; 
 
 // globals for neopixels.
-extern NeoPixelBus * strip;
+extern NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip;
 extern NeoPixelAnimator * animator;
 
 

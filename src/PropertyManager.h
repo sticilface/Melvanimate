@@ -1,7 +1,10 @@
 #pragma once
 
 #include <arduinojson.h>
-#include <RgbColor.h>
+#include "internal/RgbColor.h"
+#include "internal/HslColor.h"
+
+//#include <RgbColor.h>
 #include "palette.h"
 #include "IPAddress.h"
 

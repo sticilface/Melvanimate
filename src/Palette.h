@@ -6,9 +6,12 @@
 */
 
 #pragma once
-#include <RgbColor.h>
-#include <HslColor.h>
-#include <HsbColor.h>
+// #include <RgbColor.h>
+// #include <HslColor.h>
+// #include <HsbColor.h>
+#include "internal/RgbColor.h"
+#include "internal/HslColor.h"
+#include "internal/HsbColor.h"
 
 #include <ArduinoJson.h>
 

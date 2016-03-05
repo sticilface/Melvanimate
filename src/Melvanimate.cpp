@@ -4,7 +4,7 @@
 #include <ArduinoJson.h>
 #include "BufferedPrint.h"
 
-NeoPixelBus * strip = nullptr;
+NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip = nullptr;
 NeoPixelAnimator * animator = nullptr;
 
 Melvanimate::Melvanimate(ESP8266WebServer & HTTP, uint16_t pixels, uint8_t pin): _HTTP(HTTP), _pixels(pixels), _pin(pin)
@@ -62,7 +62,9 @@ void Melvanimate::_init_LEDs()
 	}
 
 	if (_pixels) {
-		strip = new NeoPixelBus(_pixels, DEFAULT_WS2812_PIN);
+		//strip = new NeoPixelBus(_pixels, DEFAULT_WS2812_PIN);
+		strip = new NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod>(_pixels, DEFAULT_WS2812_PIN);
+
 	}
 
 	setmatrix(_matrixconfig);
@@ -776,14 +778,15 @@ void Melvanimate::_handleWebRequest()
 
 
 	if (_HTTP.hasArg("flashfirst")) {
-		page = "layout";
-		Start("Off");
-		Stop();
-		strip->ClearTo(0);
-		AnimUpdateCallback animUpdate = [] (float progress) {
-			strip->SetPixelColor(0, Palette::wheel( (uint8_t)(progress * 255) ));
-			if (progress == 1.0) { strip->SetPixelColor(0, 0); }
-		};
+		
+		// page = "layout";
+		// Start("Off");
+		// Stop();
+		// strip->ClearTo(0);
+		// AnimUpdateCallback animUpdate = [] (float progress) {
+		// 	strip->SetPixelColor(0, Palette::wheel( (uint8_t)(progress * 255) ));
+		// 	if (progress == 1.0) { strip->SetPixelColor(0, 0); }
+		// };
 
 //   StartAnimation(0, 5000 , animUpdate);
 
@@ -795,22 +798,23 @@ void Melvanimate::_handleWebRequest()
 		page = "layout";
 		Start("Off");
 		Stop();
-		strip->ClearTo(0);
-		// ToDo
-		float ratio = 1.0 / strip->PixelCount();
 
-		for (uint16_t pixel = 0; pixel < strip->PixelCount() ; pixel++) {
+// 		strip->ClearTo(0);
+// 		// ToDo
+// 		float ratio = 1.0 / strip->PixelCount();
 
-			AnimUpdateCallback animUpdate = [this, ratio, pixel] (float progress) {
-				if ( (uint8_t)(progress * 100) == (uint8_t)(pixel * ratio * 100)) {
-					strip->SetPixelColor(pixel, Palette::wheel( (uint8_t)(ratio * 255)));
-					strip->SetPixelColor( (pixel > 2) ? pixel - 2 : 0 , 0 );
+// 		for (uint16_t pixel = 0; pixel < strip->PixelCount() ; pixel++) {
 
-				}
-				if (progress == 1.0) { Start("Off"); }
-			};
-//      StartAnimation(pixel, 5000 , animUpdate);
-		}
+// 			AnimUpdateCallback animUpdate = [this, ratio, pixel] (float progress) {
+// 				if ( (uint8_t)(progress * 100) == (uint8_t)(pixel * ratio * 100)) {
+// 					strip->SetPixelColor(pixel, Palette::wheel( (uint8_t)(ratio * 255)));
+// 					strip->SetPixelColor( (pixel > 2) ? pixel - 2 : 0 , 0 );
+
+// 				}
+// 				if (progress == 1.0) { Start("Off"); }
+// 			};
+// //      StartAnimation(pixel, 5000 , animUpdate);
+// 		}
 
 
 	}

@@ -1,7 +1,10 @@
 #pragma once
 
-#include <RgbColor.h>
-#include <HslColor.h>
+#//include <RgbColor.h>
+//#include <HslColor.h>
+#include "internal/RgbColor.h"
+#include "internal/HslColor.h"
+
 #include <ArduinoJson.h>
 
 

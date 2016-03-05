@@ -4,6 +4,11 @@
 #include <ArduinoJson.h>
 #include "EffectHandler.h"
 #include "helperfunc.h"
+#include <NeoPixelBus.h>
+#include <NeoPixelAnimator.h>
+
+extern NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip;
+extern NeoPixelAnimator * animator;
 
 #define PRESETS_FILE "/presets_"
 
