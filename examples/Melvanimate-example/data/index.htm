@@ -96,7 +96,7 @@
     </div>
 
     <div data-role="footer" data-theme="a">
-        <h2 style="text-align:right">Status: <var id="status"></var></h2>
+        <h2 style="text-align:right">Heap: <var id="heap">-</var> Status: <var id="status"></var></h2>
     </div>
 
 
@@ -671,50 +671,50 @@
 
 
 
-            $(document).on("pagebeforeshow", "#layout", function() {
+            // $(document).on("pagebeforeshow", "#layout", function() {
 
-             //   GetData();
-                console.log("layoutpage data:" + globaldata)
+            // //   GetData();
+            //     console.log("layoutpage data:" + globaldata)
 
-                if (globaldata) {
+            //     if (globaldata) {
 
-                    if (globaldata.hasOwnProperty('pixels')) {
-                        $("#nopixels").val(globaldata.pixels);
-                    }
-                    if (globaldata.hasOwnProperty('grid_x')) {
-                        $("#gridx").val(globaldata.grid_x);
-                    }
-                    if (globaldata.hasOwnProperty('grid_y')) {
-                        $("#gridy").val(globaldata.grid_y);
-                    }
-                    if (globaldata.hasOwnProperty('matrixmode')) {
-                        $("#select-matrix-type").val(globaldata.matrixmode).selectmenu("refresh");
-                    }
+            //         if (globaldata.hasOwnProperty('pixels')) {
+            //             $("#nopixels").val(globaldata.pixels);
+            //         }
+            //         if (globaldata.hasOwnProperty('grid_x')) {
+            //             $("#gridx").val(globaldata.grid_x);
+            //         }
+            //         if (globaldata.hasOwnProperty('grid_y')) {
+            //             $("#gridy").val(globaldata.grid_y);
+            //         }
+            //         if (globaldata.hasOwnProperty('matrixmode')) {
+            //             $("#select-matrix-type").val(globaldata.matrixmode).selectmenu("refresh");
+            //         }
 
-                    if (globaldata.hasOwnProperty('firstpixel')) {
-                        $("#select-singlematrix").val(globaldata.firstpixel).selectmenu("refresh");
-                    }
-                    if (globaldata.hasOwnProperty('axis')) {
-                        $("#select-singlematrix-axis").val(globaldata.axis).selectmenu("refresh");
-                    }
-                    if (globaldata.hasOwnProperty('sequence')) {
-                        $("#select-singlematrix-seq").val(globaldata.sequence).selectmenu("refresh");
-                    }
+            //         if (globaldata.hasOwnProperty('firstpixel')) {
+            //             $("#select-singlematrix").val(globaldata.firstpixel).selectmenu("refresh");
+            //         }
+            //         if (globaldata.hasOwnProperty('axis')) {
+            //             $("#select-singlematrix-axis").val(globaldata.axis).selectmenu("refresh");
+            //         }
+            //         if (globaldata.hasOwnProperty('sequence')) {
+            //             $("#select-singlematrix-seq").val(globaldata.sequence).selectmenu("refresh");
+            //         }
 
-                    if (globaldata.hasOwnProperty('multimatrixtile')) {
-                        $("#select-multimatrix").val(globaldata.multimatrixtile).selectmenu("refresh");
-                    }
-                    if (globaldata.hasOwnProperty('multimatrixaxis')) {
-                        $("#select-multimatrix-axis").val(globaldata.multimatrixaxis).selectmenu("refresh");
-                    }
-                    if (globaldata.hasOwnProperty('multimatrixseq')) {
-                        $("#select-multimatrix-seq").val(globaldata.multimatrixseq).selectmenu("refresh");
-                    }
-                }
+            //         if (globaldata.hasOwnProperty('multimatrixtile')) {
+            //             $("#select-multimatrix").val(globaldata.multimatrixtile).selectmenu("refresh");
+            //         }
+            //         if (globaldata.hasOwnProperty('multimatrixaxis')) {
+            //             $("#select-multimatrix-axis").val(globaldata.multimatrixaxis).selectmenu("refresh");
+            //         }
+            //         if (globaldata.hasOwnProperty('multimatrixseq')) {
+            //             $("#select-multimatrix-seq").val(globaldata.multimatrixseq).selectmenu("refresh");
+            //         }
+            //     }
 
-                sortmatrix('#select-matrix-type');
+            //     sortmatrix('#select-matrix-type');
 
-            })
+            // }); 
 
 
             $(document).on("pagecreate", "#homepage", function() {
@@ -746,7 +746,7 @@
                       
                     // }
 
-                    $("#status").empty().append("Waiting...").css("color", "blue");;
+                    $("#status").empty().append("Waiting ").css("color", "blue");;
                     
                     $.post("data.esp", $(this).serialize(), function() {
                         //GetData();
@@ -793,7 +793,7 @@
 
           
             $(document).on('click', '.mysubmit', function() {
-                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $("#status").empty().append("Waiting ").css("color", "blue");;
                 $.post("data.esp", $(this).closest("form").find('input,select').filter(':visible').serialize(), function(data) {
                         //console.log("Data Sent");
                     }).success(function(e) {
@@ -807,7 +807,7 @@
             });
 
             $(document).on('change', '.mysubmitthis', function(e) {
-                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $("#status").empty().append("Waiting ").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
                         //console.log("Data Sent");
                     }).success(function(e) {
@@ -823,7 +823,7 @@
             });
 
             $(document).on('change', '.mysubmittext', function(e) {
-                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $("#status").empty().append("Waiting ").css("color", "blue");;
                 $.post("data.esp", $(this).find('input'), function(data) {
                         //console.log("Data Sent");
                     }).success(function(e) {
@@ -837,7 +837,7 @@
             });
 
             $(document).on('change', '.mysubmitdropdown', function(e) {
-                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $("#status").empty().append("Waiting ").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
                         //console.log("Data Sent");
                     }).success(function(e) {
@@ -851,7 +851,7 @@
             });
 
             $(document).on('slidestop', '.mysubmitslider', function(e) {
-                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $("#status").empty().append("Waiting ").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
                         //console.log("Data Sent");
                     }).success(function(e) {
@@ -1068,7 +1068,7 @@
                             // };
                             // console.log(JSON.stringify(data));
                             
-                            $("#status").empty().append("Waiting...").css("color", "blue");;
+                            $("#status").empty().append("Waiting ").css("color", "blue");;
                             
                             $.post("data.esp", inputName + "=" + rgb.r + "," + rgb.g + "," + rgb.b 
                                 // function(data) {
@@ -1208,7 +1208,7 @@
         
     function flipChanged(e) {
       
-                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $("#status").empty().append("Waiting ").css("color", "blue");;
                 $.post("data.esp", $(this).serialize(), function(data) {
                         //console.log("Data Sent");
                     }).success(function(e) {
@@ -1239,11 +1239,11 @@
                 
                     //console.log("RESULT:")
                     //console.log(result);
-                    if (pagevar === "all") {
-                        globaldata = result;
+                   // if (pagevar === "all") {
+                  //      globaldata = result;
                         //console.log("GLOBALDATA:");
                         //console.log(globaldata);
-                    }
+                  //  }
 
                     if ($.mobile.activePage.attr('id') == 'timer') {
 
@@ -1351,56 +1351,6 @@
                           $( '#effectoptions > .input_selectmenu_palette').find("#input_" + key).closest('input').val(value.name).selectmenu('refresh');
                         });
                         
-                        
-                        // if (settings.hasOwnProperty('brightness')) {
-                        //     $("#brightness").val(settings.brightness).slider("refresh");
-                        // }
-                        // if (settings.hasOwnProperty('speed')) {
-                        //     $("#speed").val(settings.speed).slider("refresh");
-                        // }
-                        // if (settings.hasOwnProperty('color1')) {
-                        //     $("#color1").val("rgb(" + settings.color1.R + "," + settings.color1.G + "," + settings.color1.B + ")").colorPicker();
-                        // }
-                        // if (settings.hasOwnProperty('color2')) {
-                        //     $("#color2").val("rgb(" + settings.color2.R + "," + settings.color2.G + "," + settings.color2.B + ")").colorPicker();
-                        // }
-
-                        // if (settings.hasOwnProperty('serialspeed')) {
-                        //     $('#adalight-serialspeed').val(settings.serialspeed).selectmenu('refresh');
-                        // }
-
-                        // if (settings.hasOwnProperty('rotation')) {
-                        //     $('#input-rotation').val(settings.rotation).selectmenu('refresh');
-                        // }
-
-                        // if (settings.hasOwnProperty('marqueetext')) {
-                        //     $('#input_marqueetext').val(settings.marqueetext);
-                        // }
-
-                        // if (settings.hasOwnProperty('udp_multicast_ip_addr')) {
-                        //     $('#input_udp_multicast_ip_addr').val(settings.udp_multicast_ip_addr[0] + "." + settings.udp_multicast_ip_addr[1] + "." + settings.udp_multicast_ip_addr[2] + "." + settings.udp_multicast_ip_addr[3]);
-                        // }
-                        
-                        
-                        // OLD METHOD
-                        // if (settings.hasOwnProperty('palette')) {
-                        //     $('#select-palettes').val(settings.palette).selectmenu('refresh');
-                        // }
-
-                        // NEW METHOD
-                        // if (settings.hasOwnProperty('Palette')) {
-                        //     $('#input_Palette').val(settings.Palette.name).selectmenu('refresh');
-                        // }
-                        
-
-                        // $('#effectoptions').children('div').each(function(index) {
-                        //     $(this).hide();
-                        // });
-
-                        // $('#effectoptions').children('div').each(function(index) {
-                        //     if ($(this).hasClass(settings.effect)) $(this).show();
-                        // });
-                        
                       }
                       
                       
@@ -1429,7 +1379,17 @@
                         $('.presetlistclass').hide();
 
                       }
-                      //  presetlist
+                      //  
+                      
+                      if (result.hasOwnProperty('heap')) 
+                      {
+                        $("#heap").empty().append(result.heap).css("color", "grey");;
+                      }
+                      
+                      
+                      
+                      
+                      
                     }
 
                     //presetspage
@@ -1542,6 +1502,7 @@
                          
                        }
                     }
+                    
     }
 
   var pagevar; 
@@ -1558,7 +1519,7 @@
           //   }
 
 
-            $("#status").empty().append("Waiting...").css("color", "blue");;
+            $("#status").empty().append("Waiting ").css("color", "blue");;
 
             $.getJSON("data.esp?data=" + pagevar, function(result) {
               
