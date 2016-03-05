@@ -4,8 +4,8 @@
 #include <ArduinoJson.h>
 #include "BufferedPrint.h"
 
-NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip = nullptr;
 NeoPixelAnimator * animator = nullptr;
+MyPixelBus * strip = nullptr;
 
 Melvanimate::Melvanimate(ESP8266WebServer & HTTP, uint16_t pixels, uint8_t pin): _HTTP(HTTP), _pixels(pixels), _pin(pin)
 	, _grid_x(8), _grid_y(8), _matrixconfig(0), _matrix(nullptr)

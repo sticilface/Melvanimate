@@ -1,7 +1,9 @@
 #include "DMXEffect.h"
 #include "NeopixelBus.h"
+#include "mybus.h"
 
-extern NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip;
+
+extern MyPixelBus * strip;
 
 
 bool DMXEffect::InitVars()

@@ -6,8 +6,10 @@
 #include "helperfunc.h"
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
+#include "mybus.h"
 
-extern NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip;
+
+extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
 #define PRESETS_FILE "/presets_"

@@ -1,5 +1,10 @@
 #include "helperfunc.h"
 
+#include <NeoPixelAnimator.h>
+
+extern MyPixelBus * strip;
+extern NeoPixelAnimator * animator;
+
 #include <FS.h>
 
 

@@ -25,7 +25,7 @@
 #define EFFECT_WAIT_TIMEOUT 20000
 #define DEFAULT_WS2812_PIN 2
 
-
+#include "mybus.h"
 #include "EffectManager.h"
 #include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function 
 #include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
@@ -43,8 +43,9 @@
 
 using namespace helperfunc; 
 
+
 // globals for neopixels.
-extern NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod> * strip;
+extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
 
