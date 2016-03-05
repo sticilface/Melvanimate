@@ -49,7 +49,7 @@
 #include "effects/UDPEffect.h"
 
 #define WS2812_PIXELS 118
-
+#define MAX_NUMBER_OF_ANIMATIONS 300
 
 #define Debug
 
@@ -89,14 +89,15 @@ Melvanimate lights(HTTP, WS2812_PIXELS, 2);
 
 void install_effects()
 {
-// bool Add(bool savefile, const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
+// bool Add(bool savefile, const char * name, EffectHandler* Handler, bool defaulteffect = false);
 
-  lights.Add("Off",         new SwitchEffect( offFn), true, true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
-  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn), true);       // working
-  lights.Add("CuriousCat",  new Effect2, true);
-  lights.Add("Adalight",    new AdalightEffect(Serial, 115000), true);    // working - need to test
-  lights.Add("UDP",         new UDPEffect, false);                        // working
-  lights.Add("DMX",         new DMXEffect, false );                       // need to test - requires custom libs included
+  lights.Add("Off",         new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
+  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn));       // working
+  lights.Add("CuriousCat",  new Effect2);
+  lights.Add("Adalight",    new AdalightEffect(Serial, 115000));    // working - need to test
+  lights.Add("UDP",         new UDPEffect);                        // working
+  lights.Add("DMX",         new DMXEffect );                       // need to test - requires custom libs included
+  lights.Add("NeoPixDemo", new SwitchEffect(NeoPixDemoFn)); 
 
   // for (uint8_t i = 0; i < 30; i++) {
   //   String in = "CuriousCat" + String(i);
@@ -113,7 +114,7 @@ void install_effects()
 
 // experimental and in testing
 
-  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn), false);
+  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
@@ -451,19 +452,19 @@ void loop()
 
 }
 
-void Show_pixels(bool override)
-{
-  static uint32_t tick = 0;
-  if (override) { tick = 0; }
-  if ( millis() - tick < 30) { return; }
-  if (animator) {
-    if ( animator->IsAnimating() ) {
-     animator->UpdateAnimations(); 
-   }
-  }
-  strip->Show();
-  tick = millis();
-}
+// void Show_pixels(bool override)
+// {
+//   static uint32_t tick = 0;
+//   if (override) { tick = 0; }
+//   if ( millis() - tick < 30) { return; }
+//   if (animator) {
+//     if ( animator->IsAnimating() ) {
+//      animator->UpdateAnimations(); 
+//    }
+//   }
+//   strip->Show();
+//   tick = millis();
+// }
 
 // void testshapegenerater()
 // {
