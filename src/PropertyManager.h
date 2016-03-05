@@ -1,12 +1,12 @@
 #pragma once
 
 #include <arduinojson.h>
-#include "internal/RgbColor.h"
-#include "internal/HslColor.h"
+#include <internal/RgbColor.h>
+#include <internal/HslColor.h>
 
 //#include <RgbColor.h>
 #include "palette.h"
-#include "IPAddress.h"
+#include <IPAddress.h>
 
 
 class AbstractPropertyHandler
