@@ -47,6 +47,8 @@
 #include "effects/DMXEffect.h"
 #include "effects/AdalightEffect.h"
 #include "effects/UDPEffect.h"
+#include "effects/RainbowChase.h"
+
 
 #define WS2812_PIXELS 118
 #define MAX_NUMBER_OF_ANIMATIONS 300
@@ -97,7 +99,8 @@ void install_effects()
   lights.Add("Adalight",    new AdalightEffect(Serial, 115000));    // working - need to test
   lights.Add("UDP",         new UDPEffect);                        // working
   lights.Add("DMX",         new DMXEffect );                       // need to test - requires custom libs included
-  lights.Add("NeoPixDemo", new SwitchEffect(NeoPixDemoFn)); 
+  
+  lights.Add("RainbowChase", new RainbowChase); 
 
   // for (uint8_t i = 0; i < 30; i++) {
   //   String in = "CuriousCat" + String(i);
