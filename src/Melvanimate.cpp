@@ -875,6 +875,8 @@ void Melvanimate::_handleWebRequest()
 			code = Save(_HTTP.arg("selectedeffect").toInt(), _HTTP.arg("presetsavename").c_str(), true);
 		} else if (_HTTP.arg("presetcommand") == "delete" ) {
 			code = removePreset(_HTTP.arg("selectedeffect").toInt());
+		} else if (_HTTP.arg("presetcommand") == "deleteall" ) {
+			removeAllpresets(); 
 		}
 
 

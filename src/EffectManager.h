@@ -64,6 +64,7 @@ public:
 
 	// fetches info from SPIFFS valid presests for current effect
 //	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
+	void removeAllpresets();
 	void addAllpresets(JsonObject & root); 
 	bool addCurrentPresets(JsonObject & root); 
 

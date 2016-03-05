@@ -113,7 +113,7 @@ bool EffectManager::Start(EffectHandler* handler)
 								DebugEffectManagerf("[Start] ERROR loading Default %u\n", preset->id);
 							}
 
-							
+
 						}
 
 					}
@@ -1107,10 +1107,10 @@ bool EffectManager::fillPresetArray()
 					}
 
 				} else {
-					String newFileName = fileName.substring(0, fileName.length() - 3) + "corrupt.txt"; 
+					String newFileName = fileName.substring(0, fileName.length() - 3) + "corrupt.txt";
 					SPIFFS.rename(fileName, newFileName);
-					DebugEffectManagerf("[EffectManager::fillPresetArray] %s parse failed. File renamed to %s\n", fileName.c_str(), newFileName.c_str()); 
-					continue; 
+					DebugEffectManagerf("[EffectManager::fillPresetArray] %s parse failed. File renamed to %s\n", fileName.c_str(), newFileName.c_str());
+					continue;
 				}
 
 				if (data) { delete[] data; }
@@ -1183,6 +1183,23 @@ bool EffectManager::fillPresetArray()
 	DebugEffectManagerf("[EffectManager::fillPresetArray] Next Free: %u\n", nextFreePresetID() );
 
 
+
+}
+
+void EffectManager::removeAllpresets()
+
+{
+	Dir dir = SPIFFS.openDir("/");
+	while (dir.next()) {
+		String fileName = dir.fileName();
+
+		if (fileName.startsWith(PRESETS_FILE) && fileName.endsWith(".txt") && !fileName.endsWith(".corrupt.txt")) {
+			SPIFFS.remove(fileName);
+		}
+
+	}
+
+	fillPresetArray(); 
 
 }
 

@@ -281,6 +281,7 @@
                             <option value="new">Create New</option>
                             <option value="overwrite">Overwrite Existing</option>
                             <option value="delete">Delete Existing</option>
+                            <option value="deleteall">Delete ALL</option>
                         </select>
                     </div>
                     <!--style="display: none;"-->
@@ -930,8 +931,11 @@
                   $('#input_savename').closest('div.ui-field-contain').hide();
                   $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
                 }
-                
-                
+
+                    if (command == "deleteall") {
+                  $('#input_savename').closest('div.ui-field-contain').hide();
+                  $('#savepage_effects_list_select').closest('div.ui-field-contain').hide();
+                }            
           
                 });
                 
