@@ -85,7 +85,7 @@
             <a href="#homepage" data-role="button" class="ui-btn">Home</a>
             <!--<a href="#savepage" data-role="button" class="ui-btn">Save</a>-->
             <a href="#presetspage" data-role="button" class="ui-btn">Presets</a>
-            <a href="#palette" data-role="button" class="ui-btn">Palette</a>
+            <a href="#palette" data-role="button" class="ui-btn" id="palettebutton">Palette</a>
             <a href="#timer" data-role="button" class="ui-btn">Timer</a>
             <a href="#layout" data-role="button" class="ui-btn">Layout</a>
             <a href="/espman/" rel="external" data-role="button" class="ui-btn">ESPmanager</a>
@@ -129,7 +129,7 @@
 
 <div id="effectoptions">
               
-              <!--("input_textbox"), ("input_textbox_IP"), ("input_slider"), ("input_textbox_rgb"),("input_selectmenu")-->
+              <!--classes  ("input_textbox"), ("input_textbox_IP"), ("input_slider"), ("input_textbox_rgb"),("input_selectmenu")-->
 
                 <div class="ui-field-contain input_selectmenu_palette Palette">
                     <label for="input_Palette">Palette:</label>
@@ -294,10 +294,10 @@
                 
                 <div class="ui-field-contain" style="display: none;">
                     <label for="input_savename">Effect Name:</label>
-                    <input type="text" name="presetsavename" id="input_savename" value="">
+                    <input type="text" name="presetsavename" id="input_savename" value="" class="noEnterSubmit">
                 </div>
 
-                <a href="##" data-rel="back" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+                <a href="#homepage" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
 
                 </form>
         </div>
@@ -318,7 +318,7 @@
     <!--</div>-->
 
 
-    <div data-role="page" id="layout">
+    <div data-role="page" id="layout" data-close-btn="right" data-dialog="true">
 
         <div data-role="content">
 
@@ -329,15 +329,15 @@
             <form id="layoutform">
                 <div class="ui-field-contain">
                     <label for="nopixels">Number of Pixels:</label>
-                    <input type="text" name="nopixels" id="nopixels" value="">
+                    <input type="text" name="nopixels" id="nopixels" value="" class="noEnterSubmit">
                 </div>
                 <div class="ui-field-contain">
                     <label for="gridx">X dimentions:</label>
-                    <input type="text" name="grid_x" id="gridx" value="">
+                    <input type="text" name="grid_x" id="gridx" value="" class="noEnterSubmit">
                 </div>
                 <div class="ui-field-contain">
                     <label for="gridy">Y dimentions:</label>
-                    <input type="text" name="grid_y" id="gridy" value="">
+                    <input type="text" name="grid_y" id="gridy" value="" class="noEnterSubmit">
                 </div>
                 <div class="ui-field-contain">
                     <label for="select-matrix-type">Matrix Config:</label>
@@ -401,7 +401,9 @@
                 </div>
 
                 <!-- multimatrix config-->
-                <button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
+                //<button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>
+                <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+
             </form>
         </div>
 
@@ -444,13 +446,13 @@
                 
                 <div class="ui-field-contain">
                     <label for="input-palette-spread">Spread:</label>
-                    <input type="text" name="palette-spread" id="input-palette-spread" value="">
+                    <input type="text" name="palette-spread" id="input-palette-spread" value="" class="noEnterSubmit">
                 </div>
                 <div class="ui-field-contain">
                     <label for="input-palette-delay">Time Delay:</label>
-                    <input type="text" name="palette-delay" id="input-palette-delay" value="">
+                    <input type="text" name="palette-delay" id="input-palette-delay" value="" class="noEnterSubmit">
                 </div>
-                <a href="##" data-rel="back" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+                <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
 
                 <!--<button id="apply_palette_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>-->
             </form>
@@ -482,7 +484,7 @@
                 <div id="maintimerdiv">
                     <div class="ui-field-contain">
                         <label for="input-timer-delay">Delay (min):</label>
-                        <input type="text" name="timer" id="input-timer-delay" value="">
+                        <input type="text" name="timer" id="input-timer-delay" value="" class="noEnterSubmit">
                     </div>
 
                     <div class="ui-field-contain">
@@ -512,7 +514,7 @@
                         </div>                        
                         
                     </div>
-                <a href="##" data-rel="back" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+                <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
 
                     <!--<button id="apply_layout_settings" type="button" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Apply</button>-->
                 </div>
@@ -618,12 +620,21 @@
       $(document).on( "pagechange", function( event ) { GetData($.mobile.activePage.attr('id'));  } ); 
 
 
-            $(document).on("pageshow", "#layout", function() {
+  //    $('.noEnterSubmit').bind('keypress', false);
+      
+      $('.noEnterSubmit').keypress(function(e){
+    //if ( e.which == 13 ) return false;
+    //or...
+    if ( e.which == 13 ) e.preventDefault();
+    });
+
+
+      //      $(document).on("pageshow", "#layout", function() {
 
 
 
 
-            });
+   //         });
 
 
             //$(document).on('pageinit', '#autotune', function(){     
@@ -1302,6 +1313,12 @@
                             
                         
                         if (result.hasOwnProperty('settings')) {
+                          
+                          if (result.settings.hasOwnProperty("Palette")) {
+                            $("#palettebutton").show();
+                          } else {
+                            $("#palettebutton").hide();
+                          }
                           
                         $('#effectoptions').children('div').each(function(index) {
                           $(this).hide();
