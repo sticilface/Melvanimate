@@ -43,9 +43,11 @@ bool UDPEffect::Run()
 
 bool UDPEffect::Start()
 {
-	if (strip)
+	animator = new NeoPixelAnimator(1); 
+
+	if (strip && animator)
 	{
-		strip->ClearTo( RgbColor(0, 0, 0));
+		Adalight_Flash(); 
 	}
 	
 	if (_udp) {
@@ -82,8 +84,9 @@ bool UDPEffect::Stop()
 		_vars = nullptr;
 	}
 
-	// if (animator) {
-	// 	animator->FadeTo(250, 0);
-	// }
+	if (animator) {
+		delete animator;
+		animator = nullptr; 
+	}
 
 }

@@ -2,8 +2,11 @@
 
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
-
 #include "EffectHandler.h"
+#include "helperfunc.h"
+
+
+using namespace helperfunc; 
 
 class UDPEffect : public EffectHandler
 {
@@ -28,6 +31,8 @@ public:
 		addVar(new Variable<uint16_t>("udp_port", 8888));
 		addVar(new Variable<bool>("udp_usemulticast", true)); 
 		addVar(new Variable<IPAddress>("udp_multicast_ip_addr", IPAddress(224, 0, 0, 0)));
+
+		
 		
 	}
 
@@ -35,8 +40,6 @@ public:
 	inline bool usemulticast() { return getVar<bool>("udp_usemulticast");}
 	inline IPAddress multicastaddress() { return getVar<IPAddress>("udp_multicast_ip_addr") ;}
 
-
-	static void Adalight_Flash();
 
 private:
 
