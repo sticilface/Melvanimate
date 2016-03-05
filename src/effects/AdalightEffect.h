@@ -1,8 +1,11 @@
 #pragma once
 
 #include "EffectHandler.h"
+#include "helperfunc.h"
 
 #define SEND_ADA_TIMEOUT 1000
+
+using namespace helperfunc; 
 
 class AdalightEffect : public EffectHandler
 {
@@ -28,8 +31,6 @@ public:
 	}
 
 	inline  int serialspeed()  {  return getVar<int>("serialspeed"); }
-
-	static void Adalight_Flash();
 
 private:
 	HardwareSerial & _Serial;

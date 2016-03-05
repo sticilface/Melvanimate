@@ -185,3 +185,32 @@ bool helperfunc::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, Json
 		return false;
 	}
 }
+
+void  helperfunc::Adalight_Flash()
+{
+
+	if (!animator) return; 
+	
+	AnimEaseFunction easing = NeoEase::QuadraticInOut;
+	AnimUpdateCallback animUpdate = [ = ] (const AnimationParam & param) {
+
+		RgbColor updatedColor;
+		float progress = easing(param.progress);
+
+		if (progress < 0.25) {
+			updatedColor = RgbColor::LinearBlend(RgbColor(0), RgbColor(100, 0, 0), progress * 4 );
+		} else if (progress < 0.5) {
+			updatedColor = RgbColor::LinearBlend(RgbColor(100, 0, 0), RgbColor(0, 100, 0) , (progress - 0.25) * 4 );
+		} else if (progress < 0.75) {
+			updatedColor = RgbColor::LinearBlend(RgbColor(0, 100, 0), RgbColor(0, 0, 100), (progress - 0.5) * 4 );
+		} else {
+			updatedColor = RgbColor::LinearBlend(RgbColor(0, 0, 100), RgbColor(0, 0, 0), (progress - 0.75) * 4 );
+		}
+
+		for (int pixel = 0; pixel < strip->PixelCount(); pixel++) {
+			strip->SetPixelColor(pixel, updatedColor);
+		}
+	};
+
+		animator->StartAnimation(0, 1000, animUpdate);
+}

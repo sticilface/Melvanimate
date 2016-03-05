@@ -14,20 +14,18 @@ extern NeoPixelAnimator * animator;
 bool AdalightEffect::Start()
 {
 
-	if (millis() > 30000) { Adalight_Flash(); }
+	animator = new NeoPixelAnimator(1);
+
+	//if (millis() > 30000) { 
+	if (animator) {
+		Adalight_Flash(); 
+	}
 
 	if (_Serial) {
 		_Serial.flush();
-		delay(500);
-		//Serial.end(); //  this seems to cause reboot 
-	}
-
-	uint32_t speed = 115200;
-
-	speed = serialspeed();
-
-	{
-		_Serial.begin(speed);
+		//delay(500);
+		//Serial.end(); //  this seems to cause reboot
+		_Serial.begin(serialspeed());
 	}
 
 
@@ -42,53 +40,29 @@ bool AdalightEffect::Stop()
 	}
 
 	if (_vars) {
-		delete _vars; 
-		_vars = nullptr; 
+		delete _vars;
+		_vars = nullptr;
 	}
+
+	if (animator) {
+		delete animator;
+		animator = nullptr;
+	}
+
 	_Serial.begin(_defaultSpeed);
-	_Serial.println(); 
+	_Serial.println();
 }
 
 
-void  AdalightEffect::Adalight_Flash()
-{
 
-	for (int pixel = 0; pixel < strip->PixelCount(); pixel++) {
-
-		// RgbColor originalcolor = strip->GetPixelColor(pixel);
-
-		// AnimUpdateCallback animUpdate = [pixel, originalcolor] (float progress) {
-		// 	RgbColor updatedColor;
-
-		// 	if (progress < 0.25) {
-		// 		updatedColor = RgbColor::LinearBlend(originalcolor, RgbColor(100, 0, 0), progress * 4 );
-		// 	} else if (progress < 0.5) {
-		// 		updatedColor = RgbColor::LinearBlend(RgbColor(100, 0, 0), RgbColor(0, 100, 0) , (progress - 0.25) * 4 );
-		// 	} else if (progress < 0.75) {
-		// 		updatedColor = RgbColor::LinearBlend(RgbColor(0, 100, 0), RgbColor(0, 0, 100), (progress - 0.5) * 4 );
-		// 	} else {
-		// 		updatedColor = RgbColor::LinearBlend(RgbColor(0, 0, 100), RgbColor(0, 0, 0), (progress - 0.75) * 4 );
-		// 	}
-		// 	strip->SetPixelColor(pixel, updatedColor);
-		// };
-
-		// if (animator) {
-		// 	animator->StartAnimation(pixel, 1000, animUpdate);
-		// }
-
-
-	}
-
-}
 
 bool AdalightEffect::Run()
 {
 	uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
 
-	if (!_vars)
-	{
+	if (!_vars) {
 		Stop();
-		return false; 
+		return false;
 	}
 
 	switch (_vars->state) {
@@ -156,7 +130,7 @@ bool AdalightEffect::Run()
 
 	{
 		if (strip) {
-			strip->Dirty(); 
+			strip->Dirty();
 			_vars->pixellatchtime = millis();
 			strip->Show();
 		}
@@ -165,5 +139,5 @@ bool AdalightEffect::Run()
 	break;
 
 	}
-	return true; 
+	return true;
 }

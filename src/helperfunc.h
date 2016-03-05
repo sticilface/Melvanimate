@@ -2,11 +2,11 @@
 
 #//include <RgbColor.h>
 //#include <HslColor.h>
-#include "internal/RgbColor.h"
-#include "internal/HslColor.h"
+#include <internal/RgbColor.h>
+#include <internal/HslColor.h>
+#include "mybus.h"
 
 #include <ArduinoJson.h>
-
 
 namespace helperfunc {
 
@@ -16,6 +16,7 @@ namespace helperfunc {
 	
 	bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
 	bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonArray *& root, const char * file);
+	void Adalight_Flash();
 
 
 }
