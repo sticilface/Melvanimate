@@ -23,7 +23,7 @@ EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandl
 	_NextInLine(nullptr), _defaulteffecthandle(nullptr)
 {};
 
-bool EffectManager::Add(const char * name, EffectHandler* handle, bool animations, bool defaulteffect)
+bool EffectManager::Add(const char * name, EffectHandler* handle, bool defaulteffect)
 {
 	_count++;
 
@@ -42,7 +42,6 @@ bool EffectManager::Add(const char * name, EffectHandler* handle, bool animation
 		_lastHandle->name(name);  // give it name...
 	}
 
-	handle->animate(animations);
 	DebugEffectManagerf("ADDED EFFECT %u: %s\n", _count, handle->name());
 }
 
@@ -75,8 +74,6 @@ bool EffectManager::Start(EffectHandler* handler)
 
 	if (handler) {
 		_NextInLine = handler;
-
-		_prepareAnimator();
 
 #ifdef DebugEffectManager
 		heap = ESP.getFreeHeap();
@@ -809,7 +806,6 @@ bool EffectManager::Load(uint8_t File, uint8_t ID)
 									modechange = true;
 									handle = _findhandle(preset["effect"].asString());
 									_NextInLine = handle;
-									_prepareAnimator();
 									handle->InitVars();
 
 									if (_defaulteffecthandle) {
@@ -866,34 +862,7 @@ bool EffectManager::Load(uint8_t File, uint8_t ID)
 }
 
 
-// Possible values from 1 to 32768, and there some helpful constants defined as...
-// NEO_MILLISECONDS        1    // ~65 seconds max duration, ms updates
-// NEO_CENTISECONDS       10    // ~10.9 minutes max duration, centisecond updates
-// NEO_DECISECONDS       100    // ~1.8 hours max duration, decisecond updates
-// NEO_SECONDS          1000    // ~18.2 hours max duration, second updates
-// NEO_DECASECONDS     10000    // ~7.5 days, 10 second updates
 
-void EffectManager::_prepareAnimator()
-{
-	if (_NextInLine->animate() && strip->PixelCount() <= MAXLEDANIMATIONS) {
-		if (!animator) {
-			DebugEffectManagerf("[EffectManager::Start] Animator Created\n");
-
-			animator = new NeoPixelAnimator(strip->PixelCount(),NEO_MILLISECONDS);
-		
-		} else {
-			DebugEffectManagerf("[EffectManager::Start] Animator Already in Place\n");
-		}
-	} else {
-		if (animator) {
-			DebugEffectManagerf("[EffectManager::Start] Animator Deleted\n");
-			delete animator;
-			animator = nullptr;
-		} else {
-			DebugEffectManagerf("[EffectManager::Start] Animator Already Deleted\n");
-		}
-	}
-}
 
 bool EffectManager::fillPresetArray()
 {

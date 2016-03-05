@@ -41,6 +41,21 @@ void Melvanimate::loop()
 	_timer.run();
 	_saveGeneral();
 
+	static uint32_t tick = 0;
+
+	if ( millis() - tick > 30) {
+		if (animator) {
+			if ( animator->IsAnimating() ) {
+				animator->UpdateAnimations();
+			}
+		}
+		if (strip) {
+			strip->Show();
+		}
+		tick = millis();
+
+	}
+
 }
 
 void Melvanimate::_init_matrix()

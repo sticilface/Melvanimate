@@ -36,7 +36,7 @@ public:
 	EffectManager();
 	~EffectManager() {};
 
-	bool Add(const char * name, EffectHandler* Handler, bool animations, bool defaulteffect = false);
+	bool Add(const char * name, EffectHandler* Handler, bool defaulteffect = false);
 
 	inline bool Start()  { return Start(_toggleHandle); }
 	bool Start(EffectHandler* handle);
@@ -98,8 +98,7 @@ private:
 	std::function<bool()>  _waitFn = nullptr;
 
 	EffectHandler* _findhandle(const char * handle);
-	void _prepareAnimator(); 
-
+	
 	struct Presets_s {
 		~Presets_s(){
 			if (name) {
