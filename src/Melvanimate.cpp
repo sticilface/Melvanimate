@@ -78,7 +78,7 @@ void Melvanimate::_init_LEDs()
 
 	if (_pixels) {
 		//strip = new NeoPixelBus(_pixels, DEFAULT_WS2812_PIN);
-		strip = new NeoPixelBus<NeoGrbFeature, NeoEsp8266Uart800KbpsMethod>(_pixels, DEFAULT_WS2812_PIN);
+		strip = new MyPixelBus(_pixels, DEFAULT_WS2812_PIN);
 
 	}
 
@@ -219,12 +219,12 @@ bool Melvanimate::_saveGeneral(bool override)
 	//  need to check this... think it overwrites leaving old stuff behind...
 	// if (!_settings) {
 	// 	DebugMelvanimatef("ERROR File NOT open!\n");
-		//_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
-		//if (!_settings) {
-			_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
-			//DebugMelvanimatef("Failed to create empty file too\n");
-			if (!_settings) { return false; }
-		//}
+	//_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
+	//if (!_settings) {
+	_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
+	//DebugMelvanimatef("Failed to create empty file too\n");
+	if (!_settings) { return false; }
+	//}
 	//}
 
 	_settings.seek(0, SeekSet);
@@ -388,6 +388,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 	JsonObject& root = jsonBuffer.createObject();
 
 	root["code"] = code;
+	root["heap"] = ESP.getFreeHeap(); 
 
 	/*
 	      Home page
@@ -793,7 +794,7 @@ void Melvanimate::_handleWebRequest()
 
 
 	if (_HTTP.hasArg("flashfirst")) {
-		
+
 		// page = "layout";
 		// Start("Off");
 		// Stop();
@@ -895,7 +896,7 @@ void Melvanimate::_handleWebRequest()
 		} else if (_HTTP.arg("presetcommand") == "delete" ) {
 			code = removePreset(_HTTP.arg("selectedeffect").toInt());
 		} else if (_HTTP.arg("presetcommand") == "deleteall" ) {
-			removeAllpresets(); 
+			removeAllpresets();
 		}
 
 
@@ -946,5 +947,7 @@ bool Melvanimate::_check_duplicate_req()
 	return match & !time_elapsed;
 
 }
+
+
 
 
