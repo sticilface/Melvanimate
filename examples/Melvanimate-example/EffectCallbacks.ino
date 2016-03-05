@@ -53,23 +53,193 @@ void offFn(effectState &state, EffectHandler* ptr)
     switch (state) {
 
     case PRE_EFFECT: {
-      effect.SetTimeout(1000);
-      lights.autoWait();
-//      FadeTo(0);
+
+      if (animator) {
+        delete animator;
+      }
+
+      // have to be careful of number of pixels..
+      if (strip->PixelCount() < MAX_NUMBER_OF_ANIMATIONS ) {
+        animator = new NeoPixelAnimator(strip->PixelCount());
+      }
+
+      effect.SetTimeout(1000); //  set speed through the effect
+      lights.autoWait(); //  halts progress through states untill animator has finished..
+
+      if (animator) {
+
+        AnimEaseFunction easing = NeoEase::QuadraticInOut;
+
+        for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
+
+          RgbColor originalColor = strip->GetPixelColor(pixel);
+
+          AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
+            float progress = easing(param.progress);
+            RgbColor updatedColor = RgbColor::LinearBlend(originalColor, RgbColor(0), progress);
+            strip->SetPixelColor(pixel, updatedColor);
+          };
+
+          animator->StartAnimation(pixel, 1000, animUpdate);
+
+        }
+      }
+
     }
 
     break;
     case RUN_EFFECT: {
       strip->ClearTo(0);
+      if (animator) {
+        delete animator;
+        animator = nullptr;
+      }
+
     }
     break;
+    case POST_EFFECT: {
+
+    }
     }
   }
 }
 
+/*-----------------------------------------------
+*
+*                      offFn
+*
+*------------------------------------------------*/
+
+void NeoPixDemoFn(effectState &state, EffectHandler* ptr)
+{
+
+  if (ptr) {
+
+    SwitchEffect& effect = *static_cast<SwitchEffect*>(ptr);
+
+    switch (state) {
+
+    case PRE_EFFECT: {
+      Serial.println("[NeoPixDemoFn] PRE_EFFECT");
+
+      if (animator) {
+        delete animator;
+      }
+
+      animator = new NeoPixelAnimator(1);
+
+      if (strip) {
+        strip->ClearTo(RgbColor(0, 0, 0));
+      }
+    }
+    break;
+    case RUN_EFFECT: {
+
+      if (animator && !animator->IsAnimating()) {
+
+        static uint8_t randomvar = 0;
+
+        //strip->ClearTo(RgbColor(0, 0, 0));
+        const uint8_t peak = 128;
+
+        RgbColor targetColor = RgbColor(random(peak), random(peak), random(peak));
+
+        // pick a random duration of the animation for this pixel
+        // since values are centiseconds, the range is 1 - 4 seconds
+        uint16_t time = 5000; //random(100, 400);
+
+        // each animation starts with the color that was present
+        RgbColor originalColor = strip->GetPixelColor(0);
+        // and ends with a random color
+        // with the random ease function
+        AnimEaseFunction easing;
+
+        // switch (randomvar) {
+        // case 0:
+        //   easing = NeoEase::QuadraticInOut;
+        //   break;
+        // case 1:
+        //   easing = NeoEase::CubicInOut;
+        //   break;
+        // case 2:
+        //   easing = NeoEase::QuarticInOut;
+        //   break;
+        // case 3:
+        //   easing = NeoEase::QuinticInOut;
+        //   break;
+        // case 4:
+        //   easing = NeoEase::SinusoidalInOut;
+        //   break;
+        // case 5:
+        //   easing = NeoEase::ExponentialInOut;
+        //   break;
+        // case 6:
+        //   easing = NeoEase::CircularInOut;
+        //   break;
+        // }
+
+        easing = NeoEase::QuadraticInOut;
+
+        /*
+        enum AnimationState
+        {
+        AnimationState_Started,
+        AnimationState_Progress,
+        AnimationState_Completed
+        };
+
+        struct AnimationParam
+        {
+        float progress;
+        uint16_t index;
+        AnimationState state;
+        };
+
+        */
+
+        AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
+          // progress will start at 0.0 and end at 1.0
+          // we convert to the curve we want
+          float progress = easing(param.progress);
+          RgbColor updatedColor;
 
 
 
+          if (progress < 0.5) {
+            updatedColor = RgbColor::LinearBlend(originalColor, targetColor, progress * 2.0f);
+          } else {
+            updatedColor = RgbColor::LinearBlend(targetColor, 0, (progress - 0.5f) * 2.0f);
+          }
+
+          // use the curve value to apply to the animation
+          for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
+
+            strip->SetPixelColor(pixel, updatedColor);
+
+          }
+
+        };
+
+        // now use the animation properties we just calculated and start the animation
+        // which will continue to run and call the update function until it completes
+        animator->StartAnimation(0, time, animUpdate);
+
+
+
+
+
+
+      } // if animator is animating
+
+
+    } // end of run effect
+    break;
+
+    } // end of switch
+
+
+  } // end of if(ptr)
+} // end of Fn
 
 
 
@@ -83,7 +253,7 @@ void offFn(effectState &state, EffectHandler* ptr)
 *
 *------------------------------------------------*/
 
-void TimingFn(effectState& state, EffectHandler* ptr)
+void TimingFn(effectState & state, EffectHandler * ptr)
 {
 
   switch (state) {
@@ -132,7 +302,7 @@ void TimingFn(effectState& state, EffectHandler* ptr)
 }
 
 
-void DummyFn(effectState& state, EffectHandler* ptr)
+void DummyFn(effectState & state, EffectHandler * ptr)
 {
   static uint32_t tick = 0;
   if (millis() - tick < 1000) { return; }
@@ -141,7 +311,7 @@ void DummyFn(effectState& state, EffectHandler* ptr)
 
 }
 
-void CascadeEffectFn(effectState& state, EffectHandler* ptr)
+void CascadeEffectFn(effectState & state, EffectHandler * ptr)
 {
   static uint32_t tick = 0;
   if (millis() - tick < 1000) { return; }
@@ -156,48 +326,79 @@ void CascadeEffectFn(effectState& state, EffectHandler* ptr)
 *
 *------------------------------------------------*/
 
-void SimpleColorFn(effectState& state, EffectHandler* ptr)
+void SimpleColorFn(effectState &state, EffectHandler* ptr)
 {
-  SimpleEffect* effect = static_cast<SimpleEffect*>(ptr);
 
-  if (effect) {
+  if (ptr) {
+
+    SimpleEffect& effect = *static_cast<SimpleEffect*>(ptr);
+    RgbColor newColor = dim( effect.color(), effect.brightness() );
 
     switch (state) {
 
     case PRE_EFFECT: {
-      Serial.println("[SimpleColorFn] PRE_EFFECT");
+//     Serial.println("[SimpleColorFn] PRE_EFFECT Called");
 
-      effect->SetTimeout(10000);
-      lights.autoWait(); //  this causes the manager to wait before latching over to next effect, or state...
+      if (animator) {
+        delete animator;
+      }
 
-//      FadeTo( dim(effect->color(), effect->brightness()));
+      // have to be careful of number of pixels..
+      if (strip->PixelCount() < MAX_NUMBER_OF_ANIMATIONS ) {
+        animator = new NeoPixelAnimator(strip->PixelCount());
+      }
 
-    }
+      effect.SetTimeout(2000); //  set speed through the effect
 
-    break;
-    case RUN_EFFECT: {
-      //FadeTo(2000, lights.Current()->getColor());
-    }
-    break;
+      lights.autoWait(); //  halts progress through states untill animator has finished..
 
-    case POST_EFFECT: {
-      Serial.println("[SimpleColorFn] POST_EFFECT");
-      lights.autoWait();
-//      FadeTo(0);
-    }
-    break;
+      if (animator) {
+//       Serial.println("[SimpleColorFn] PRE_EFFECT animator exists");
+        AnimEaseFunction easing = NeoEase::QuadraticInOut;
 
-    case EFFECT_REFRESH: {
-      state = PRE_EFFECT;
-      Serial.println("[SimpleColorFn] Refresh Called");
+        for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
+
+          RgbColor originalColor = strip->GetPixelColor(pixel);
+
+          AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
+            float progress = easing(param.progress);
+            RgbColor updatedColor = RgbColor::LinearBlend(originalColor, newColor, progress);
+            strip->SetPixelColor(pixel, updatedColor);
+          };
+
+          animator->StartAnimation(pixel, 1000, animUpdate);
+
+        }
+      }
       break;
     }
+
+    case RUN_EFFECT: {
+      if (strip) {
+        strip->ClearTo(newColor);
+      }
+      if (animator) {
+        delete animator;
+        animator = nullptr; 
+      }
+      break;
+    }
+    case POST_EFFECT: {
+      if (animator) {
+        delete animator;
+        animator = nullptr;
+      }
+      break;
+    }
+    case EFFECT_REFRESH: {
+      state = PRE_EFFECT;
+//      Serial.println("[SimpleColorFn] Refresh Called");
+      break;
+    }
+
     }
   }
 }
-
-
-
 
 /*-----------------------------------------------
 *
