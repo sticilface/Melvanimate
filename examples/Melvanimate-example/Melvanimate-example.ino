@@ -21,7 +21,6 @@
 
 //#include <GDBStub.h>
 
-
 #include <FS.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
@@ -60,6 +59,10 @@
 #define Debugf(...) {}
 #endif
 
+
+using namespace helperfunc;
+
+//extern "C" cont_t g_cont;
 
 //  this is the native SDK json lib.
 //#include <json/json.h>
@@ -164,6 +167,14 @@ void setup()
 
 
   HTTP.on("/crash", HTTP_ANY, []() { NeoPixelBus * voidpointer; voidpointer->Show(); });
+
+  HTTP.on("/stack", HTTP_ANY, []() {
+     //size_t freemem = cont_get_free_stack(&g_cont);
+
+    //Serial.printf("[stack] free = %u\n",freemem ); 
+
+  });
+
   HTTP.on("/debug", HTTP_GET, []() {
     static bool debugstate = false;
     debugstate = !debugstate;
@@ -413,6 +424,9 @@ void setup()
 
 void loop()
 {
+
+    // size_t freemem = cont_get_free_stack(&g_cont);
+
   uint32_t _tick = millis();
   uint32_t _arrays[10] = {0};
   uint8_t poss = 0;

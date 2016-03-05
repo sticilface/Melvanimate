@@ -14,6 +14,7 @@
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include "BufferedPrint.h"
+#include "helperfunc.h"
 
 #include <NeoPixelBus.h>
 #include <FS.h>
@@ -38,6 +39,7 @@
 #define DebugMelvanimatef(...) {}
 #endif
 
+using namespace helperfunc; 
 
 // globals for neopixels.
 extern NeoPixelBus * strip;
@@ -75,7 +77,7 @@ public:
 
 	int getTimeLeft(); 
 
-	static RgbColor dim( RgbColor input, const uint8_t brightness);
+	//static RgbColor dim( RgbColor input, const uint8_t brightness);
 
 private:
 	bool _saveGeneral(bool override = false);

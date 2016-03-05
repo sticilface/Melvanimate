@@ -5,6 +5,9 @@
 
 #include "PropertyManager.h"
 #include "EffectManager.h"
+#include "helperfunc.h"
+
+using namespace helperfunc; 
 
 AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 {
@@ -94,7 +97,7 @@ bool Variable<RgbColor>::parseJsonProperty(JsonObject & root)
 
 		if (root[_name].is<const char*>() ) {
 //			Serial.printf("[Variable<RgbColor>::parseJsonProperty] Color converted from String\n");
-			EffectManager::convertcolor(root, _name);
+			convertcolor(root, _name);
 		}
 
 		uint8_t R = root[_name][0];

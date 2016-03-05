@@ -76,15 +76,15 @@ void Melvanimate::_init_LEDs()
 
 
 
-RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
-{
-	if (brightness == 0) { return RgbColor(0); }
-	if (brightness == 255) { return input; }
-	if (input.R == 0 && input.G == 0 && input.B == 0 ) { return input; }
-	HslColor originalHSL = HslColor(input);
-	originalHSL.L =  originalHSL.L   * ( float(brightness) / 255.0 ) ;
-	return RgbColor( HslColor(originalHSL.H, originalHSL.S, originalHSL.L )  );
-}
+// RgbColor  Melvanimate::dim(RgbColor input, const uint8_t brightness)
+// {
+// 	if (brightness == 0) { return RgbColor(0); }
+// 	if (brightness == 255) { return input; }
+// 	if (input.R == 0 && input.G == 0 && input.B == 0 ) { return input; }
+// 	HslColor originalHSL = HslColor(input);
+// 	originalHSL.L =  originalHSL.L   * ( float(brightness) / 255.0 ) ;
+// 	return RgbColor( HslColor(originalHSL.H, originalHSL.S, originalHSL.L )  );
+// }
 
 
 void        Melvanimate::grid(const uint16_t x, const uint16_t y)

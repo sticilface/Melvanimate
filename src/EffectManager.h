@@ -3,6 +3,7 @@
 #include <functional>
 #include <ArduinoJson.h>
 #include "EffectHandler.h"
+#include "helperfunc.h"
 
 #define PRESETS_FILE "/presets_"
 
@@ -14,7 +15,7 @@
 #define DebugEffectManagerf(...) {}
 #endif
 
-
+using namespace helperfunc;
 /* ------------------------------------------------------------------------
 	Effect Mangager
 	This is the base class for managing effects
@@ -51,19 +52,13 @@ public:
 
 	// preset hanlding
 	bool Save(uint8_t ID, const char * name, bool overwrite = false);
-//	bool Save(String ID, const char * name, bool overwrite = false);
 	
 	//bool Load(String value);  //  loads effects using file number... 1.2 3.4 etc.... needed for presets page, or presets that change running effect
 	bool Load(uint8_t ID);    //  loads effect for the current running effect.. works from homepage... 
 	bool Load(uint8_t File, uint8_t ID); //  they all call this eventually.... 
 	bool removePreset(uint8_t ID);
-	//bool removePreset(String ID);
-
-	//old...
-//	uint8_t nextFreePreset(JsonObject & root);
 
 	// fetches info from SPIFFS valid presests for current effect
-//	bool getPresets(EffectHandler* handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names );
 	void removeAllpresets();
 	void addAllpresets(JsonObject & root); 
 	bool addCurrentPresets(JsonObject & root); 
@@ -76,13 +71,8 @@ public:
 	uint8_t nextFreePresetID(); 
 
 	// maybe move this into a helper header file....
-	static bool convertcolor(JsonObject & root, const char * colorstring);
-	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
-	static bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonArray *& root, const char * file);
 
-//	uint8_t _numberofpresets = 0;
-//	char ** _preset_names = nullptr;
-//	uint8_t * _presets = nullptr;
+
 
 protected:
 
