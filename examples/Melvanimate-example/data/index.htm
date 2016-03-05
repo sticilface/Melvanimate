@@ -157,16 +157,16 @@
                 </div>
                 <div class="ui-field-contain input_slider brightness">
                     <label for="input_brightness">Brightness:</label>
-                    <input class="mysubmitthis " type="range" name="brightness" id="input_brightness" min="0" max="255" step="1" value="0">
+                    <input class="mysubmitslider " type="range" name="brightness" id="input_brightness" min="0" max="255" step="1" value="0">
                 </div>
 
                 <div class="ui-field-contain input_slider speed">
                     <label for="input_speed">Speed:</label>
-                    <input class="mysubmitthis  " type="range" name="speed" id="input_speed" min="0" max="255" step="1" value="0">
+                    <input class="mysubmitslider  " type="range" name="speed" id="input_speed" min="0" max="255" step="1" value="0">
                 </div>
                 <div class="ui-field-contain input_slider randomness ">
                     <label for="input_randomness">Randomness:</label>
-                    <input class="mysubmitthis  " type="range" name="randomness" id="input_randomness" min="0" max="8" step="1" value="0">
+                    <input class="mysubmitslider  " type="range" name="randomness" id="input_randomness" min="0" max="8" step="1" value="0">
                 </div>
 
                 <div class="ui-field-contain input_textbox marqueetext">
@@ -769,7 +769,7 @@
             $(document).on('touchstart click', '#myheader', function(e) {
                 e.preventDefault();
                 GetData($.mobile.activePage.attr('id'));
-                console.log("#myheader click"); 
+                //console.log("#myheader click"); 
             });
 
             // $(document).on("mobileinit", function() {
@@ -836,6 +836,20 @@
                     .complete(function() {});
             });
 
+            $(document).on('slidestop', '.mysubmitslider', function(e) {
+                $("#status").empty().append("Waiting...").css("color", "blue");;
+                $.post("data.esp", $(this).serialize(), function(data) {
+                        //console.log("Data Sent");
+                    }).success(function(e) {
+                        processJSON(e); 
+                        $("#status").empty().append("Success").css("color", "green");;
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
+            });
+            
             // better way to get data for new page...         
             // $(document).on("pagebeforechange", function(e, data) {
             //     var toPage = data.toPage[0].id;
