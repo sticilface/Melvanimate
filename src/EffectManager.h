@@ -70,16 +70,13 @@ public:
 	void addAllpresets(JsonObject & root); 
 	bool addCurrentPresets(JsonObject & root); 
 
-
-
 	// NEW....manage all presets... 
 	bool fillPresetArray();
+#ifdef DebugEffectManager
 	void dumpPresetArray(); 
+#endif
+	
 	uint8_t nextFreePresetID(); 
-
-	// maybe move this into a helper header file....
-
-
 
 protected:
 
@@ -98,7 +95,7 @@ private:
 	std::function<bool()>  _waitFn = nullptr;
 
 	EffectHandler* _findhandle(const char * handle);
-	
+
 	struct Presets_s {
 		~Presets_s(){
 			if (name) {

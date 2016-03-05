@@ -978,12 +978,11 @@ bool EffectManager::fillPresetArray()
 		}
 	}
 
+#ifdef DebugEffectManager
 	DebugEffectManagerf("[EffectManager::fillPresetArray] presets found: %u, timetaken: %u\n", _presetcountS, millis() - starttime);
-
 	dumpPresetArray();
-
 	DebugEffectManagerf("[EffectManager::fillPresetArray] Next Free: %u\n", nextFreePresetID() );
-
+#endif
 
 
 }
@@ -1001,10 +1000,11 @@ void EffectManager::removeAllpresets()
 
 	}
 
-	fillPresetArray(); 
+	fillPresetArray();
 
 }
 
+#ifdef DebugEffectManager
 void EffectManager::dumpPresetArray()
 {
 	DebugEffectManagerf("[dumpPresetArray] %u presets found \n", _presetcountS);
@@ -1016,6 +1016,7 @@ void EffectManager::dumpPresetArray()
 		}
 	}
 }
+#endif
 
 uint8_t EffectManager::nextFreePresetID()
 {
