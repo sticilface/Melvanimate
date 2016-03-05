@@ -39,10 +39,9 @@ bool DMXEffect::Start()
 	if (_e131 && _vars && strip) {
 		//    if (millis() > 30000) Adalight_Flash();
 		strip->ClearTo(0);
-
 		_vars->count = strip->PixelCount() * 3;
-
 		_vars->bounds = ppu() * 3;
+
 		if (_vars->count % _vars->bounds) {
 			_vars->uniLast = universe() + _vars->count / _vars->bounds;
 		} else {
@@ -76,10 +75,6 @@ bool DMXEffect::Start()
 			_e131->begin( E131_UNICAST, universe());
 //			Serial.printf("[DMXEffect::Start] Unicast Started\n");
 		}
-
-		_vars->bin = getVar<uint16_t>("dmx_bin"); 
-		_vars->universe = getVar<uint8_t>("dmx_universe");
-		_vars->ppu = getVar<uint8_t>("dmx_ppu");
 
 	}
 
@@ -140,9 +135,9 @@ bool DMXEffect::Run()
 					//if (e131.universe == uniLast) {
 					//if (millis() - lastPacket > 25) {
 					_vars->timeoutvar = millis();
-					if (strip) {
-						strip->Show();
-					}
+					
+					strip->Show();
+					
 
 				}
 			}

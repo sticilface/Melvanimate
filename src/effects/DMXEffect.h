@@ -21,10 +21,10 @@ public:
 		Start();
 	}
 
+	inline uint16_t bin() { return getVar<uint16_t>("dmx_bin"); }
+	inline uint8_t  universe() { return getVar<uint8_t>("dmx_universe"); }
+	inline uint8_t  ppu() { return getVar<uint8_t>("dmx_ppu"); }
 
-	inline uint16_t bin() { return _vars->bin; }
-	inline uint8_t  universe() { return _vars->universe; }
-	inline uint8_t  ppu() { return _vars->ppu; }
 	inline uint8_t  channelstart() { return getVar<uint8_t>("dmx_channel_start"); }
 	inline uint16_t port() { return getVar<uint16_t>("dmx_port"); }
 	inline bool usemulticast() { return getVar<bool>("dmx_usemulticast"); }
@@ -40,9 +40,6 @@ private:
 		uint16_t  count{0}, bounds{0};
 		uint32_t* seqError{nullptr};
 		uint32_t  timeoutvar{0};
-		uint16_t  bin{1}; 
-		uint8_t   universe{1}; 
-		uint8_t   ppu{1}; 
 
 	};
 
