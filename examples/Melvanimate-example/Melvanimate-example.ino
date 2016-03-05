@@ -37,9 +37,12 @@
 
 #include <ESPmanager.h>
 #include <FSBrowser.h>
-#include <Melvanimate.h>
 
-#include "SimpleTimer/_SimpleTimer.h"
+#include "Melvanimate.h"
+
+
+
+
 
 #include "effects/SwitchEffect.h"
 #include "effects/SimpleEffect.h"
@@ -64,7 +67,11 @@
 
 using namespace helperfunc;
 
-//extern "C" cont_t g_cont;
+
+extern "C"  {
+  #include <cont.h>
+  extern cont_t g_cont;
+}
 
 //  this is the native SDK json lib.
 //#include <json/json.h>
@@ -172,10 +179,13 @@ void setup()
 
   //HTTP.on("/crash", HTTP_ANY, []() { NeoPixelBus * voidpointer; voidpointer->Show(); });
 
-  HTTP.on("/stack", HTTP_ANY, []() {
-     //size_t freemem = cont_get_free_stack(&g_cont);
+  HTTP.on("/memory", HTTP_ANY, []() {
+     size_t freemem = cont_get_free_stack(&g_cont);
 
-    //Serial.printf("[stack] free = %u\n",freemem ); 
+    Serial.printf("[stack] free = %u\n",freemem ); 
+    Serial.printf("[heap] free = %u\n",ESP.getFreeHeap() ); 
+    HTTP.send(200); // sends OK if were just receiving data...
+
 
   });
 
@@ -442,7 +452,7 @@ void loop()
 
   lights.loop();
 
-  Show_pixels(false); // bool is show pixels override...
+  //Show_pixels(false); // bool is show pixels override...
 
   timer.run();
 
