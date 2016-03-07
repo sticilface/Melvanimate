@@ -44,7 +44,7 @@ private:
 		uint32_t lasttime{0};
 	}; 
 
-	RainbowChaseVars * _vars; 
+	RainbowChaseVars * _vars{nullptr}; 
 
 	void _rainbowCycle();
 	void _rainbow(); 
