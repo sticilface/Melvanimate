@@ -75,7 +75,8 @@ void offFn(effectState &state, EffectHandler* ptr)
           RgbColor originalColor = strip->GetPixelColor(pixel);
 
           AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
-            float progress = easing(param.progress);
+            //float progress = easing(param.progress);
+            float progress = param.progress;
             RgbColor updatedColor = RgbColor::LinearBlend(originalColor, RgbColor(0), progress);
             strip->SetPixelColor(pixel, updatedColor);
           };
@@ -361,7 +362,8 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
           RgbColor originalColor = strip->GetPixelColor(pixel);
 
           AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
-            float progress = easing(param.progress);
+            //float progress = easing(param.progress);
+            float progress = param.progress;
             RgbColor updatedColor = RgbColor::LinearBlend(originalColor, newColor, progress);
             strip->SetPixelColor(pixel, updatedColor);
           };
