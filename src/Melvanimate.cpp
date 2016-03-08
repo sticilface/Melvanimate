@@ -389,6 +389,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 
 	root["code"] = code;
 	root["heap"] = ESP.getFreeHeap(); 
+	root["power"] = String(getPower()); 
 
 	/*
 	      Home page
@@ -603,11 +604,12 @@ template <class T> void Melvanimate::_sendJsontoHTTP( const T & root, ESP8266Web
 void Melvanimate::_handleWebRequest()
 {
 	uint32_t start_time = millis();
+	//_powertick = 0; 
 	String page = "homepage";
 	int8_t code = -1;
 
 	//  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
-	if (_check_duplicate_req()) { _HTTP.setContentLength(0); _HTTP.send(200); return; }
+//	if (_check_duplicate_req()) { _HTTP.setContentLength(0); _HTTP.send(200); return; }
 
 	DebugMelvanimatef("\n");
 
@@ -948,6 +950,53 @@ bool Melvanimate::_check_duplicate_req()
 
 }
 
+uint32_t Melvanimate::getPower() 
+{	
+	uint32_t total = 0;
+		int brightnesstally = 0;
 
+
+	if (millis() - _powertick < 500)  
+	{
+		return _power; 
+	}
+
+	if (strip)
+	{
+
+
+	for (int i = 0; i < strip->PixelCount(); i++) {
+		RgbColor colour = strip->GetPixelColor(i);
+		int brightness = colour.CalculateBrightness();
+		brightness = map(brightness, 0, 255, 0, 60);
+		brightnesstally = brightnesstally + brightness;
+	}
+
+
+
+
+
+
+
+		// for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++)
+		// {
+		// 	RgbColor color =  strip->GetPixelColor(pixel) ;
+
+		// 	total += (color.R + color.G + color.B) / 765;
+
+		// 	//total +=  strip->GetPixelColor(pixel).CalculateBrightness();  
+
+		// }
+
+			//total = total / strip->PixelCount(); 
+
+	}
+
+	_power = brightnesstally; 
+	_powertick = millis(); 
+
+	return brightnesstally  ; 
+
+}
 
 

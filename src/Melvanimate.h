@@ -80,6 +80,8 @@ public:
 
 	int getTimeLeft(); 
 
+	uint32_t getPower(); 
+
 	//static RgbColor dim( RgbColor input, const uint8_t brightness);
 
 private:
@@ -92,6 +94,7 @@ private:
 	void _handleWebRequest();
 	template <class T> static void _sendJsontoHTTP( const T& root, ESP8266WebServer & _HTTP) ;
 	bool _check_duplicate_req();
+
 
 
 	uint16_t  _pixels;
@@ -109,6 +112,9 @@ private:
 	SimpleTimer _timer;
 
 	ESP8266WebServer & _HTTP;
+
+	uint32_t _power{0}; 
+	uint32_t _powertick{0}; 
 
 };
 

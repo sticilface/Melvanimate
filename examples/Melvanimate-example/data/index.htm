@@ -96,7 +96,7 @@
     </div>
 
     <div data-role="footer" data-theme="a">
-        <h2 style="text-align:right">Heap: <var id="heap">-</var> Status: <var id="status"></var></h2>
+        <h2 style="text-align:right">[Power: <var id="power">0</var> mA] [Heap: <var id="heap">-</var> ] [Status: <var id="status"></var> ]</h2>
     </div>
 
 
@@ -1394,7 +1394,10 @@
                       {
                         $("#heap").empty().append(result.heap).css("color", "grey");;
                       }
-                      
+                      if (result.hasOwnProperty('power')) 
+                      {
+                        $("#power").empty().append(result.power).css("color", "orange");;
+                      }
                       
                       
                       
