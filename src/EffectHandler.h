@@ -7,7 +7,7 @@
 					Dummy implementation (required)
 --------------------------------------------------------------------------*/
 
-#define DebugEffectHandler
+//#define DebugEffectHandler
 
 #ifdef DebugEffectHandler
 #define DebugEffectHandlerf(...) Serial.printf(__VA_ARGS__)
