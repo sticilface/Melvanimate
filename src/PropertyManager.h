@@ -166,7 +166,7 @@ public:
 	};
 	~Variable() override {}
 
-	Palette* get() { return &_var; }
+	Palette * get() { return &_var; }
 	void set(Palette * value) { _var = *value; }
 
 	bool addJsonProperty(JsonObject & root) override
@@ -188,7 +188,7 @@ private:
 };
 
 template <>
-class Variable<MelvtrixMan>: public AbstractPropertyHandler
+class Variable<MelvtrixMan*>: public AbstractPropertyHandler
 {
 public:
 	Variable(const char * name)
@@ -209,9 +209,9 @@ public:
 		}
 	}
 
-	MelvtrixMan & get() { return *_var; }
+	MelvtrixMan * get() { return _var; }
 
-	void set(MelvtrixMan value) { _var = &value; }
+	void set(MelvtrixMan * value) { _var = value; }
 
 	bool addJsonProperty(JsonObject & root) override
 	{

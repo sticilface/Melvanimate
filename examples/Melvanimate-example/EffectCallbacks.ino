@@ -999,10 +999,10 @@ void BobblySquaresFn(effectState & state, EffectHandler * ptr)
   case PRE_EFFECT: {
     Serial.printf("[BobblySquaresFn] Creating Objects (%u)\n", ESP.getFreeHeap());
     effect->SetTimeout( 0);
-    if (effect->palette().mode() == OFF) {
-      effect->palette().mode(WHEEL);
+    if (effect->palette()->mode() == OFF) {
+      effect->palette()->mode(WHEEL);
     }
-    effect->palette().total(255) ;
+    effect->palette()->total(255) ;
 
     if (animator) {
       delete animator;
@@ -1027,7 +1027,7 @@ void BobblySquaresFn(effectState & state, EffectHandler * ptr)
   break;
   case RUN_EFFECT: {
 
-    effect->palette().input( effect->color() ); 
+    effect->palette()->input( effect->color() ); 
 
     if (EFFECT) { EFFECT->Run(); }
 
@@ -1108,7 +1108,7 @@ void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2,
 
       //    FadeToAndBack(pixel, effect.palette().nextcolor(), lights.speed() * random(5, 10) );
       RgbColor originalColor = strip->GetPixelColor(pixel);
-      RgbColor targetColor = effect->palette().next();
+      RgbColor targetColor = effect->palette()->next();
 
       AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
         // progress will start at 0.0 and end at 1.0
