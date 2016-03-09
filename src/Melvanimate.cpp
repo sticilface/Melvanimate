@@ -711,7 +711,7 @@ void Melvanimate::_handleWebRequest()
 		//  this is a bit of a bodge...  Capital P for object with all parameters...
 		JsonObject & palettenode = root.createNestedObject("Palette");
 
-		palettenode["mode"] = (uint8_t)Palette::stringToEnum(_HTTP.arg("palette").c_str());
+		palettenode["mode"] = (uint8_t)(_HTTP.arg("palette").toInt()) ;
 
 
 		if (_HTTP.hasArg("palette-random")) {
