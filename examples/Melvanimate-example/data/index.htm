@@ -105,7 +105,7 @@
         <div data-role="content" id="content_homepage">
                 <div class="ui-field-contain">
                     <label for="flip-enable">Enable:</label>
-                    <select id="flip-enable" name="enable" data-role="flipswitch" class="">
+                    <select id="flip-enable" name="enable" data-role="flipswitch" class="mysubmitthis">
                         <option>off</option>
                         <option>on</option>
                     </select>
@@ -115,7 +115,7 @@
 
             <div class="ui-field-contain">
                 <label for="modeslist">Mode:</label>
-                <select name="mode" id="modeslist" class="effectslist">
+                <select name="mode" id="modeslist" class="mysubmitthis">
                 </select>
             </div>
 
@@ -123,7 +123,7 @@
               
             <div class="ui-field-contain presetlistclass">
                 <label for="currentpresetslist">Preset:</label>
-                <select name="preset" id="currentpresetslist" class="mysubmitdropdown"> 
+                <select name="preset" id="currentpresetslist" class="mysubmitthis"> 
                 </select>
             </div>              
 
@@ -726,66 +726,66 @@
             // }); 
 
 
-            $(document).on("pagecreate", "#homepage", function() {
+            // $(document).on("pagecreate", "#homepage", function() {
 
-              //  GetData("all");
+            //   //  GetData("all");
 
-                $('#modeslist').change(function() {
+            //     $('#modeslist').change(function() {
 
-                    //console.log("mode change");
-                    //var mode = $(this).val();
+            //         //console.log("mode change");
+            //         //var mode = $(this).val();
 
-                    // $('#effectoptions').children('div').each(function(index) {
-                    //     $(this).hide();
-                    // });
+            //         // $('#effectoptions').children('div').each(function(index) {
+            //         //     $(this).hide();
+            //         // });
 
-                    // $('#effectoptions').children('div').each(function(index) {
-                    //     //if ($(this).hasClass(mode)) $(this).show();
-                    //     $.each(settings, function(index, element) {
-                    //       if ($(this).hasClass(element)) $(this).show();
-                    //     });
+            //         // $('#effectoptions').children('div').each(function(index) {
+            //         //     //if ($(this).hasClass(mode)) $(this).show();
+            //         //     $.each(settings, function(index, element) {
+            //         //       if ($(this).hasClass(element)) $(this).show();
+            //         //     });
                         
-                    // });
+            //         // });
                     
                     
-                    // if (settings.hasOwnProperty('brightness')) {
-                    //   console.log("brightness present in global settings"); 
-                    //   $('#brightness').parent().show(); 
-                    //   console.log("Parent ID = " + $('#brightness').parent().)
+            //         // if (settings.hasOwnProperty('brightness')) {
+            //         //   console.log("brightness present in global settings"); 
+            //         //   $('#brightness').parent().show(); 
+            //         //   console.log("Parent ID = " + $('#brightness').parent().)
                       
-                    // }
+            //         // }
 
-                    $("#status").empty().append("Waiting ").css("color", "blue");;
+            //         $("#status").empty().append("Waiting ").css("color", "blue");;
                     
-                    $.post("data.esp", $(this).serialize(), function() {
-                        //GetData();
-                    }).success(function(e) {
+            //         $.post("data.esp", $(this).serialize(), function() {
+            //             //GetData();
+            //         }).success(function(e) {
                       
-                        processJSON(e);
+            //             processJSON(e);
                         
-                        //console.log("Settings var = ");
-                        //console.log(settings);
+            //             //console.log("Settings var = ");
+            //             //console.log(settings);
                     
-                        // $('#effectoptions').children('div').each(function(index) {
-                        // //if ($(this).hasClass(mode)) $(this).show();
-                        // current = $(this); 
-                        // $.each(settings, function(key, value) {
-                        //   //console.log("[" + key + "] " + value); 
-                        //   if (current.hasClass(key)) current.show();
-                        // });
+            //             // $('#effectoptions').children('div').each(function(index) {
+            //             // //if ($(this).hasClass(mode)) $(this).show();
+            //             // current = $(this); 
+            //             // $.each(settings, function(key, value) {
+            //             //   //console.log("[" + key + "] " + value); 
+            //             //   if (current.hasClass(key)) current.show();
+            //             // });
                         
-                        // });
+            //             // });
                                           
-                        $("#status").empty().append("Success").css("color", "green");;
-                    })
-                    .error(function() {
-                        $("#status").empty().append("Error").css("color", "red");;
-                    })
-                    .complete(function() {});
+            //             $("#status").empty().append("Success").css("color", "green");;
+            //         })
+            //         .error(function() {
+            //             $("#status").empty().append("Error").css("color", "red");;
+            //         })
+            //         .complete(function() {});
 
-                });
+            //     });
 
-            });
+            // });
 
 
             //  
