@@ -8,6 +8,14 @@
 #include <IPAddress.h>
 #include "melvtrix.h"
 
+//#define DebugPropertyManager
+
+#ifdef DebugMelvanimate
+#define PropertyManagerf(...) Serial.printf(__VA_ARGS__)
+#else
+#define PropertyManagerf(...) {}
+#endif
+
 
 class AbstractPropertyHandler
 {

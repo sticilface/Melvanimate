@@ -14,7 +14,7 @@ AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 	if (ptr) {
 
 		if (!_firsthandle) {
-			Serial.printf("[PropertyManager::addVar] 1st Var added: %s\n", ptr->name());
+			PropertyManagerf("[PropertyManager::addVar] 1st Var added: %s\n", ptr->name());
 			_firsthandle = ptr;
 			ptr->next(nullptr);
 		} else {
@@ -25,7 +25,7 @@ AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 			for (handle = _firsthandle; handle; handle = handle->next()) {
 				lasthandle = handle;
 			}
-			Serial.printf("[PropertyManager::addVar] Added: %s\n", ptr->name());
+			PropertyManagerf("[PropertyManager::addVar] Added: %s\n", ptr->name());
 			lasthandle->next(ptr);
 		}
 		return ptr;
@@ -36,21 +36,22 @@ AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 
 void PropertyManager::EndVars()
 {
-	Serial.printf("[EndVars] Called\n");
+	PropertyManagerf("[EndVars] Called\n");
 
 	AbstractPropertyHandler* handle = _firsthandle;
 	AbstractPropertyHandler* previoushandle = nullptr;
 
+#ifdef PropertyManager
 	if (!handle) {
-			Serial.printf("[EndVars] No handles Identified to delete for %s\n", static_cast<EffectHandler*>(this)->name());
+			PropertyManagerf("[EndVars] No handles Identified to delete for %s\n", static_cast<EffectHandler*>(this)->name());
 	}
-
+#endif
 
 	while (handle) {
 		previoushandle = handle;
 		handle = handle->next();
 		if (previoushandle) {
-			Serial.printf("[EndVars] Deleting: %s\n", previoushandle->name());
+			PropertyManagerf("[EndVars] Deleting: %s\n", previoushandle->name());
 			delete previoushandle;
 		}
 	}
