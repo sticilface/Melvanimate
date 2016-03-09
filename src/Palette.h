@@ -15,7 +15,7 @@
 
 #include <ArduinoJson.h>
 
-#define DebugPalette
+//#define DebugPalette
 
 #ifdef DebugPalette
 #define PaletteDebugf(...) Serial.printf(__VA_ARGS__)

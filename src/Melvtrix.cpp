@@ -202,29 +202,90 @@ bool MelvtrixMan::createMatrix()
     _matrix = nullptr;
   }
   _matrix = new Melvtrix(_grid_x, _grid_y, _matrixconfig);
-  if (_matrix)
-  {
+  if (_matrix) {
     return true;
   } else {
-    return false; 
+    return false;
   }
 }
 
 bool MelvtrixMan::addJson(JsonObject & root)
 {
-  JsonObject& color = root.createNestedObject("Matrix");
+  JsonObject& matrixjson = root.createNestedObject("Matrix");
+
+  matrixjson["enabled"] = (_matrix) ? true : false;
+  matrixjson["x"] = _grid_x;
+  matrixjson["y"] = _grid_y;
+  matrixjson["multiple"] = _multiplematrix;
+  matrixjson["config"] = _matrixconfig;
 
 }
 
 bool MelvtrixMan::parseJson(JsonObject & root)
 {
+  Serial.printf("[MelvtrixMan::parseJson] called\n");
+
+  bool changed = false;
 
   if (!root.containsKey("Matrix") ) {
+    Serial.printf("[MelvtrixMan::parseJson] No Matrix Key\n");
+
     return false;
   }
+
+  JsonObject& matrixjson = root["Matrix"];
+
+  if (matrixjson.containsKey("x")) {
+    if (_grid_x != matrixjson["x"]) {
+      _grid_x = matrixjson["x"];
+      changed = true;
+    }
+  }
+  if (matrixjson.containsKey("y")) {
+    if (_grid_y != matrixjson["y"]) {
+      _grid_y = matrixjson["y"];
+      changed = true;
+    }
+  }
+  if (matrixjson.containsKey("config")) {
+    if (_matrixconfig != matrixjson["config"]) {
+      _matrixconfig = matrixjson["config"];
+      changed = true;
+    }
+  }
+  if (matrixjson.containsKey("multiple")) {
+    if (_multiplematrix != matrixjson["multiple"]) {
+      _multiplematrix = matrixjson["multiple"];
+      changed = true;
+    }
+  }
+
+  //if (matrixjson.containsKey("enabled") || changed) {
+  //  if (matrixjson["enabled"] == true) {
+  if (createMatrix()) {
+    changed = true;
+  }
+  // } else {
+  // not sure yet....
+  // }
+
+
+
+  Serial.printf("[MelvtrixMan::parseJson] _grid_x = %u, _grid_y = %u, config = %u\n", _grid_x, _grid_y, _matrixconfig);
+
+
+  return changed;
+
 }
 
 
+
+
+
+// bool MelvtrixMan::parseHTTPargs(ESP8266WebServer & HTTP)
+// {
+
+// }
 /*
   if (_HTTP.hasArg("grid_x") && _HTTP.hasArg("grid_y")) {
     grid(_HTTP.arg("grid_x").toInt(), _HTTP.arg("grid_y").toInt() );

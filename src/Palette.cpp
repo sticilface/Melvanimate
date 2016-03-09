@@ -30,6 +30,7 @@ void Palette::mode(palette_type mode)
 	_available = available(_mode, _total);
 	_total = _available;
 	_position = 0 ;
+	PaletteDebugf("[Palette::mode] _mode = %u\n", (uint8_t)_mode); 
 }
 
 void Palette::randommode(const char * mode)
@@ -296,6 +297,7 @@ bool Palette::parseJson(JsonObject& root)
 	JsonObject& palette = root[_name];
 
 	if (palette.containsKey("mode")) {
+
 		palette_type modevar = (palette_type)palette["mode"].as<long>();
 
 		if (_mode != modevar ) {

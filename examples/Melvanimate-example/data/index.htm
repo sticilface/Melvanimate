@@ -71,7 +71,7 @@
   
 
     <div data-role="header" data-theme="a" data-position="fixed">
-        <h1 id='myheader'>WS2812-ESPWiFi</h1>
+        <h1 class='myheader'>WS2812-ESPWiFi</h1>
         <a href="#leftpanel" class="ui-btn ui-btn-left ui-alt-icon ui-nodisc-icon ui-corner-all ui-btn-icon-notext ui-icon-bars">Menu</a>
         <!--                <a href="#rightpanel"  class="ui-btn ui-btn-right ui-alt-icon ui-nodisc-icon ui-corner-all ui-btn-icon-notext ui-icon-gear">Menu</a>
  --></div>
@@ -87,7 +87,8 @@
             <a href="#presetspage" data-role="button" class="ui-btn">Presets</a>
             <a href="#palette" data-role="button" class="ui-btn" id="palettebutton">Palette</a>
             <a href="#timer" data-role="button" class="ui-btn">Timer</a>
-            <a href="#layout" data-role="button" class="ui-btn">Layout</a>
+            <a href="#matrixpage" data-role="button" class="ui-btn" id ="matrixbutton">Matrix</a>
+            <a href="#configpage" data-role="button" class="ui-btn">Config</a>
             <a href="/espman/" rel="external" data-role="button" class="ui-btn">ESPmanager</a>
             <a href="#my-header" data-rel="close" class="ui-btn">Close</a>
 
@@ -105,7 +106,7 @@
         <div data-role="content" id="content_homepage">
                 <div class="ui-field-contain">
                     <label for="flip-enable">Enable:</label>
-                    <select id="flip-enable" name="enable" data-role="flipswitch" class="mysubmitthis">
+                    <select id="flip-enable" name="enable" data-role="flipswitch" class="">
                         <option>off</option>
                         <option>on</option>
                     </select>
@@ -115,7 +116,7 @@
 
             <div class="ui-field-contain">
                 <label for="modeslist">Mode:</label>
-                <select name="mode" id="modeslist" class="mysubmitthis">
+                <select name="mode" id="modeslist" class="effectslist">
                 </select>
             </div>
 
@@ -123,7 +124,7 @@
               
             <div class="ui-field-contain presetlistclass">
                 <label for="currentpresetslist">Preset:</label>
-                <select name="preset" id="currentpresetslist" class="mysubmitthis"> 
+                <select name="preset" id="currentpresetslist" class="mysubmitdropdown"> 
                 </select>
             </div>              
 
@@ -325,12 +326,35 @@
     <!--    </div>-->
 
     <!--</div>-->
-
-
-    <div data-role="page" id="layout" data-close-btn="right" data-dialog="true">
+    <div data-role="page" id="configpage" data-close-btn="right" data-dialog="true">
 
 <div data-role="header">
-  <h1> Layout </h1>
+  <h1 class='myheader'> Configuration </h1>
+  </div>
+          <div data-role="content">
+
+            <form id="configform">
+                <div class="ui-field-contain">
+                    <label for="nopixels">Number of Pixels:</label>
+                    <input type="text" name="nopixels" id="nopixels" value="" class="noEnterSubmit">
+                </div>
+                
+                <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+                
+            </form>
+            
+            
+            </div>
+  </div>
+
+
+
+<!--Matrix Page-->
+
+    <div data-role="page" id="matrixpage" data-close-btn="right" data-dialog="true">
+
+<div data-role="header">
+  <h1 class='myheader'> Matrix </h1>
   </div>
         <div data-role="content">
 
@@ -338,11 +362,7 @@
             <p> See <a href="https://learn.adafruit.com/adafruit-neopixel-uberguide/neomatrix-library" target="_blank">here</a> for Matrix layout options. Thanks to Adafruit</p>
             <p id="firstpixelidentify"> Click this to identify first pixel,</p>
             <p id="revealorder">Click this to show order</p>
-            <form id="layoutform">
-                <div class="ui-field-contain">
-                    <label for="nopixels">Number of Pixels:</label>
-                    <input type="text" name="nopixels" id="nopixels" value="" class="noEnterSubmit">
-                </div>
+              <form id='matrixform'>
                 <div class="ui-field-contain">
                     <label for="gridx">X dimentions:</label>
                     <input type="text" name="grid_x" id="gridx" value="" class="noEnterSubmit">
@@ -726,70 +746,70 @@
             // }); 
 
 
-            // $(document).on("pagecreate", "#homepage", function() {
+            $(document).on("pagecreate", "#homepage", function() {
 
-            //   //  GetData("all");
+              //  GetData("all");
 
-            //     $('#modeslist').change(function() {
+                $('#modeslist').change(function() {
 
-            //         //console.log("mode change");
-            //         //var mode = $(this).val();
+                    //console.log("mode change");
+                    //var mode = $(this).val();
 
-            //         // $('#effectoptions').children('div').each(function(index) {
-            //         //     $(this).hide();
-            //         // });
+                    // $('#effectoptions').children('div').each(function(index) {
+                    //     $(this).hide();
+                    // });
 
-            //         // $('#effectoptions').children('div').each(function(index) {
-            //         //     //if ($(this).hasClass(mode)) $(this).show();
-            //         //     $.each(settings, function(index, element) {
-            //         //       if ($(this).hasClass(element)) $(this).show();
-            //         //     });
+                    // $('#effectoptions').children('div').each(function(index) {
+                    //     //if ($(this).hasClass(mode)) $(this).show();
+                    //     $.each(settings, function(index, element) {
+                    //       if ($(this).hasClass(element)) $(this).show();
+                    //     });
                         
-            //         // });
+                    // });
                     
                     
-            //         // if (settings.hasOwnProperty('brightness')) {
-            //         //   console.log("brightness present in global settings"); 
-            //         //   $('#brightness').parent().show(); 
-            //         //   console.log("Parent ID = " + $('#brightness').parent().)
+                    // if (settings.hasOwnProperty('brightness')) {
+                    //   console.log("brightness present in global settings"); 
+                    //   $('#brightness').parent().show(); 
+                    //   console.log("Parent ID = " + $('#brightness').parent().)
                       
-            //         // }
+                    // }
 
-            //         $("#status").empty().append("Waiting ").css("color", "blue");;
+                    $("#status").empty().append("Waiting ").css("color", "blue");;
                     
-            //         $.post("data.esp", $(this).serialize(), function() {
-            //             //GetData();
-            //         }).success(function(e) {
+                    $.post("data.esp", $(this).serialize(), function() {
+                        //GetData();
+                    }).success(function(e) {
                       
-            //             processJSON(e);
+                        processJSON(e);
                         
-            //             //console.log("Settings var = ");
-            //             //console.log(settings);
+                        //console.log("Settings var = ");
+                        //console.log(settings);
                     
-            //             // $('#effectoptions').children('div').each(function(index) {
-            //             // //if ($(this).hasClass(mode)) $(this).show();
-            //             // current = $(this); 
-            //             // $.each(settings, function(key, value) {
-            //             //   //console.log("[" + key + "] " + value); 
-            //             //   if (current.hasClass(key)) current.show();
-            //             // });
+                        // $('#effectoptions').children('div').each(function(index) {
+                        // //if ($(this).hasClass(mode)) $(this).show();
+                        // current = $(this); 
+                        // $.each(settings, function(key, value) {
+                        //   //console.log("[" + key + "] " + value); 
+                        //   if (current.hasClass(key)) current.show();
+                        // });
                         
-            //             // });
+                        // });
                                           
-            //             $("#status").empty().append("Success").css("color", "green");;
-            //         })
-            //         .error(function() {
-            //             $("#status").empty().append("Error").css("color", "red");;
-            //         })
-            //         .complete(function() {});
+                        $("#status").empty().append("Success").css("color", "green");;
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
 
-            //     });
+                });
 
-            // });
+            });
 
 
             //  
-            $(document).on('touchstart click', '#myheader', function(e) {
+            $(document).on('touchstart click', '.myheader', function(e) {
                 e.preventDefault();
                 GetData($.mobile.activePage.attr('id'));
                 //console.log("#myheader click"); 
@@ -1331,6 +1351,12 @@
                           } else {
                             $("#palettebutton").hide();
                           }
+                          if (result.settings.hasOwnProperty("Matrix")) {
+                            $("#matrixbutton").show();
+                          } else {
+                            $("#matrixbutton").hide();
+                          }
+                          
                           
                         $('#effectoptions').children('div').each(function(index) {
                           $(this).hide();
@@ -1426,55 +1452,82 @@
                       $('#presetpage_currentEffect').empty().append("Current Effect: " + result.settings.currentpresetname); // .css("color", "red");;
                     }
                     }
+                    
+                    
+                    
+                    if ($.mobile.activePage.attr('id') == 'configpage') {
+                      
+                        if (result.hasOwnProperty('pixels')) {
+                            $("#nopixels").val(result.pixels);
+                        }                      
+                      
+                      
+                      
+                    }
+                    
+
 
                     // Layout Page
-                    if ($.mobile.activePage.attr('id') == 'layout') {
+                    if ($.mobile.activePage.attr('id') == 'matrixpage') {
+                      
+                      if (result.hasOwnProperty('settings')) {
+                      
+                      if (result.settings.hasOwnProperty('Matrix')) {
+                      
+        console.log("updating matrix page"); 
+        
+                      var matrixresult = result.settings.Matrix;
 
-                        if (result.hasOwnProperty('multiplematrix')) {
-                            if (result.multiplematrix === true) {
+                        if (matrixresult.hasOwnProperty('multiple')) {
+                            if (matrixresult.multiple === true) {
+                              
                                 $("#select-matrix-type").val('multiplematrix').selectmenu("refresh");
+                                
+                                console.log("TRUE multiple = " + matrixresult.multiple); 
+
                             } else {
                                 $("#select-matrix-type").val('singlematrix').selectmenu("refresh");
+                                
+                                console.log("FALSE multiple = " + matrixresult.multiple); 
+
                             }
 
                         }
 
-                        if (result.hasOwnProperty('pixels')) {
-                            $("#nopixels").val(result.pixels);
+                        if (matrixresult.hasOwnProperty('x')) {
+                            $("#gridx").val(matrixresult.x);
                         }
-                        if (result.hasOwnProperty('grid_x')) {
-                            $("#gridx").val(result.grid_x);
+                        if (matrixresult.hasOwnProperty('y')) {
+                            $("#gridy").val(matrixresult.y);
                         }
-                        if (result.hasOwnProperty('grid_y')) {
-                            $("#gridy").val(result.grid_y);
+                        // if (matrixresult.hasOwnProperty('config')) {
+                        //     $("#select-matrix-type").val(matrixresult.config).selectmenu("refresh");
+                        // }
+
+                        if (matrixresult.hasOwnProperty('firstpixel')) {
+                            $("#select-singlematrix").val(matrixresult.firstpixel).selectmenu("refresh");
                         }
-                        if (result.hasOwnProperty('matrixmode')) {
-                            $("#select-matrix-type").val(result.matrixmode).selectmenu("refresh");
+                        if (matrixresult.hasOwnProperty('axis')) {
+                            $("#select-singlematrix-axis").val(matrixresult.axis).selectmenu("refresh");
+                        }
+                        if (matrixresult.hasOwnProperty('sequence')) {
+                            $("#select-singlematrix-seq").val(matrixresult.sequence).selectmenu("refresh");
                         }
 
-                        if (result.hasOwnProperty('firstpixel')) {
-                            $("#select-singlematrix").val(result.firstpixel).selectmenu("refresh");
+                        if (matrixresult.hasOwnProperty('multimatrixtile')) {
+                            $("#select-multimatrix").val(matrixresult.multimatrixtile).selectmenu("refresh");
                         }
-                        if (result.hasOwnProperty('axis')) {
-                            $("#select-singlematrix-axis").val(result.axis).selectmenu("refresh");
+                        if (matrixresult.hasOwnProperty('multimatrixaxis')) {
+                            $("#select-multimatrix-axis").val(matrixresult.multimatrixaxis).selectmenu("refresh");
                         }
-                        if (result.hasOwnProperty('sequence')) {
-                            $("#select-singlematrix-seq").val(result.sequence).selectmenu("refresh");
-                        }
-
-                        if (result.hasOwnProperty('multimatrixtile')) {
-                            $("#select-multimatrix").val(result.multimatrixtile).selectmenu("refresh");
-                        }
-                        if (result.hasOwnProperty('multimatrixaxis')) {
-                            $("#select-multimatrix-axis").val(result.multimatrixaxis).selectmenu("refresh");
-                        }
-                        if (result.hasOwnProperty('multimatrixseq')) {
-                            $("#select-multimatrix-seq").val(result.multimatrixseq).selectmenu("refresh");
+                        if (matrixresult.hasOwnProperty('multimatrixseq')) {
+                            $("#select-multimatrix-seq").val(matrixresult.multimatrixseq).selectmenu("refresh");
                         }
 
                         sortmatrix('#select-matrix-type');
-
+                      } 
                     }
+                  }
 
                     if ($.mobile.activePage.attr('id') == 'palette') {
                       
@@ -1513,6 +1566,7 @@
                          $("#select-palettes-randomness").val("off").selectmenu("refresh");
                          
                        }
+                    
                     }
                     
     }

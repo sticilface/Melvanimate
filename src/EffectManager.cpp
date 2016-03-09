@@ -72,6 +72,11 @@ bool EffectManager::Start(EffectHandler* handler)
 	uint32_t heap;
 #endif
 
+	if (handler == _currentHandle) 
+	{
+		return false; 
+	}
+
 	Stop();
 
 	if (handler) {

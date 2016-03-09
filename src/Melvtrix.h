@@ -115,12 +115,16 @@ public:
    bool createMatrix(); 
    Melvtrix * getMatrix() { return _matrix; }
 
+   //bool parseHTTPargs(ESP8266WebServer & HTTP);
+
+
    bool addJson(JsonObject & root);
    bool parseJson(JsonObject & root);
 private:
   Melvtrix * _matrix{nullptr};
   uint8_t _matrixconfig{NEO_MATRIX_TOP + NEO_MATRIX_LEFT +  NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE};
   uint16_t _grid_x{8}, _grid_y{8};
+  bool _multiplematrix{false};
 
 };
 

@@ -146,23 +146,22 @@ bool Melvanimate::returnWaiting()
 	if (animator && _waiting == 2) {
 
 		if (!animator->IsAnimating()) {
-			DebugMelvanimatef("[Melvanimate::returnWaiting] Autowait END (%u)\n", millis());
+			DebugMelvanimatef("[Melvanimate::returnWaiting] Autowait END\n");
 			_waiting = false;
 			return false;
 		}
 
 	}
 
-	// if ur autowaiting but animator has been deleted...  creates a memory leak otherwise... 
-	if (!animator && _waiting == 2) 
-	{
-		_waiting = false; 
-		return false; 
+	// if ur autowaiting but animator has been deleted...  creates a memory leak otherwise...
+	if (!animator && _waiting == 2) {
+		_waiting = false;
+		return false;
 	}
 
 	// saftey, in case of faulty effect
 	if (millis() - _waiting_timeout > EFFECT_WAIT_TIMEOUT) {
-		DebugMelvanimatef("[Melvanimate::returnWaiting] Safety Timeout hit (%u)\n", millis());
+		DebugMelvanimatef("[Melvanimate::returnWaiting] Safety Timeout hit\n");
 		_waiting = false;
 		_waiting_timeout = 0;
 		return false;
@@ -184,7 +183,7 @@ int Melvanimate::getTimeLeft()
 
 void Melvanimate::autoWait()
 {
-	DebugMelvanimatef("[Melvanimate::autoWait] Auto wait set (%u)\n", millis());
+	DebugMelvanimatef("[Melvanimate::autoWait] Auto wait set\n");
 	_waiting_timeout = millis();
 	_waiting = 2;
 }
@@ -192,11 +191,11 @@ void Melvanimate::autoWait()
 void Melvanimate::setWaiting(bool wait)
 {
 	if (wait) {
-		DebugMelvanimatef("[Melvanimate::setWaiting] Set wait true (%u)\n", millis());
+		DebugMelvanimatef("[Melvanimate::setWaiting] Set wait true\n");
 		_waiting_timeout = millis();
 		_waiting = 1;
 	} else {
-		DebugMelvanimatef("[Melvanimate::setWaiting] Set wait false (%u)\n", millis());
+		DebugMelvanimatef("[Melvanimate::setWaiting] Set wait false\n");
 		_waiting = 0;
 		_waiting_timeout = 0;
 	}
@@ -405,7 +404,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 	      Home page
 	*/
 
-	if (page == "homepage" || page == "palette" || page == "all") {
+	//if (page == "homepage" || page == "palette" || page == "all") {
 		JsonArray& modes = root.createNestedArray("modes");
 		//Serial.printf("Total effects: %u\n", total());
 		for (uint8_t i = 0; i < total(); i++) {
@@ -431,7 +430,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 			addCurrentPresets(root);
 
 
-		}
+	//	}
 
 
 
@@ -442,6 +441,9 @@ void Melvanimate::_sendData(String page, int8_t code)
 		//   root["palettename"] = String(palette->getModeString());
 		// }
 
+		if (expandMatrixConfigToJson(settings)) {
+			//DebugMelvanimatef("[Melvanimate::_sendData] matrix json expanded!\n");
+		}
 
 
 	}
@@ -457,12 +459,12 @@ void Melvanimate::_sendData(String page, int8_t code)
 	[ARG:9] multimatrixseq = progressive
 	*/
 	if (page == "layout" || page == "all") {
-		root["pixels"] = getPixels();
+		//root["pixels"] = getPixels();
 		root["grid_x"] = getX();
 		root["grid_y"] = getY();
 		root["multiplematrix"] = multiplematrix;
-
 		root["matrixconfig"] = getmatrix();
+
 
 		uint8_t matrixconfig = getmatrix();
 		bool bottom = (matrixconfig & NEO_MATRIX_BOTTOM) ;
@@ -509,6 +511,14 @@ void Melvanimate::_sendData(String page, int8_t code)
 		} else {
 			root["multimatrixseq"] = "zigzag";
 		}
+
+
+	}
+
+
+	if (page == "configpage" || page == "all") {
+
+		root["pixels"] = getPixels();
 
 
 	}
@@ -646,10 +656,10 @@ void Melvanimate::_handleWebRequest()
 
 	if (_HTTP.hasArg("enable")) {
 		if (_HTTP.arg("enable").equalsIgnoreCase("on")) {
-			DebugMelvanimatef("[_handleWebRequest] Start() called"); 
+			DebugMelvanimatef("[_handleWebRequest] Start() called\n");
 			code = Start();
 		} else if (_HTTP.arg("enable").equalsIgnoreCase("off")) {
-			DebugMelvanimatef("[_handleWebRequest] Start(\"Off\")"); 
+			DebugMelvanimatef("[_handleWebRequest] Start(\"Off\")\n");
 			code = Start("Off");
 		}
 	}
@@ -736,13 +746,6 @@ void Melvanimate::_handleWebRequest()
 
 
 
-//  this has to go last for the JSON to be passed to the current effect
-	if (Current()) {
-		if (Current()->parseJson(root)) {
-//      Serial.println("[handle] JSON Setting applied");
-			code = 1;
-		}
-	}
 
 // matrixmode stuff
 // #define NEO_MATRIX_TOP         0x00 // Pixel 0 is at top of matrix
@@ -769,41 +772,112 @@ void Melvanimate::_handleWebRequest()
 // #define NEO_TILE_ZIGZAG        0x80 // Tile order reverses between lines
 // #define NEO_TILE_SEQUENCE      0x80 // Bitmask for tile line order
 
-	if (_HTTP.hasArg("grid_x") && _HTTP.hasArg("grid_y")) {
-		grid(_HTTP.arg("grid_x").toInt(), _HTTP.arg("grid_y").toInt() );
-		page = "layout";
-	}
-
 	if (_HTTP.hasArg("matrixmode")) {
+
 		page = "layout";
-		uint8_t matrixvar = 0;
-		if (_HTTP.arg("matrixmode") == "singlematrix") { multiplematrix = false; }
-		if (_HTTP.arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
-		if (_HTTP.arg("firstpixel") == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
-		if (_HTTP.arg("firstpixel") == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
-		if (_HTTP.arg("firstpixel") == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
 
-		if (_HTTP.arg("axis") == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
-		if (_HTTP.arg("axis") == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
+		JsonObject & matrixnode = root.createNestedObject("Matrix");
 
-		if (_HTTP.arg("sequence") == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
-		if (_HTTP.arg("sequence") == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
 
-		if (_HTTP.arg("matrixmode") == "multiplematrix") {
-			multiplematrix = true;
-			if (_HTTP.arg("multimatrixtile") == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
-			if (_HTTP.arg("multimatrixtile") == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
-			if (_HTTP.arg("multimatrixtile") == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
-			if (_HTTP.arg("multimatrixtile") == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
-			if (_HTTP.arg("multimatrixaxis") == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
-			if (_HTTP.arg("multimatrixaxis") == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
-			if (_HTTP.arg("multimatrixseq") == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
-			if (_HTTP.arg("multimatrixseq") == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
+		if (_HTTP.hasArg("grid_x") && _HTTP.hasArg("grid_y")) {
+
+			matrixnode["x"] = _HTTP.arg("grid_x").toInt();
+			matrixnode["y"] = _HTTP.arg("grid_y").toInt();
+
+			if (_HTTP.hasArg("matrixmode")) {
+				uint8_t matrixvar = 0;
+
+
+				matrixnode["multiple"] = (_HTTP.arg("matrixmode") == "singlematrix") ? false : true;
+
+				if (_HTTP.arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
+				if (_HTTP.arg("firstpixel") == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
+				if (_HTTP.arg("firstpixel") == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
+				if (_HTTP.arg("firstpixel") == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
+
+				if (_HTTP.arg("axis") == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
+				if (_HTTP.arg("axis") == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
+
+				if (_HTTP.arg("sequence") == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
+				if (_HTTP.arg("sequence") == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
+
+				if (_HTTP.arg("matrixmode") == "multiplematrix") {
+					if (_HTTP.arg("multimatrixtile") == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
+					if (_HTTP.arg("multimatrixtile") == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
+					if (_HTTP.arg("multimatrixtile") == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
+					if (_HTTP.arg("multimatrixtile") == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
+					if (_HTTP.arg("multimatrixaxis") == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
+					if (_HTTP.arg("multimatrixaxis") == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
+					if (_HTTP.arg("multimatrixseq") == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
+					if (_HTTP.arg("multimatrixseq") == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
+				}
+
+				matrixnode["config"] = matrixvar;
+
+				Serial.println("[Melvanimate::_handleWebRequest] matrixnode dump");
+				matrixnode.prettyPrintTo(Serial);
+				Serial.println();
+			}
 		}
 
-		DebugMelvanimatef("NEW Matrix params: %u\n", matrixvar);
-		setmatrix(matrixvar);
 	}
+
+
+
+//  this has to go last for the JSON to be passed to the current effect
+	if (Current()) {
+		if (Current()->parseJson(root)) {
+//      Serial.println("[handle] JSON Setting applied");
+			code = 1;
+		}
+	}
+
+
+
+
+
+
+
+////
+
+
+//					OLD METHODS
+
+
+
+////
+
+
+	// if (_HTTP.hasArg("matrixmode")) {
+	// 	page = "layout";
+	// 	uint8_t matrixvar = 0;
+	// 	if (_HTTP.arg("matrixmode") == "singlematrix") { multiplematrix = false; }
+	// 	if (_HTTP.arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
+	// 	if (_HTTP.arg("firstpixel") == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
+	// 	if (_HTTP.arg("firstpixel") == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
+	// 	if (_HTTP.arg("firstpixel") == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
+
+	// 	if (_HTTP.arg("axis") == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
+	// 	if (_HTTP.arg("axis") == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
+
+	// 	if (_HTTP.arg("sequence") == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
+	// 	if (_HTTP.arg("sequence") == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
+
+	// 	if (_HTTP.arg("matrixmode") == "multiplematrix") {
+	// 		multiplematrix = true;
+	// 		if (_HTTP.arg("multimatrixtile") == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
+	// 		if (_HTTP.arg("multimatrixtile") == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
+	// 		if (_HTTP.arg("multimatrixtile") == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
+	// 		if (_HTTP.arg("multimatrixtile") == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
+	// 		if (_HTTP.arg("multimatrixaxis") == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
+	// 		if (_HTTP.arg("multimatrixaxis") == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
+	// 		if (_HTTP.arg("multimatrixseq") == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
+	// 		if (_HTTP.arg("multimatrixseq") == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
+	// 	}
+
+	// 	DebugMelvanimatef("NEW Matrix params: %u\n", matrixvar);
+	// 	setmatrix(matrixvar);
+	// }
 
 
 	if (_HTTP.hasArg("flashfirst")) {
@@ -850,21 +924,21 @@ void Melvanimate::_handleWebRequest()
 
 
 
-	// if (_HTTP.hasArg("palette-random")) {
-	//   palette().randommode(_HTTP.arg("palette-random").c_str());
-	//   page = "palette";
-	// }
+// if (_HTTP.hasArg("palette-random")) {
+//   palette().randommode(_HTTP.arg("palette-random").c_str());
+//   page = "palette";
+// }
 
 
-	// if (_HTTP.hasArg("palette-spread")) {
-	//   palette().range(_HTTP.arg("palette-spread").toFloat());
-	//   page = "palette";
-	// }
+// if (_HTTP.hasArg("palette-spread")) {
+//   palette().range(_HTTP.arg("palette-spread").toFloat());
+//   page = "palette";
+// }
 
-	// if (_HTTP.hasArg("palette-delay")) {
-	//   palette().delay(_HTTP.arg("palette-delay").toInt());
-	//   page = "palette";
-	// }
+// if (_HTTP.hasArg("palette-delay")) {
+//   palette().delay(_HTTP.arg("palette-delay").toInt());
+//   page = "palette";
+// }
 
 
 	if (_HTTP.hasArg("data")) {
@@ -915,8 +989,8 @@ void Melvanimate::_handleWebRequest()
 
 
 	}
-	//_HTTP.setContentLength(0);
-	//_HTTP.send(200); // sends OK if were just receiving data...
+//_HTTP.setContentLength(0);
+//_HTTP.send(200); // sends OK if were just receiving data...
 
 	_sendData(page, code);
 
@@ -1022,9 +1096,9 @@ bool Melvanimate::createAnimator(uint16_t count)
 {
 
 	if (animator) {
-        delete animator;
-        animator = nullptr; 
-    }
+		delete animator;
+		animator = nullptr;
+	}
 
 
 	if (count < MAX_NUMBER_OF_ANIMATIONS ) {

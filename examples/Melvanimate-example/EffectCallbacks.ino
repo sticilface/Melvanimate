@@ -999,7 +999,9 @@ void BobblySquaresFn(effectState & state, EffectHandler * ptr)
   case PRE_EFFECT: {
     Serial.printf("[BobblySquaresFn] Creating Objects (%u)\n", ESP.getFreeHeap());
     effect->SetTimeout( 0);
-    effect->palette().mode(WHEEL);
+    if (effect->palette().mode() == OFF) {
+      effect->palette().mode(WHEEL);
+    }
     effect->palette().total(255) ;
 
     if (animator) {
@@ -1024,6 +1026,8 @@ void BobblySquaresFn(effectState & state, EffectHandler * ptr)
 
   break;
   case RUN_EFFECT: {
+
+    effect->palette().input( effect->color() ); 
 
     if (EFFECT) { EFFECT->Run(); }
 

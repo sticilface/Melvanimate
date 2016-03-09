@@ -14,9 +14,7 @@ public:
 		addVar(new Variable<int>("int"));
 		addVar(new Variable<uint8_t>("brightness",255));
 		addVar(new Variable<uint8_t>("speed",255));
-
-
-		addVar(new Variable<MelvtrixMan>("matrix", new MelvtrixMan(1,2,3))); 
+		addVar(new Variable<MelvtrixMan>("Matrix", new MelvtrixMan(1,2,3))); 
 		addVar(new Variable<RgbColor>("color1"));
 		addVar(new Variable<RgbColor>("color2"));
 		addVar(new Variable<RgbColor>("color3"));

@@ -89,7 +89,7 @@ SimpleTimer timer;
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
-ESPmanager settings(HTTP, SPIFFS);//, "Lamp", "fyffest", "wellcometrust");
+ESPmanager settings(HTTP, SPIFFS, "tv-lights", "fyffest", "wellcometrust");
 
 
 

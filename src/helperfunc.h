@@ -5,6 +5,8 @@
 #include <internal/RgbColor.h>
 #include <internal/HslColor.h>
 #include "mybus.h"
+#include "melvtrix.h"
+
 
 #include <ArduinoJson.h>
 
@@ -17,6 +19,7 @@ namespace helperfunc {
 	bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
 	bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonArray *& root, const char * file);
 	void Adalight_Flash();
+    bool expandMatrixConfigToJson(JsonObject & root);
 
 
 }

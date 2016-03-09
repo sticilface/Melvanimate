@@ -216,3 +216,67 @@ void  helperfunc::Adalight_Flash()
 
 		animator->StartAnimation(0, 1000, animUpdate);
 }
+
+
+bool helperfunc::expandMatrixConfigToJson(JsonObject & root)
+{
+  if (!root.containsKey("Matrix")) {
+    return false;
+  }
+
+  JsonObject & matrixjson = root["Matrix"]; 
+
+  uint8_t _matrixconfig = matrixjson["config"]; 
+  bool _multiplematrix = matrixjson["multiple"];  
+
+  bool bottom = (_matrixconfig & NEO_MATRIX_BOTTOM) ;
+  bool right = (_matrixconfig & NEO_MATRIX_RIGHT) ;
+
+// single matrix
+  if (!bottom && !right) { matrixjson["firstpixel"] = "topleft"; }
+  if (!bottom && right) { matrixjson["firstpixel"] = "topright"; }
+  if (bottom && !right) { matrixjson["firstpixel"] = "bottomleft"; }
+  if (bottom && right ) { matrixjson["firstpixel"] = "bottomright"; }
+
+  if ((_matrixconfig & NEO_MATRIX_AXIS) == NEO_MATRIX_ROWS) {
+    matrixjson["axis"] = "rowmajor";
+  } else {
+    matrixjson["axis"] = "columnmajor";
+  }
+
+  if ((_matrixconfig & NEO_MATRIX_SEQUENCE) == NEO_MATRIX_PROGRESSIVE) {
+    matrixjson["sequence"] = "progressive";
+  } else {
+    matrixjson["sequence"] = "zigzag";
+  }
+
+
+// Tiles
+
+  if (_multiplematrix) {
+
+    bottom = (_matrixconfig & NEO_TILE_BOTTOM) ;
+    right = (_matrixconfig & NEO_TILE_RIGHT) ;
+
+    if (!bottom && !right) { matrixjson["multimatrixtile"] = "topleft"; }
+    if (!bottom && right) { matrixjson["multimatrixtile"] = "topright"; }
+    if (bottom && !right) { matrixjson["multimatrixtile"] = "bottomleft"; }
+    if (bottom && right ) { matrixjson["multimatrixtile"] = "bottomright"; }
+
+    if ((_matrixconfig & NEO_TILE_AXIS) == NEO_TILE_ROWS) {
+      matrixjson["multimatrixaxis"] = "rowmajor";
+    } else {
+      matrixjson["multimatrixaxis"] = "columnmajor";
+    }
+
+    if ((_matrixconfig & NEO_TILE_SEQUENCE) == NEO_TILE_PROGRESSIVE) {
+      matrixjson["multimatrixseq"] = "progressive";
+    } else {
+      matrixjson["multimatrixseq"] = "zigzag";
+    }
+
+  }
+
+  return true;
+}
+
