@@ -38,8 +38,8 @@ public:
 
 	bool Add(const char * name, EffectHandler* Handler, bool defaulteffect = false);
 
-	inline bool Start()  { return Start(_toggleHandle); }
 	bool Start(EffectHandler* handle);
+	inline bool Start()  { return Start(_toggleHandle); }
 	inline bool Start(const char * name)  { return Start(_findhandle(name)); }
 	inline bool Start(const String name)  { return Start(name.c_str()); };
 	

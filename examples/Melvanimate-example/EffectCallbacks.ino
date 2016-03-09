@@ -59,9 +59,7 @@ void offFn(effectState &state, EffectHandler* ptr)
       }
 
       // have to be careful of number of pixels..
-      if (strip->PixelCount() < MAX_NUMBER_OF_ANIMATIONS ) {
-        animator = new NeoPixelAnimator(strip->PixelCount());
-      }
+      lights.createAnimator();
 
       effect.SetTimeout(1000); //  set speed through the effect
       lights.autoWait(); //  halts progress through states untill animator has finished..
@@ -91,10 +89,8 @@ void offFn(effectState &state, EffectHandler* ptr)
     break;
     case RUN_EFFECT: {
       strip->ClearTo(0);
-      if (animator) {
-        delete animator;
-        animator = nullptr;
-      }
+
+      lights.deleteAnimator(); 
 
     }
     break;
@@ -338,7 +334,6 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
     switch (state) {
 
     case PRE_EFFECT: {
-//     Serial.println("[SimpleColorFn] PRE_EFFECT Called");
 
       if (animator) {
         delete animator;
@@ -354,7 +349,7 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
       lights.autoWait(); //  halts progress through states untill animator has finished..
 
       if (animator) {
-//       Serial.println("[SimpleColorFn] PRE_EFFECT animator exists");
+
         AnimEaseFunction easing = NeoEase::QuadraticInOut;
 
         for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
@@ -362,6 +357,7 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
           RgbColor originalColor = strip->GetPixelColor(pixel);
 
           AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
+
             //float progress = easing(param.progress);
             float progress = param.progress;
             RgbColor updatedColor = RgbColor::LinearBlend(originalColor, newColor, progress);
@@ -372,6 +368,7 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
 
         }
       }
+
       break;
     }
 
@@ -381,7 +378,7 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
       }
       if (animator) {
         delete animator;
-        animator = nullptr; 
+        animator = nullptr;
       }
       break;
     }
@@ -394,7 +391,6 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
     }
     case EFFECT_REFRESH: {
       state = PRE_EFFECT;
-//      Serial.println("[SimpleColorFn] Refresh Called");
       break;
     }
 
@@ -698,209 +694,210 @@ void displaytext(const char * text, uint16_t timeout, RgbColor color)
 *------------------------------------------------*/
 
 
+/*
+
+void SnakesFn(effectState &state, EffectHandler* ptr)
+{
+
+  typedef std::function<void()> AniObjectCallback;
+
+  struct AnimationVars {
+    uint16_t position = 0;
+    RgbColor colour = RgbColor(0, 0, 0);
+    XY coordinates = toXY(0, 0);
+    AniObjectCallback ObjUpdate = NULL;
+    RgbColor oldcolour = RgbColor(0, 0, 0);
+    RgbColor newcolour = RgbColor(0, 0, 0);
+    bool effectchanged = false;
+  };
+
+  static AnimationVars* _vars = NULL;
+  static bool Effect_Refresh_colour, Effect_Refresh_position;
+
+  static uint8_t animationCount;
+  static uint32_t effect_timer;
+  //static uint8_t static_colour;
+  //static uint8_t old_R, old_G, old_B;
+
+  static bool triggered;
+
+  Snakes.Timeout(30);
+
+  switch (Snakes.getState()) {
+
+  case INIT: {
+    bool overlap = false;
+    //if (!Enable_Animations) { Current_Effect_State = POST_EFFECT ; HoldingOpState = OFF; break;  } //  DO NOT RUN IF ANIMATIONS DISABLED
+    animator->FadeTo(500, RgbColor(0, 0, 0)); // fade out current effect
+    animationCount = WS2812_Settings.Effect_Count;  // assign this variable as requires re-initilisation of effect.
+    //     initialiseAnimationObject(animationCount);  // initialise animation object with correct number of animations.
+
+    if (_vars != NULL) delete[] _vars;
+    _vars = new AnimationVars[animationCount];  // memory for all the animated object properties...
+
+    for (uint8_t i = 0; i < animationCount; i++ ) {
+
+      AnimationVars* pVars;
+      pVars = &_vars[i];
+      pVars->coordinates.x = random ( 0, WS2812_Settings.Total_X );
+      pVars->coordinates.y = random ( 0, return_total_y ( WS2812_Settings.Total_X ) ) ;
+
+      if (WS2812_Settings.Palette_Choice == WHEEL) pVars->position = random(255);
+
+      AniObjectCallback ObjectUpdate = [pVars, overlap]()
+                                       //        ObjectCallback ObjectUpdate = [pVars]() //  lamda func passes READ only pointer to the stuct containing the animation vars.. these can be written to in animation...
+      {
+
+        int16_t pixel;
+        bool OK = false;
+        uint8_t counter = 0;
+        do {
+          counter++;
+          XY returned_XY = return_adjacent(pVars->coordinates);
+          pixel = return_pixel(returned_XY.x, returned_XY.y, WS2812_Settings.Total_X);
+
+          // true checking
+          if (pixel > -1 &&  !animator->IsAnimating(pixel) ) {
+            pVars->coordinates = returned_XY;
+            OK = true;
+          }
+
+          // // skip animating effects.
+          // if (pixel > -1 &&  !animator->IsAnimating(pixel) && WS2812_Settings.Effect_Option && counter > 2 ) {
+          //     pVars->coordinates = returned_XY;
+          //     //OK = true;
+          //     counter = 0;
+          //     }
+
+          // allows overlap bailout, but only after trying not to.
+          if (pixel > -1 && counter > 9 && overlap) {
+            pVars->coordinates = returned_XY;
+            OK = true;
+          }
+
+        } while (!OK && counter < 10) ;
+
+        RgbColor Fixed_Colour = pVars->colour;
+
+        if (OK) {
+
+          RgbColor temptestOLD = strip->GetPixelColor(pixel);
+          AnimUpdateCallback animUpdate = [pVars, pixel, temptestOLD, Fixed_Colour](float progress) {
+            RgbColor updatedColor, NewColour;
+            (WS2812_Settings.Effect_Option == 0) ? NewColour = pVars->colour : NewColour = Fixed_Colour;
+            if (progress < 0.5) updatedColor = HsbColor::LinearBlend(temptestOLD, NewColour,  progress * 2.0f);
+            if (progress > 0.5) updatedColor = HsbColor::LinearBlend(NewColour, RgbColor(0, 0, 0) , (progress * 2.0f) - 1.0f );
+            strip->SetPixelColor(pixel, updatedColor);
+          };
+
+          animator->StartAnimation(pixel, map( WS2812_Settings.Effect_Max_Size, 0, 255, WS2812_Settings.Timer * 2 , 20000 ) , animUpdate);
+        };
+
+      };
+
+      //animatedobject->Add(ObjectUpdate);
+      pVars->ObjUpdate = ObjectUpdate;
+    }; // end of multiple effect count generations...
 
 
-// void SnakesFn()
-// {
+  }
+  break;
+  case REFRESH: {
+    Effect_Refresh_position = true;
+    Effect_Refresh_colour = true;
+  }
+  break;
 
-//   typedef std::function<void()> AniObjectCallback;
-
-//   struct AnimationVars {
-//     uint16_t position = 0;
-//     RgbColor colour = RgbColor(0, 0, 0);
-//     XY coordinates = toXY(0, 0);
-//     AniObjectCallback ObjUpdate = NULL;
-//     RgbColor oldcolour = RgbColor(0, 0, 0);
-//     RgbColor newcolour = RgbColor(0, 0, 0);
-//     bool effectchanged = false;
-//   };
-
-//   static AnimationVars* _vars = NULL;
-//   static bool Effect_Refresh_colour, Effect_Refresh_position;
-
-//   static uint8_t animationCount;
-//   static uint32_t effect_timer;
-//   //static uint8_t static_colour;
-//   //static uint8_t old_R, old_G, old_B;
-
-//   static bool triggered;
-
-//   Snakes.Timeout(30);
-
-//   switch (Snakes.getState()) {
-
-//   case INIT: {
-//     bool overlap = false;
-//     //if (!Enable_Animations) { Current_Effect_State = POST_EFFECT ; HoldingOpState = OFF; break;  } //  DO NOT RUN IF ANIMATIONS DISABLED
-//     animator->FadeTo(500, RgbColor(0, 0, 0)); // fade out current effect
-//     animationCount = WS2812_Settings.Effect_Count;  // assign this variable as requires re-initilisation of effect.
-//     //     initialiseAnimationObject(animationCount);  // initialise animation object with correct number of animations.
-
-//     if (_vars != NULL) delete[] _vars;
-//     _vars = new AnimationVars[animationCount];  // memory for all the animated object properties...
-
-//     for (uint8_t i = 0; i < animationCount; i++ ) {
-
-//       AnimationVars* pVars;
-//       pVars = &_vars[i];
-//       pVars->coordinates.x = random ( 0, WS2812_Settings.Total_X );
-//       pVars->coordinates.y = random ( 0, return_total_y ( WS2812_Settings.Total_X ) ) ;
-
-//       if (WS2812_Settings.Palette_Choice == WHEEL) pVars->position = random(255);
-
-//       AniObjectCallback ObjectUpdate = [pVars, overlap]()
-//                                        //        ObjectCallback ObjectUpdate = [pVars]() //  lamda func passes READ only pointer to the stuct containing the animation vars.. these can be written to in animation...
-//       {
-
-//         int16_t pixel;
-//         bool OK = false;
-//         uint8_t counter = 0;
-//         do {
-//           counter++;
-//           XY returned_XY = return_adjacent(pVars->coordinates);
-//           pixel = return_pixel(returned_XY.x, returned_XY.y, WS2812_Settings.Total_X);
-
-//           // true checking
-//           if (pixel > -1 &&  !animator->IsAnimating(pixel) ) {
-//             pVars->coordinates = returned_XY;
-//             OK = true;
-//           }
-
-//           // // skip animating effects.
-//           // if (pixel > -1 &&  !animator->IsAnimating(pixel) && WS2812_Settings.Effect_Option && counter > 2 ) {
-//           //     pVars->coordinates = returned_XY;
-//           //     //OK = true;
-//           //     counter = 0;
-//           //     }
-
-//           // allows overlap bailout, but only after trying not to.
-//           if (pixel > -1 && counter > 9 && overlap) {
-//             pVars->coordinates = returned_XY;
-//             OK = true;
-//           }
-
-//         } while (!OK && counter < 10) ;
-
-//         RgbColor Fixed_Colour = pVars->colour;
-
-//         if (OK) {
-
-//           RgbColor temptestOLD = strip->GetPixelColor(pixel);
-//           AnimUpdateCallback animUpdate = [pVars, pixel, temptestOLD, Fixed_Colour](float progress) {
-//             RgbColor updatedColor, NewColour;
-//             (WS2812_Settings.Effect_Option == 0) ? NewColour = pVars->colour : NewColour = Fixed_Colour;
-//             if (progress < 0.5) updatedColor = HsbColor::LinearBlend(temptestOLD, NewColour,  progress * 2.0f);
-//             if (progress > 0.5) updatedColor = HsbColor::LinearBlend(NewColour, RgbColor(0, 0, 0) , (progress * 2.0f) - 1.0f );
-//             strip->SetPixelColor(pixel, updatedColor);
-//           };
-
-//           animator->StartAnimation(pixel, map( WS2812_Settings.Effect_Max_Size, 0, 255, WS2812_Settings.Timer * 2 , 20000 ) , animUpdate);
-//         };
-
-//       };
-
-//       //animatedobject->Add(ObjectUpdate);
-//       pVars->ObjUpdate = ObjectUpdate;
-//     }; // end of multiple effect count generations...
+  case RUN: {
+    AnimationVars* pVars;
+    if (animationCount != WS2812_Settings.Effect_Count) Snakes.Start(); // Restart only if animation number changed
+    const uint32_t new_colour_time = map (WS2812_Settings.Timer, 0, 255, 20000, 300000) ;
 
 
-//   }
-//   break;
-//   case REFRESH: {
-//     Effect_Refresh_position = true;
-//     Effect_Refresh_colour = true;
-//   }
-//   break;
+    if (!triggered || Effect_Refresh_colour || random_colour_timer(new_colour_time)) {
 
-//   case RUN: {
-//     AnimationVars* pVars;
-//     if (animationCount != WS2812_Settings.Effect_Count) Snakes.Start(); // Restart only if animation number changed
-//     const uint32_t new_colour_time = map (WS2812_Settings.Timer, 0, 255, 20000, 300000) ;
+      if (WS2812_Settings.Palette_Choice == WHEEL)  {
 
+        for (uint8_t i = 0; i < animationCount; i++) {
+          pVars = &_vars[i];
+          pVars->colour = dim(Wheel(pVars->position++ % 255) );
+          pVars->effectchanged = false;
+        }
 
-//     if (!triggered || Effect_Refresh_colour || random_colour_timer(new_colour_time)) {
+      }  else  {
 
-//       if (WS2812_Settings.Palette_Choice == WHEEL)  {
+        for (uint8_t i = 0; i < animationCount; i++) {
+          pVars = &_vars[i];
+          pVars->oldcolour = pVars->colour;
+          pVars->newcolour = dim(Return_Palette(WS2812_Settings.Color, i) );
+          pVars->effectchanged = true;
+        }
 
-//         for (uint8_t i = 0; i < animationCount; i++) {
-//           pVars = &_vars[i];
-//           pVars->colour = dim(Wheel(pVars->position++ % 255) );
-//           pVars->effectchanged = false;
-//         }
+        effect_timer = millis() ;
+        triggered = true;
 
-//       }  else  {
-
-//         for (uint8_t i = 0; i < animationCount; i++) {
-//           pVars = &_vars[i];
-//           pVars->oldcolour = pVars->colour;
-//           pVars->newcolour = dim(Return_Palette(WS2812_Settings.Color, i) );
-//           pVars->effectchanged = true;
-//         }
-
-//         effect_timer = millis() ;
-//         triggered = true;
-
-//       }
-//       Effect_Refresh_colour = false;
-//     }
+      }
+      Effect_Refresh_colour = false;
+    }
 
 
-// //  Update the blending colours for each effect outside of the  other loops
+//  Update the blending colours for each effect outside of the  other loops
 
-//     for (uint8_t i = 0; i < animationCount; i++) {
+    for (uint8_t i = 0; i < animationCount; i++) {
 
-//       pVars = &_vars[i];
-//       if (pVars->effectchanged == true) {
+      pVars = &_vars[i];
+      if (pVars->effectchanged == true) {
 
-//         const uint32_t transitiontime2 = 5000; // map (WS2812_Settings.Timer, 0, 255, 20000, 300000) ;
-//         const uint32_t _time = (millis() - effect_timer);
-//         float _delta = float (_time) /  float(transitiontime2)  ; // WS2812_Settings.Timer * 10 ) ;
+        const uint32_t transitiontime2 = 5000; // map (WS2812_Settings.Timer, 0, 255, 20000, 300000) ;
+        const uint32_t _time = (millis() - effect_timer);
+        float _delta = float (_time) /  float(transitiontime2)  ; // WS2812_Settings.Timer * 10 ) ;
 
-//         if (_delta < 1.0) {
-//           pVars->colour = HslColor::LinearBlend(  pVars->oldcolour , pVars->newcolour, _delta);
-//         } else {
-//           pVars->colour = pVars->newcolour;
-//         }
+        if (_delta < 1.0) {
+          pVars->colour = HslColor::LinearBlend(  pVars->oldcolour , pVars->newcolour, _delta);
+        } else {
+          pVars->colour = pVars->newcolour;
+        }
 
-//         if (_delta > 1) {
-//           pVars->effectchanged = false;
-//         }
+        if (_delta > 1) {
+          pVars->effectchanged = false;
+        }
 
-//       }
+      }
 
-//     }
+    }
 
-// // push effects out...
+// push effects out...
 
-//     if (  millis() - lasteffectupdate >  WS2812_Settings.Timer || Effect_Refresh_position)  {
-//       // update POSITION...
-//       for (uint8_t i = 0; i < animationCount; i++) {
-//         pVars = &_vars[i];
-//         pVars->ObjUpdate();   //
-//       }
+    if (  millis() - lasteffectupdate >  WS2812_Settings.Timer || Effect_Refresh_position)  {
+      // update POSITION...
+      for (uint8_t i = 0; i < animationCount; i++) {
+        pVars = &_vars[i];
+        pVars->ObjUpdate();   //
+      }
 
-//       lasteffectupdate = millis();
-//       Effect_Refresh_position = false;
-//     }
-//   }
-//   break;
-//   case END: {
-//     if (_vars)
+      lasteffectupdate = millis();
+      Effect_Refresh_position = false;
+    }
+  }
+  break;
+  case END: {
+    if (_vars)
 
-//     {
-//       delete[] _vars;
-//       _vars = NULL;
-//     }
+    {
+      delete[] _vars;
+      _vars = NULL;
+    }
 
-//     Debugln("End of Effect");
-//   }
-//   break;
+    Debugln("End of Effect");
+  }
+  break;
 
-//   }
+  }
 
-// }
+}
 
 
+*/
 
 /*-----------------------------------------------
 *
@@ -951,159 +948,210 @@ void displaytext(const char * text, uint16_t timeout, RgbColor color)
 
 
 
-// struct EFFECT_s {
+struct EFFECT_s {
 
-//   struct position_s {
-//     uint16_t x = 0;
-//     uint16_t y = 0;
-//   } ;
-//   position_s * pPosition;
+  struct position_s {
+    uint16_t x = 0;
+    uint16_t y = 0;
+  } ;
 
-//   EFFECT_s(uint8_t _count, uint8_t LEDs)//, uint8_t colorscount = 0)
-//   {
-//     count = _count;
-//     manager = new EffectGroup; // create effect group
-//     pPosition = new position_s[_count];
-//     matrix = lights.matrix();
-//     pGroup = new EffectObjectHandler* [count];
+  position_s * pPosition;
 
-//     for (uint8_t i = 0; i < count; i++) {
-//       pGroup[i] =  manager->Add(i, lights.speed() , new EffectObject( LEDs ) );
-//       if (!pGroup[i]) { Serial.println("[EFFECT_s] nullptr returned"); }
-//     }
+  EFFECT_s(uint8_t _count, uint8_t LEDs)//, uint8_t colorscount = 0)
+  {
+    count = _count;
+    manager = new EffectGroup; // create effect group
+    pPosition = new position_s[_count];
+    matrix = lights.matrix();
+    pGroup = new EffectObjectHandler* [count];
 
-
-//   }
-//   ~EFFECT_s()
-//   {
-//     delete manager;
-//     //delete[] colors;
-//     delete[] pGroup;
-//     delete[] pPosition;
-//   }
-//   void Run()
-//   {
-//     if (manager) { manager->Update(); }
-//   }
-//   EffectGroup* manager;
-//   //RgbColor * colors;
-//   EffectObjectHandler ** pGroup;
-//   Melvtrix * matrix;
-//   uint8_t count = 0;
-
-//   position_s & position(uint16_t i) { return pPosition[i];}
+    for (uint8_t i = 0; i < count; i++) {
+      pGroup[i] =  manager->Add(i, 100 , new EffectObject( LEDs ) );
+      if (!pGroup[i]) { Serial.println("[EFFECT_s] nullptr returned"); }
+    }
 
 
-// };
-// //  Generates random squares, no fill...
-// //  Does
-// void BobblySquaresFn_create(struct EFFECT_s *&, bool, bool);
+  }
+  ~EFFECT_s()
+  {
+    delete manager;
+    //delete[] colors;
+    delete[] pGroup;
+    delete[] pPosition;
+  }
+  void Run()
+  {
+    if (manager) { manager->Update(); }
+  }
+  EffectGroup* manager;
+  //RgbColor * colors;
+  EffectObjectHandler ** pGroup;
+  Melvtrix * matrix;
+  uint8_t count = 0;
 
-// void BobblySquaresFn(effectState & state)
-// {
-//   static EFFECT_s* EFFECT = nullptr; // dont forget to initialise pointers... ARGHHHHHHHH
-
-
-//   switch (state) {
-
-//   case PRE_EFFECT: {
-//     Serial.printf("[BobblySquaresFn] Creating Objects (%u)\n", ESP.getFreeHeap());
-//     lights.SetTimeout( 0);
-//     lights.palette().mode(WHEEL);
-//     lights.palette().total(255) ;
-
-//     if (EFFECT) {
-//       delete EFFECT;
-//       EFFECT = nullptr;
-
-//     }
-
-//     EFFECT = new EFFECT_s(5, 25);
-
-//     if (EFFECT) {
-//       BobblyShapeFn_create(EFFECT, true, true, random(0, 3));
-//     }
-//   }
-
-//   break;
-//   case RUN_EFFECT: {
-
-//     if (EFFECT) { EFFECT->Run(); }
-
-//   }
-//   break;
-
-//   case POST_EFFECT: {
-//     Serial.println("[BobblySquaresFn] End");
-//     if (EFFECT) {
-//       delete EFFECT;
-//       EFFECT = nullptr;
-//     }
-//   }
-//   break;
-//   case EFFECT_REFRESH: {
-//     Serial.println("[BobblySquaresFn] Refresh");
-//     state = PRE_EFFECT;
-//   }
-//   break;
-
-//   }
-
-// }
-
-// void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2, uint8_t shape)
-// {
+  position_s & position(uint16_t i) { return pPosition[i];}
 
 
-//   for (uint8_t obj = 0; obj < EFFECT->count; obj++) {
+};
+//  Generates random squares, no fill...
+//  Does
+void BobblySquaresFn_create(struct EFFECT_s *&, bool, bool);
 
-//     EffectObjectHandler * current =  EFFECT->pGroup[obj];  //    pointer to current group of pixels...
 
-//     // nullptr protection
-//     if (!current) break;
 
-//     current->SetObjectUpdateCallback( [ current, EFFECT, obj, random1, random2, shape ]() {
+void BobblySquaresFn(effectState & state, EffectHandler * ptr)
+{
 
-//       current->reset(); // new set of pixels...
+  if (!ptr) { return; }
 
-//       EFFECT->matrix->setShapeFn( [ EFFECT, obj, current, random1 ] (uint16_t pixel, int16_t x, int16_t y) {
-//         current->Addpixel(pixel);
-//       });
+  SimpleEffect2 * effect = static_cast<SimpleEffect2*>(ptr);
 
-//       uint8_t size = random(2, 6);
-//       uint16_t x = EFFECT->position(obj).x = random(0, lights.matrix()->width() - size + 1);
-//       uint16_t y = EFFECT->position(obj).y = random(0, lights.matrix()->height() - size + 1);
+  static EFFECT_s* EFFECT = nullptr; // dont forget to initialise pointers... ARGHHHHHHHH
 
-//       uint16_t add_factor = (random1) ? random(5, 10) : 10;
-//       current->Timeout( lights.speed() * add_factor); // update speed of current effect!
 
-//       switch (shape) {
-//       case 0:
-//         EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
-//         break;
-//       case 1:
-//         EFFECT->matrix->drawCircle(x, y, size, 0); //  fills shape with
-//         break;
-//       case 2:
-//         EFFECT->matrix->drawTriangle(x, y, x + size, y, x + (size / 2), y + size, 0); //  fills shape with
-//         break;
-//       case 3:
-//         EFFECT->matrix->fillTriangle(x, y, x + size, y, x + (size / 2), y + size , 0); //  fills shape with
-//         break;
-//       }
+  switch (state) {
 
-//       //EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
+  case PRE_EFFECT: {
+    Serial.printf("[BobblySquaresFn] Creating Objects (%u)\n", ESP.getFreeHeap());
+    effect->SetTimeout( 0);
+    effect->palette().mode(WHEEL);
+    effect->palette().total(255) ;
 
-//     });
+    if (animator) {
+      delete animator;
+      animator = nullptr;
+    }
 
-//     current->SetPixelUpdateCallback( [random2] (uint16_t n, uint16_t pixel) {
-//       uint16_t add_factor = (random2) ? random(5, 10) : 10;
-//       FadeToAndBack(pixel, lights.nextcolor(), lights.speed() * random(5, 10) );
-//       //FadeToAndBack(pixel, RgbColor(5,0,0), lights.speed() * random(5, 10) );
+    animator = new NeoPixelAnimator(strip->PixelCount());
 
-//     });
-//   }
+    if (EFFECT) {
+      delete EFFECT;
+      EFFECT = nullptr;
 
-// }
+    }
+
+    EFFECT = new EFFECT_s(5, 25);
+
+    if (EFFECT) {
+      BobblyShapeFn_create(EFFECT, true, true, random(0, 3), effect);
+    }
+  }
+
+  break;
+  case RUN_EFFECT: {
+
+    if (EFFECT) { EFFECT->Run(); }
+
+  }
+  break;
+
+  case POST_EFFECT: {
+    Serial.println("[BobblySquaresFn] End");
+    if (EFFECT) {
+      delete EFFECT;
+      EFFECT = nullptr;
+    }
+    if (animator) {
+      delete animator;
+      animator = nullptr;
+    }
+  }
+  break;
+  case EFFECT_REFRESH: {
+    Serial.println("[BobblySquaresFn] Refresh");
+    state = PRE_EFFECT;
+  }
+  break;
+
+  }
+
+}
+
+void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2, uint8_t shape, SimpleEffect2 * effect)
+{
+
+
+  for (uint8_t obj = 0; obj < EFFECT->count; obj++) {
+
+    EffectObjectHandler * current =  EFFECT->pGroup[obj];  //    pointer to current group of pixels...
+
+    // nullptr protection
+    if (!current) { break; }
+
+    current->SetObjectUpdateCallback( [ =]() {
+
+      current->reset(); // new set of pixels...
+
+      EFFECT->matrix->setShapeFn( [ = ] (uint16_t pixel, int16_t x, int16_t y) {
+        current->Addpixel(pixel);
+      });
+
+      uint8_t size = random(2, 6);
+      uint16_t x = EFFECT->position(obj).x = random(0, lights.matrix()->width() - size + 1);
+      uint16_t y = EFFECT->position(obj).y = random(0, lights.matrix()->height() - size + 1);
+
+      uint16_t add_factor = (random1) ? random(5, 10) : 10;
+
+      current->Timeout( effect->speed() * add_factor); // update speed of current effect!
+
+      switch (shape) {
+      case 0:
+        EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
+        break;
+      case 1:
+        EFFECT->matrix->drawCircle(x, y, size, 0); //  fills shape with
+        break;
+      case 2:
+        EFFECT->matrix->drawTriangle(x, y, x + size, y, x + (size / 2), y + size, 0); //  fills shape with
+        break;
+      case 3:
+        EFFECT->matrix->fillTriangle(x, y, x + size, y, x + (size / 2), y + size , 0); //  fills shape with
+        break;
+      }
+
+      //EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
+
+    });
+
+    current->SetPixelUpdateCallback( [=] (uint16_t n, uint16_t pixel) {
+
+      uint16_t add_factor = (random2) ? random(5, 10) : 10;
+
+      //    FadeToAndBack(pixel, effect.palette().nextcolor(), lights.speed() * random(5, 10) );
+      RgbColor originalColor = strip->GetPixelColor(pixel);
+      RgbColor targetColor = effect->palette().next();
+
+      AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
+        // progress will start at 0.0 and end at 1.0
+        // we convert to the curve we want
+        float progress = param.progress;
+
+        RgbColor updatedColor;
+
+
+
+        if (progress < 0.5) {
+          updatedColor = RgbColor::LinearBlend(originalColor, targetColor, progress * 2.0f);
+        } else {
+          updatedColor = RgbColor::LinearBlend(targetColor, 0, (progress - 0.5f) * 2.0f);
+        }
+
+          strip->SetPixelColor(pixel, dim(updatedColor, effect->brightness()));
+
+      };
+
+      // now use the animation properties we just calculated and start the animation
+      // which will continue to run and call the update function until it completes
+      animator->StartAnimation(pixel, effect->speed() * random(5, 10), animUpdate);
+
+      //animator->StartAnimation(pixel,  random(50, 100), animUpdate);
+
+
+      //FadeToAndBack(pixel, RgbColor(5,0,0), lights.speed() * random(5, 10) );
+
+    });
+  }
+
+}
 
 

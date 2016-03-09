@@ -24,6 +24,8 @@
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
 #define EFFECT_WAIT_TIMEOUT 20000
 #define DEFAULT_WS2812_PIN 2
+#define MAX_NUMBER_OF_ANIMATIONS 300
+
 
 #include "mybus.h"
 #include "EffectManager.h"
@@ -82,6 +84,10 @@ public:
 
 	uint32_t getPower(); 
 
+	bool createAnimator(uint16_t count); 
+	bool createAnimator(); 
+	void deleteAnimator(); 
+
 	//static RgbColor dim( RgbColor input, const uint8_t brightness);
 
 private:
@@ -105,7 +111,7 @@ private:
 	bool _settings_changed;
 	//File _settings;
 
-	uint8_t _waiting;
+	uint8_t _waiting{0};
 	uint32_t _waiting_timeout{0};
 
 	int _timerState{-1};

@@ -67,10 +67,12 @@ bool EffectManager::Start(EffectHandler* handler)
 {
 
 #ifdef DebugEffectManager
+	DebugEffectManagerf("\n"); 
+	DebugEffectManagerf("[Start] called for %s\n", handler->name()); 
 	uint32_t heap;
 #endif
-	Stop();
 
+	Stop();
 
 	if (handler) {
 		_NextInLine = handler;
@@ -108,7 +110,6 @@ bool EffectManager::Start(EffectHandler* handler)
 							} else {
 								DebugEffectManagerf("[Start] ERROR loading Default %u\n", preset->id);
 							}
-
 
 						}
 
@@ -188,7 +189,9 @@ bool EffectManager::Previous()
 
 bool EffectManager::Stop()
 {
+
 	if (_currentHandle) {
+		DebugEffectManagerf("[EffectManager::Stop] called for %s\n", _currentHandle->name());
 		_currentHandle->EndVars();
 		return _currentHandle->Stop();
 	}
@@ -241,7 +244,7 @@ void EffectManager::_process()
 
 	//  This flips over to next effect asyncstyle....
 	if (!waiting && _NextInLine) {
-//		Serial.println("[Loop] Next effect STARTED");
+		DebugEffectManagerf("[EffectManager::_process] _currentHandle NOW = %s\n", _NextInLine->name());
 		_currentHandle = _NextInLine;
 		_NextInLine = nullptr;
 		_currentHandle->Start();

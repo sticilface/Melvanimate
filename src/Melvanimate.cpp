@@ -150,14 +150,24 @@ bool Melvanimate::returnWaiting()
 			_waiting = false;
 			return false;
 		}
+
+	}
+
+	// if ur autowaiting but animator has been deleted...  creates a memory leak otherwise... 
+	if (!animator && _waiting == 2) 
+	{
+		_waiting = false; 
+		return false; 
 	}
 
 	// saftey, in case of faulty effect
 	if (millis() - _waiting_timeout > EFFECT_WAIT_TIMEOUT) {
+		DebugMelvanimatef("[Melvanimate::returnWaiting] Safety Timeout hit (%u)\n", millis());
 		_waiting = false;
 		_waiting_timeout = 0;
 		return false;
 	}
+
 	return true;
 
 }
@@ -184,10 +194,10 @@ void Melvanimate::setWaiting(bool wait)
 	if (wait) {
 		DebugMelvanimatef("[Melvanimate::setWaiting] Set wait true (%u)\n", millis());
 		_waiting_timeout = millis();
-		_waiting = true;
+		_waiting = 1;
 	} else {
 		DebugMelvanimatef("[Melvanimate::setWaiting] Set wait false (%u)\n", millis());
-		_waiting = false;
+		_waiting = 0;
 		_waiting_timeout = 0;
 	}
 }
@@ -388,8 +398,8 @@ void Melvanimate::_sendData(String page, int8_t code)
 	JsonObject& root = jsonBuffer.createObject();
 
 	root["code"] = code;
-	root["heap"] = ESP.getFreeHeap(); 
-	root["power"] = String(getPower()); 
+	root["heap"] = ESP.getFreeHeap();
+	root["power"] = String(getPower());
 
 	/*
 	      Home page
@@ -604,7 +614,6 @@ template <class T> void Melvanimate::_sendJsontoHTTP( const T & root, ESP8266Web
 void Melvanimate::_handleWebRequest()
 {
 	uint32_t start_time = millis();
-	//_powertick = 0; 
 	String page = "homepage";
 	int8_t code = -1;
 
@@ -637,8 +646,10 @@ void Melvanimate::_handleWebRequest()
 
 	if (_HTTP.hasArg("enable")) {
 		if (_HTTP.arg("enable").equalsIgnoreCase("on")) {
+			DebugMelvanimatef("[_handleWebRequest] Start() called"); 
 			code = Start();
 		} else if (_HTTP.arg("enable").equalsIgnoreCase("off")) {
+			DebugMelvanimatef("[_handleWebRequest] Start(\"Off\")"); 
 			code = Start("Off");
 		}
 	}
@@ -950,27 +961,25 @@ bool Melvanimate::_check_duplicate_req()
 
 }
 
-uint32_t Melvanimate::getPower() 
-{	
+uint32_t Melvanimate::getPower()
+{
 	uint32_t total = 0;
-		int brightnesstally = 0;
+	int brightnesstally = 0;
 
 
-	if (millis() - _powertick < 500)  
-	{
-		return _power; 
+	if (millis() - _powertick < 500) {
+		return _power;
 	}
 
-	if (strip)
-	{
+	if (strip) {
 
 
-	for (int i = 0; i < strip->PixelCount(); i++) {
-		RgbColor colour = strip->GetPixelColor(i);
-		int brightness = colour.CalculateBrightness();
-		brightness = map(brightness, 0, 255, 0, 60);
-		brightnesstally = brightnesstally + brightness;
-	}
+		for (int i = 0; i < strip->PixelCount(); i++) {
+			RgbColor colour = strip->GetPixelColor(i);
+			int brightness = colour.CalculateBrightness();
+			brightness = map(brightness, 0, 255, 0, 60);
+			brightnesstally = brightnesstally + brightness;
+		}
 
 
 
@@ -984,19 +993,60 @@ uint32_t Melvanimate::getPower()
 
 		// 	total += (color.R + color.G + color.B) / 765;
 
-		// 	//total +=  strip->GetPixelColor(pixel).CalculateBrightness();  
+		// 	//total +=  strip->GetPixelColor(pixel).CalculateBrightness();
 
 		// }
 
-			//total = total / strip->PixelCount(); 
+		//total = total / strip->PixelCount();
 
 	}
 
-	_power = brightnesstally; 
-	_powertick = millis(); 
+	_power = brightnesstally;
+	_powertick = millis();
 
-	return brightnesstally  ; 
+	return brightnesstally  ;
 
 }
+
+bool Melvanimate::createAnimator()
+{
+	if (strip) {
+		return createAnimator(strip->PixelCount());
+	}
+
+	return false;
+}
+
+
+bool Melvanimate::createAnimator(uint16_t count)
+{
+
+	if (animator) {
+        delete animator;
+        animator = nullptr; 
+    }
+
+
+	if (count < MAX_NUMBER_OF_ANIMATIONS ) {
+		animator = new NeoPixelAnimator(strip->PixelCount());
+	}
+
+	if (animator) {
+		return true;
+	} else {
+		return false;
+	}
+
+}
+
+void Melvanimate::deleteAnimator()
+{
+	if (animator) {
+		delete animator;
+		animator = nullptr;
+	}
+}
+
+
 
 

@@ -104,16 +104,24 @@ private:
 
 };
 
-
 //  **  NOT being used yet ** // 
-//  This adds ability to Melvtix_json to use json object to set params. 
-class MelvtrixJson: public Melvtrix
+//  This adds ability to Melvtix_json to use json object to set params, and handle dynamix creation and deletetino. 
+class MelvtrixMan
 {
 public:
+   MelvtrixMan(); 
+   MelvtrixMan(uint16_t x, uint16_t y, uint8_t config);
+   ~MelvtrixMan(); 
+   bool createMatrix(); 
+   Melvtrix * getMatrix() { return _matrix; }
+
    bool addJson(JsonObject & root);
    bool parseJson(JsonObject & root);
 private:
-  uint8_t _matrixconfig;
+  Melvtrix * _matrix{nullptr};
+  uint8_t _matrixconfig{NEO_MATRIX_TOP + NEO_MATRIX_LEFT +  NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE};
+  uint16_t _grid_x{8}, _grid_y{8};
+
 };
 
 

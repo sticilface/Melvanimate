@@ -54,7 +54,6 @@
 
 
 #define WS2812_PIXELS 118
-#define MAX_NUMBER_OF_ANIMATIONS 300
 
 #define Debug
 
@@ -90,7 +89,7 @@ SimpleTimer timer;
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
-ESPmanager settings(HTTP, SPIFFS, "TvLights", "fyffest", "wellcometrust");
+ESPmanager settings(HTTP, SPIFFS, "Node-MCU", "fyffest", "wellcometrust");
 
 
 
@@ -98,22 +97,24 @@ Melvanimate lights(HTTP, WS2812_PIXELS, 2);
 
 void install_effects()
 {
-// bool Add(bool savefile, const char * name, EffectHandler* Handler, bool defaulteffect = false);
 
-  lights.Add("Off",         new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
-  lights.Add("SimpleColor", new SimpleEffect(SimpleColorFn));       // working
-  lights.Add("CuriousCat",  new Effect2);
-  lights.Add("Adalight",    new AdalightEffect(Serial, 115000));    // working - need to test
-  lights.Add("UDP",         new UDPEffect);                        // working
-  lights.Add("DMX",         new DMXEffect );                       // need to test - requires custom libs included
-  
+  lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
+  lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));       
   lights.Add("RainbowChase", new RainbowChase); 
+  lights.Add("BobblySquares", new SimpleEffect2(BobblySquaresFn)); 
 
+  lights.Add("CuriousCat",   new Effect2);
+  lights.Add("Adalight",     new AdalightEffect(Serial, 115000));    // working - need to test
+  lights.Add("UDP",          new UDPEffect);                        // working
+  lights.Add("DMX",          new DMXEffect );                       // need to test - requires custom libs included
+  
   // for (uint8_t i = 0; i < 30; i++) {
   //   String in = "CuriousCat" + String(i);
   //   const char * string = strdup(in.c_str());
   //   lights.Add(7, string ,  new Effect2, true);
   // }
+
+
   // lights.Add("Marquee", new MarqueeEffect(MarqueeFn));                      // works. need to add direction....
   // lights.Add("Dummy", new DummyEffect(DummyFn));
   // lights.Add("PropertyTester", new CascadeEffect(CascadeEffectFn));
@@ -124,23 +125,18 @@ void install_effects()
 
 // experimental and in testing
 
-  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
+//  lights.Add("TIMINGfunc", new SwitchEffect(TimingFn));
   // lights.Add("generic", new Effect(SimpleFn));
   // lights.Add("complex", new ComplexEffect(ComplexFn));
   // lights.Add("oldsnakes", new SwitchEffect(SnakesFn));
   // lights.Add("Object", new SwitchEffect(ObjectFn));
 
-//  lights.setPixels(64);
 }
 
 //  MQTT
 
-
 //WiFiClient mqtt_wclient;
 //PubSubClient mqtt(mqtt_wclient, mqtt_server_ip);
-
-
-//uint32_t save_flag = 0;
 
 void setup()
 {
@@ -154,9 +150,6 @@ void setup()
 
  settings.begin();
   fsbrowser.begin();
-
-
-
 
   Serial.println("SPIFFS FILES:");
   {

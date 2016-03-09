@@ -6,6 +6,7 @@
 
 #include "palette.h"
 #include <IPAddress.h>
+#include "melvtrix.h"
 
 
 class AbstractPropertyHandler
@@ -177,6 +178,51 @@ public:
 private:
 	Palette _var;
 };
+
+template <>
+class Variable<MelvtrixMan>: public AbstractPropertyHandler
+{
+public:
+	Variable(const char * name)
+	{
+		_name = name;
+		_var = new MelvtrixMan; 
+	};
+	Variable(const char * name, MelvtrixMan* value): _var(value)
+	{
+		_name = name;
+		//set(value);
+	};
+	~Variable() override {
+		if (_var) 
+		{
+			delete _var;
+			_var = nullptr; 
+		}
+	}
+
+	MelvtrixMan & get() { return *_var; }
+
+	void set(MelvtrixMan value) { _var = &value; }
+
+	bool addJsonProperty(JsonObject & root) override
+	{
+		return _var->addJson(root);
+	}
+
+	bool parseJsonProperty(JsonObject & root) override
+	{
+		if (root.containsKey(_name)) {
+			return _var->parseJson(root);
+		} else {
+			return false;
+		}
+	}
+
+private:
+	MelvtrixMan * _var{nullptr};// = MelvtrixMan(1,2,3); 
+};
+
 
 template <>
 class Variable<IPAddress>: public AbstractPropertyHandler
