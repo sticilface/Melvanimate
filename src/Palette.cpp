@@ -262,7 +262,7 @@ RgbColor Palette::wheel (uint8_t position)
 bool Palette::addJson(JsonObject& root)
 {
 	//JsonObject& root = in;
-		PaletteDebugf("[Palette::addJson] Func HIT, _mode = %u\n", (uint8_t)_mode );
+	PaletteDebugf("[Palette::addJson] Func HIT, _mode = %u\n", (uint8_t)_mode );
 
 	JsonObject& palette = root.createNestedObject(_name);
 	palette["name"] = getModeString();
@@ -279,6 +279,9 @@ bool Palette::addJson(JsonObject& root)
 	palette["range"] = _range;
 	palette["delay"] = _delay;
 	//palette["last"] = _last;  //RgbColor
+
+	PaletteDebugf("[Palette::addJson] Func DONE\n");
+
 	return true;
 
 }
