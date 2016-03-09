@@ -119,11 +119,7 @@ void NeoPixDemoFn(effectState &state, EffectHandler* ptr)
     case PRE_EFFECT: {
       Serial.println("[NeoPixDemoFn] PRE_EFFECT");
 
-      if (animator) {
-        delete animator;
-      }
-
-      animator = new NeoPixelAnimator(1);
+      lights.createAnimator(1);
 
       if (strip) {
         strip->ClearTo(RgbColor(0, 0, 0));
@@ -335,18 +331,11 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
 
     case PRE_EFFECT: {
 
-      if (animator) {
-        delete animator;
-      }
-
-      // have to be careful of number of pixels..
-      if (strip->PixelCount() < MAX_NUMBER_OF_ANIMATIONS ) {
-        animator = new NeoPixelAnimator(strip->PixelCount());
-      }
+      lights.createAnimator(); 
 
       effect.SetTimeout(2000); //  set speed through the effect
 
-      lights.autoWait(); //  halts progress through states untill animator has finished..
+      lights.autoWait(); //  halts progress through states until animator has finished animating
 
       if (animator) {
 
@@ -376,17 +365,13 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
       if (strip) {
         strip->ClearTo(newColor);
       }
-      if (animator) {
-        delete animator;
-        animator = nullptr;
-      }
+
+      lights.deleteAnimator();
+
       break;
     }
     case POST_EFFECT: {
-      if (animator) {
-        delete animator;
-        animator = nullptr;
-      }
+
       break;
     }
     case EFFECT_REFRESH: {
