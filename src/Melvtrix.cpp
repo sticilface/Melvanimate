@@ -110,7 +110,7 @@ int Melvtrix::getPixel(uint16_t x, uint16_t y)
     if ((type & NEO_TILE_AXIS) == NEO_TILE_ROWS) {
       majorScale = tilesX;
     } else {
-      adagfxswap(major, minor);
+      _swap_int16_t(major, minor);
       majorScale = tilesY;
     }
 
@@ -147,7 +147,7 @@ int Melvtrix::getPixel(uint16_t x, uint16_t y)
   if ((type & NEO_MATRIX_AXIS) == NEO_MATRIX_ROWS) {
     majorScale = matrixWidth;
   } else {
-    adagfxswap(major, minor);
+    _swap_int16_t(major, minor);
     majorScale = matrixHeight;
   }
 

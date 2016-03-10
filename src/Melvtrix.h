@@ -70,8 +70,8 @@ POSSIBILITY OF SUCH DAMAGE.
 #define NEO_TILE_ZIGZAG        0x80 // Tile order reverses between lines
 #define NEO_TILE_SEQUENCE      0x80 // Bitmask for tile line order
 
-
-//#define swap(a, b) { int16_t t = a; a = b; b = t; }
+//  not sure why but i have to define this.  Not picked up from GFX lib. 
+#define _swap_int16_t(a, b) { int16_t t = a; a = b; b = t; }
 
 typedef std::function<void(uint16_t, int16_t, int16_t)> ShapeUpdateCallback; // Callback for drawing the pixels..
 
@@ -114,9 +114,6 @@ public:
    ~MelvtrixMan(); 
    bool createMatrix(); 
    Melvtrix * getMatrix() { return _matrix; }
-
-   //bool parseHTTPargs(ESP8266WebServer & HTTP);
-
 
    bool addJson(JsonObject & root);
    bool parseJson(JsonObject & root);
