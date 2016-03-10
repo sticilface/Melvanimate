@@ -131,9 +131,9 @@
               
               <!--classes  ("input_textbox"), ("input_textbox_IP"), ("input_slider"), ("input_textbox_rgb"),("input_selectmenu")-->
 
-                <div class="ui-field-contain input_selectmenu_palette Palette">
+                <div class="ui-field-contain Palette">
                     <label for="input_Palette">Palette:</label>
-                    <select name="palette" id="input_Palette" class='mysubmitthis '>
+                    <select name="palette" id="input_Palette" class='mysubmitthis input_selectmenu_palette'>
                         <option value=0 selected="selected">Off</option>
                         <option value=1>Complementary</option>
                         <option value=2>Monochromatic</option>
@@ -146,14 +146,14 @@
                     </select>
                 </div>
 
-                <div class="ui-field-contain  input_textbox_rgb color1">
+                <div class="ui-field-contain input_textbox_rgb color1">
                     <label for="input_color1">Color One</label>
-                    <input type="text" name="color1" id="input_color1" class="color no-alpha " data-control="hue" display="none" value="">
+                    <input type="text" name="color1" id="input_color1" class="input_textbox_rgb color no-alpha " data-control="hue" display="none" value="">
                 </div>
 
-                <div class="ui-field-contain  input_textbox_rgb color2">
+                <div class="ui-field-contain input_textbox_rgb color2">
                     <label for="input_color2">Color Two</label>
-                    <input type="text" name="color2" id="input_color2" class="color no-alpha " display="none" data-control="hue" value="">
+                    <input type="text" name="color2" id="input_color2" class="input_textbox_rgb color no-alpha " display="none" data-control="hue" value="">
                 </div>
                 <div class="ui-field-contain input_slider brightness">
                     <label for="input_brightness">Brightness:</label>
@@ -169,21 +169,21 @@
                     <input class="mysubmitslider  " type="range" name="randomness" id="input_randomness" min="0" max="8" step="1" value="0">
                 </div>
 
-                <div class="ui-field-contain input_textbox marqueetext">
+                <div class="ui-field-contain marqueetext">
                     <label for="input_marqueetext">Text:</label>
-                    <input class='mysubmitthis ' type="text" name="marqueetext" id="input_marqueetext" value="">
+                    <input class='mysubmitthis input_textbox' type="text" name="marqueetext" id="input_marqueetext" value="">
                 </div>
                 
                 
                 <div class="ui-field-contain input_textbox udp_port">
                     <label for="input_udp_port">Port:</label>
-                    <input type="text" name="udp_port" id="input_udp_port" value="" class='mysubmitthis'>
+                    <input type="text" name="udp_port" id="input_udp_port" value="" class='mysubmitthis '>
                 </div>                
                 
                 
-                <div class="ui-field-contain input_selectmenu udp_usemulticast">
+                <div class="ui-field-contain  udp_usemulticast">
                     <label for="input_udp_usemulticast">Use MultiCast:</label>
-                    <select name="udp_usemulticast" id="input_udp_usemulticast" class="mysubmitthis ">
+                    <select name="udp_usemulticast" id="input_udp_usemulticast" class="mysubmitthis input_selectmenu">
                         <option value=true selected="selected">Yes</option>
                         <option value=false>No</option>
                     </select>
@@ -192,7 +192,7 @@
                 
                 <div class="ui-field-contain input_textbox_IP udp_multicast_ip_addr">
                     <label for="input_udp_multicast_ip_addr">Multicast Address:</label>
-                    <input type="text" name="udp_multicast_ip_addr" id="input_udp_multicast_ip_addr" value="" class='mysubmitthis'>
+                    <input type="text" name="udp_multicast_ip_addr" id="input_udp_multicast_ip_addr" value="" class='mysubmitthis '>
                 </div>  
                 
  <!--DMX-->
@@ -219,12 +219,12 @@
                 
                  <div class="ui-field-contain input_textbox dmx_port">
                     <label for="input_dmx_port">UDP Port:</label>
-                    <input type="text" name="dmx_port" id="input_dmx_port" value="" class="mysubmitthis">
+                    <input type="text" name="dmx_port" id="input_dmx_port" value="" class="mysubmitthis ">
                 </div>
                 
-                <div class="ui-field-contain input_selectmenu dmx_usemulticast">
+                <div class="ui-field-contain  dmx_usemulticast">
                     <label for="input_dmx_usemulticast">MultiCast:</label>
-                    <select name="dmx_usemulticast" id="input_dmx_usemulticast" class="mysubmitthis">
+                    <select name="dmx_usemulticast" id="input_dmx_usemulticast" class="mysubmitthis input_selectmenu">
                         <option value=true selected="selected">Yes</option>
                         <option value=false>No</option>
                     </select>
