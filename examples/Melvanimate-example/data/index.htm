@@ -9,15 +9,15 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black" />
 
-    <!--
+    
   <link rel="stylesheet" href="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
   <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
   <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
--->
+
     <!-- <link rel="stylesheet" href="/espman/jqm1.4.5.css"> -->
     <!--<script src="/espman/jq1.11.1.js"></script>-->
     <!--<script src="/espman/jqm1.4.5.js"></script>-->
-    <!-- <script type="text/javascript" src="jqColorPicker.min.js"></script>-->
+     <script type="text/javascript" src="jqColorPicker.min.js"></script>
 
 
 
@@ -59,7 +59,7 @@
 
     <style>
         body {
-            visibility: hidden
+            visibility: visible
         }
     </style>
 
@@ -71,7 +71,7 @@
   
 
     <div data-role="header" data-theme="a" data-position="fixed">
-        <h1 id='myheader'>WS2812-ESPWiFi</h1>
+        <h1 class='myheader'>WS2812-ESPWiFi</h1>
         <a href="#leftpanel" class="ui-btn ui-btn-left ui-alt-icon ui-nodisc-icon ui-corner-all ui-btn-icon-notext ui-icon-bars">Menu</a>
         <!--                <a href="#rightpanel"  class="ui-btn ui-btn-right ui-alt-icon ui-nodisc-icon ui-corner-all ui-btn-icon-notext ui-icon-gear">Menu</a>
  --></div>
@@ -87,7 +87,8 @@
             <a href="#presetspage" data-role="button" class="ui-btn">Presets</a>
             <a href="#palette" data-role="button" class="ui-btn" id="palettebutton">Palette</a>
             <a href="#timer" data-role="button" class="ui-btn">Timer</a>
-            <a href="#layout" data-role="button" class="ui-btn">Layout</a>
+            <a href="#matrixpage" data-role="button" class="ui-btn" id ="matrixbutton">Matrix</a>
+            <a href="#configpage" data-role="button" class="ui-btn">Config</a>
             <a href="/espman/" rel="external" data-role="button" class="ui-btn">ESPmanager</a>
             <a href="#my-header" data-rel="close" class="ui-btn">Close</a>
 
@@ -115,7 +116,7 @@
 
             <div class="ui-field-contain">
                 <label for="modeslist">Mode:</label>
-                <select name="mode" id="modeslist" class="effectslist">
+                <select name="mode" id="modeslist" class="effectslist mysubmitthis">
                 </select>
             </div>
 
@@ -131,9 +132,9 @@
               
               <!--classes  ("input_textbox"), ("input_textbox_IP"), ("input_slider"), ("input_textbox_rgb"),("input_selectmenu")-->
 
-                <div class="ui-field-contain Palette">
+                <div class="ui-field-contain input_selectmenu_palette Palette">
                     <label for="input_Palette">Palette:</label>
-                    <select name="palette" id="input_Palette" class='mysubmitthis input_selectmenu_palette'>
+                    <select name="palette" id="input_Palette" class='mysubmitthis'>
                         <option value=0 selected="selected">Off</option>
                         <option value=1>Complementary</option>
                         <option value=2>Monochromatic</option>
@@ -146,14 +147,14 @@
                     </select>
                 </div>
 
-                <div class="ui-field-contain input_textbox_rgb color1">
+                <div class="ui-field-contain  input_textbox_rgb color1">
                     <label for="input_color1">Color One</label>
-                    <input type="text" name="color1" id="input_color1" class="input_textbox_rgb color no-alpha " data-control="hue" display="none" value="">
+                    <input type="text" name="color1" id="input_color1" class="color no-alpha " data-control="hue" display="none" value="">
                 </div>
 
-                <div class="ui-field-contain input_textbox_rgb color2">
+                <div class="ui-field-contain  input_textbox_rgb color2">
                     <label for="input_color2">Color Two</label>
-                    <input type="text" name="color2" id="input_color2" class="input_textbox_rgb color no-alpha " display="none" data-control="hue" value="">
+                    <input type="text" name="color2" id="input_color2" class="color no-alpha " display="none" data-control="hue" value="">
                 </div>
                 <div class="ui-field-contain input_slider brightness">
                     <label for="input_brightness">Brightness:</label>
@@ -169,30 +170,30 @@
                     <input class="mysubmitslider  " type="range" name="randomness" id="input_randomness" min="0" max="8" step="1" value="0">
                 </div>
 
-                <div class="ui-field-contain marqueetext">
+                <div class="ui-field-contain input_textbox marqueetext">
                     <label for="input_marqueetext">Text:</label>
-                    <input class='mysubmitthis input_textbox' type="text" name="marqueetext" id="input_marqueetext" value="">
+                    <input class='mysubmitthis ' type="text" name="marqueetext" id="input_marqueetext" value="">
                 </div>
                 
                 
                 <div class="ui-field-contain input_textbox udp_port">
                     <label for="input_udp_port">Port:</label>
-                    <input type="text" name="udp_port" id="input_udp_port" value="" class='mysubmitthis '>
+                    <input type="text" name="udp_port" id="input_udp_port" value="" class='mysubmitthis'>
                 </div>                
                 
                 
-                <div class="ui-field-contain  udp_usemulticast">
+                <div class="ui-field-contain input_selectmenu udp_usemulticast">
                     <label for="input_udp_usemulticast">Use MultiCast:</label>
-                    <select name="udp_usemulticast" id="input_udp_usemulticast" class="mysubmitthis input_selectmenu">
-                        <option value=true selected="selected">Yes</option>
-                        <option value=false>No</option>
+                    <select name="udp_usemulticast" id="input_udp_usemulticast" class="mysubmitthis">
+                        <option value="true" selected="selected">Yes</option>
+                        <option value="false">No</option>
                     </select>
                 </div>
                 
                 
                 <div class="ui-field-contain input_textbox_IP udp_multicast_ip_addr">
                     <label for="input_udp_multicast_ip_addr">Multicast Address:</label>
-                    <input type="text" name="udp_multicast_ip_addr" id="input_udp_multicast_ip_addr" value="" class='mysubmitthis '>
+                    <input type="text" name="udp_multicast_ip_addr" id="input_udp_multicast_ip_addr" value="" class='mysubmitthis'>
                 </div>  
                 
  <!--DMX-->
@@ -222,9 +223,9 @@
                     <input type="text" name="dmx_port" id="input_dmx_port" value="" class="mysubmitthis ">
                 </div>
                 
-                <div class="ui-field-contain  dmx_usemulticast">
+                <div class="ui-field-contain input_selectmenu dmx_usemulticast">
                     <label for="input_dmx_usemulticast">MultiCast:</label>
-                    <select name="dmx_usemulticast" id="input_dmx_usemulticast" class="mysubmitthis input_selectmenu">
+                    <select name="dmx_usemulticast" id="input_dmx_usemulticast" class="mysubmitthis ">
                         <option value=true selected="selected">Yes</option>
                         <option value=false>No</option>
                     </select>
@@ -236,9 +237,9 @@
                 </div>
                 
                 
-                <div class="ui-field-contain  rotation">
+                <div class="ui-field-contain input_selectmenu rotation">
                     <label for="input-rotation">Rotation:</label>
-                    <select name="rotation" id="input-rotation" class="mysubmitthis input_selectmenu">
+                    <select name="rotation" id="input-rotation" class="mysubmitthis ">
                         <option value="0" selected="selected">0</option>
                         <option value="1">90</option>
                         <option value="2">180</option>
@@ -246,21 +247,21 @@
                     </select>
                 </div>
 
-                <div class="ui-field-contain  serialspeed">
+                <div class="ui-field-contain input_selectmenu serialspeed">
                     <label for="input_serialspeed">Serial Speed:</label>
                     <select name="serialspeed" id="input_serialspeed" class="mysubmitthis input_selectmenu">
-                        <option value=115200 selected="selected">115200</option>
-                        <option value=234000>234000</option>
-                        <option value=460800>460800</option>
-                        <option value=1000000>1,000,000</option>
-                        <option value=2000000>2,000,000</option>
+                        <option value="115200" selected="selected">115200</option>
+                        <option value="234000">234000</option>
+                        <option value="460800">460800</option>
+                        <option value="1000000">1,000,000</option>
+                        <option value="2000000">2,000,000</option>
                     </select>
                 </div>
 <!--RainbowCycle-->
 
-                <div class="ui-field-contain  wholerainbow">
+                <div class="ui-field-contain input_selectmenu wholerainbow">
                     <label for="input_wholerainbow">Use Whole Rainbow:</label>
-                    <select name="wholerainbow" id="input_wholerainbow" class="mysubmitthis input_selectmenu">
+                    <select name="wholerainbow" id="input_wholerainbow" class="mysubmitthis">
                         <option value="true">Yes</option>
                         <option value="false" selected="selected">No</option>
                     </select>
@@ -325,12 +326,35 @@
     <!--    </div>-->
 
     <!--</div>-->
-
-
-    <div data-role="page" id="layout" data-close-btn="right" data-dialog="true">
+    <div data-role="page" id="configpage" data-close-btn="right" data-dialog="true">
 
 <div data-role="header">
-  <h1> Layout </h1>
+  <h1 class='myheader'> Configuration </h1>
+  </div>
+          <div data-role="content">
+
+            <form id="configform">
+                <div class="ui-field-contain">
+                    <label for="nopixels">Number of Pixels:</label>
+                    <input type="text" name="nopixels" id="nopixels" value="" class="noEnterSubmit">
+                </div>
+                
+                <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+                
+            </form>
+            
+            
+            </div>
+  </div>
+
+
+
+<!--Matrix Page-->
+
+    <div data-role="page" id="matrixpage" data-close-btn="right" data-dialog="true">
+
+<div data-role="header">
+  <h1 class='myheader'> Matrix </h1>
   </div>
         <div data-role="content">
 
@@ -338,11 +362,7 @@
             <p> See <a href="https://learn.adafruit.com/adafruit-neopixel-uberguide/neomatrix-library" target="_blank">here</a> for Matrix layout options. Thanks to Adafruit</p>
             <p id="firstpixelidentify"> Click this to identify first pixel,</p>
             <p id="revealorder">Click this to show order</p>
-            <form id="layoutform">
-                <div class="ui-field-contain">
-                    <label for="nopixels">Number of Pixels:</label>
-                    <input type="text" name="nopixels" id="nopixels" value="" class="noEnterSubmit">
-                </div>
+              <form id='matrixform'>
                 <div class="ui-field-contain">
                     <label for="gridx">X dimentions:</label>
                     <input type="text" name="grid_x" id="gridx" value="" class="noEnterSubmit">
@@ -538,35 +558,35 @@
 
      <script>
      
-        function loadcss(url, callback) {
-            var link = document.createElement("link");
-            link.setAttribute("rel", "stylesheet");
-            link.setAttribute("href", url);
-            link.addEventListener('load', function() {
-                var script = document.createElement("script");
-                script.textContent = "(" + callback.toString() + ")();";
-                document.body.appendChild(script);
-            }, false);
-            document.body.appendChild(link);
-        }
+        // function loadcss(url, callback) {
+        //     var link = document.createElement("link");
+        //     link.setAttribute("rel", "stylesheet");
+        //     link.setAttribute("href", url);
+        //     link.addEventListener('load', function() {
+        //         var script = document.createElement("script");
+        //         script.textContent = "(" + callback.toString() + ")();";
+        //         document.body.appendChild(script);
+        //     }, false);
+        //     document.body.appendChild(link);
+        // }
 
-        function loadjs(url, callback) {
-            var script = document.createElement("script");
-            script.setAttribute("src", url);
-            script.addEventListener('load', function() {
-                var script = document.createElement("script");
-                script.textContent = "(" + callback.toString() + ")();";
-                document.body.appendChild(script);
-            }, false);
-            document.body.appendChild(script);
-        }
+        // function loadjs(url, callback) {
+        //     var script = document.createElement("script");
+        //     script.setAttribute("src", url);
+        //     script.addEventListener('load', function() {
+        //         var script = document.createElement("script");
+        //         script.textContent = "(" + callback.toString() + ")();";
+        //         document.body.appendChild(script);
+        //     }, false);
+        //     document.body.appendChild(script);
+        // }
 
-        loadcss("/espman/jqm1.4.5.css", function() {
-            loadjs("/espman/jq1.11.1.js", function() {
-                //window.jQ=jQuery.noConflict(true);
-                loadjs("/espman/jqm1.4.5.js", function() {
-                    //window.jQ=jQuery.noConflict(true);
-                    loadjs("jqColorPicker.min.js", function() {
+        // loadcss("/espman/jqm1.4.5.css", function() {
+        //     loadjs("/espman/jq1.11.1.js", function() {
+        //         //window.jQ=jQuery.noConflict(true);
+        //         loadjs("/espman/jqm1.4.5.js", function() {
+        //             //window.jQ=jQuery.noConflict(true);
+        //             loadjs("jqColorPicker.min.js", function() {
                         $(function() {
 
                             $("[data-role='header']").toolbar();
@@ -574,17 +594,14 @@
                             $("body>[data-role='panel']").panel();
 
                         });
-                        RUNDOCUMENT();
-                  //      GetData("homepage");
-                        $("body").css("visibility", "visible");
-                    });
-                });
-            });
-        });
-     </script>
+        //                 RUNDOCUMENT();
+        //           //      GetData("homepage");
+        //                 $("body").css("visibility", "visible");
+        //             });
+        //         });
+        //     });
+        // });
 
-
-    <script>
         var currentmode;
         var globaldata = {};
         var settings = {}; 
@@ -627,7 +644,7 @@
         var NEO_TILE_ZIGZAG = 0x80 // Tile order reverses between lines
         var NEO_TILE_SEQUENCE = 0x80 // Bitmask for tile line order
 
-        function RUNDOCUMENT() {
+   //     function RUNDOCUMENT() {
 
       $(document).on( "pagechange", function( event ) { GetData($.mobile.activePage.attr('id'));  } ); 
 
@@ -728,68 +745,25 @@
 
             $(document).on("pagecreate", "#homepage", function() {
 
-              //  GetData("all");
+                 $('#modeslist').change(function() {
 
-                $('#modeslist').change(function() {
+              //  gives effect parameters time to load. 
+                setTimeout(function() {
+                $.post("data.esp", "data=homepage", function() {
+                
+                }).success(function(e) {
+                  processJSON(e);
+                }); 
+                  
+                }, 100);
 
-                    //console.log("mode change");
-                    //var mode = $(this).val();
-
-                    // $('#effectoptions').children('div').each(function(index) {
-                    //     $(this).hide();
-                    // });
-
-                    // $('#effectoptions').children('div').each(function(index) {
-                    //     //if ($(this).hasClass(mode)) $(this).show();
-                    //     $.each(settings, function(index, element) {
-                    //       if ($(this).hasClass(element)) $(this).show();
-                    //     });
-                        
-                    // });
-                    
-                    
-                    // if (settings.hasOwnProperty('brightness')) {
-                    //   console.log("brightness present in global settings"); 
-                    //   $('#brightness').parent().show(); 
-                    //   console.log("Parent ID = " + $('#brightness').parent().)
-                      
-                    // }
-
-                    $("#status").empty().append("Waiting ").css("color", "blue");;
-                    
-                    $.post("data.esp", $(this).serialize(), function() {
-                        //GetData();
-                    }).success(function(e) {
-                      
-                        processJSON(e);
-                        
-                        //console.log("Settings var = ");
-                        //console.log(settings);
-                    
-                        // $('#effectoptions').children('div').each(function(index) {
-                        // //if ($(this).hasClass(mode)) $(this).show();
-                        // current = $(this); 
-                        // $.each(settings, function(key, value) {
-                        //   //console.log("[" + key + "] " + value); 
-                        //   if (current.hasClass(key)) current.show();
-                        // });
-                        
-                        // });
-                                          
-                        $("#status").empty().append("Success").css("color", "green");;
-                    })
-                    .error(function() {
-                        $("#status").empty().append("Error").css("color", "red");;
-                    })
-                    .complete(function() {});
-
-                });
+                 });
 
             });
 
 
             //  
-            $(document).on('touchstart click', '#myheader', function(e) {
+            $(document).on('touchstart click', '.myheader', function(e) {
                 e.preventDefault();
                 GetData($.mobile.activePage.attr('id'));
                 //console.log("#myheader click"); 
@@ -1213,7 +1187,7 @@
 
             }
 
-        } // end of rundocumentt
+ //       } // end of rundocumentt
         
     function flipChanged(e) {
       
@@ -1323,6 +1297,52 @@
                               $('#div_inserted_timer').remove(); 
                             }
                             
+                        
+                        if (result.hasOwnProperty('settings')) {
+                          
+                          if (result.settings.hasOwnProperty("Palette")) {
+                            $("#palettebutton").show();
+                          } else {
+                            $("#palettebutton").hide();
+                          }
+                          if (result.settings.hasOwnProperty("Matrix")) {
+                            $("#matrixbutton").show();
+                          } else {
+                            $("#matrixbutton").hide();
+                          }
+                          
+                          
+                        $('#effectoptions').children('div').each(function(index) {
+                          $(this).hide();
+                        });
+                    
+
+                        $('#effectoptions').children('div').each(function(index) {
+                        //if ($(this).hasClass(mode)) $(this).show();
+                        currentdiv = $(this); 
+                        $.each(result.settings, function(key, value) {
+                          //console.log("[" + key + "] " + value); 
+                          if (currentdiv.hasClass(key)) { 
+                            currentdiv.show();
+                            //console.log("SHOW: " + key); 
+                          }; 
+                        });
+                        
+                        });
+                        
+                        $.each(settings, function(key, value) {
+
+                          $( '#effectoptions > .input_textbox').find("#input_" + key).closest('input').val(value); 
+                          $( '#effectoptions > .input_textbox_IP').find("#input_" + key).closest('input').val(value[0] + "." + value[1] + "." + value[2] + "." + value[3]); 
+                          $( '#effectoptions > .input_slider').find("#input_" + key).val(value).closest('input').slider("refresh");
+                          $( '#effectoptions > .input_textbox_rgb').find("#input_" + key).val("rgb(" + value[0] + "," + value[1] + "," + value[2] + ")").colorPicker();
+                          $( '#effectoptions > .input_selectmenu').find("#input_" + key).closest('select').val(value.toString()).selectmenu('refresh');
+                          $( '#effectoptions > .input_selectmenu_palette').find("#input_" + key).closest('select').val(value.mode).selectmenu('refresh');
+                        });
+                        
+                      }
+                      
+                      
                       if (result.hasOwnProperty('currentpresets') && result.currentpresets.length ) {
                         //console.log("Currentpreset length " + result.currentpresets.length); 
                         
@@ -1348,50 +1368,6 @@
                         $('.presetlistclass').hide();
 
                       }
-                      
-                        if (result.hasOwnProperty('settings')) {
-                          
-                          if (result.settings.hasOwnProperty("Palette")) {
-                            $("#palettebutton").show();
-                          } else {
-                            $("#palettebutton").hide();
-                          }
-                          
-                        $('#effectoptions').children('div').each(function(index) {
-                          $(this).hide();
-                        });
-                    
-
-                        $('#effectoptions').children('div').each(function(index) {
-                        //if ($(this).hasClass(mode)) $(this).show();
-                        currentdiv = $(this); 
-                        $.each(result.settings, function(key, value) {
-                          //console.log("[" + key + "] " + value); 
-                          if (currentdiv.hasClass(key)) { 
-                            currentdiv.show();
-                            //console.log("SHOW: " + key); 
-                          }; 
-                        });
-                        
-                        });
-                        
-                        $.each(settings, function(key, value) {
-            //  might need reworking.  gett rid of closest... 
-            //console.log("[" + key + "]" + value + "= #input_" + key); 
-                          $( '#effectoptions > .input_textbox').find("#input_" + key).closest('input').val(value); 
-                          $( '#effectoptions > .input_textbox_IP').find("#input_" + key).closest('input').val(value[0] + "." + value[1] + "." + value[2] + "." + value[3]); 
-                          $( '#effectoptions > .input_slider').find("#input_" + key).val(value).closest('input').slider("refresh");
-                          $( '#effectoptions > .input_textbox_rgb').find("#input_" + key).val("rgb(" + value[0] + "," + value[1] + "," + value[2] + ")").colorPicker();
-                          $( '#effectoptions > .input_selectmenu').find("#input_" + key).closest('select').val(value).selectmenu('refresh');
-                          $( '#effectoptions > .input_selectmenu_palette').find("#input_" + key).closest('select').val(value.mode).selectmenu('refresh');
-                        
-                          
-                        });
-                        
-                      }
-                      
-                      
-
                       //  
                       
                       if (result.hasOwnProperty('heap')) 
@@ -1430,55 +1406,82 @@
                       $('#presetpage_currentEffect').empty().append("Current Effect: " + result.settings.currentpresetname); // .css("color", "red");;
                     }
                     }
+                    
+                    
+                    
+                    if ($.mobile.activePage.attr('id') == 'configpage') {
+                      
+                        if (result.hasOwnProperty('pixels')) {
+                            $("#nopixels").val(result.pixels);
+                        }                      
+                      
+                      
+                      
+                    }
+                    
+
 
                     // Layout Page
-                    if ($.mobile.activePage.attr('id') == 'layout') {
+                    if ($.mobile.activePage.attr('id') == 'matrixpage') {
+                      
+                      if (result.hasOwnProperty('settings')) {
+                      
+                      if (result.settings.hasOwnProperty('Matrix')) {
+                      
+        console.log("updating matrix page"); 
+        
+                      var matrixresult = result.settings.Matrix;
 
-                        if (result.hasOwnProperty('multiplematrix')) {
-                            if (result.multiplematrix === true) {
+                        if (matrixresult.hasOwnProperty('multiple')) {
+                            if (matrixresult.multiple === true) {
+                              
                                 $("#select-matrix-type").val('multiplematrix').selectmenu("refresh");
+                                
+                                console.log("TRUE multiple = " + matrixresult.multiple); 
+
                             } else {
                                 $("#select-matrix-type").val('singlematrix').selectmenu("refresh");
+                                
+                                console.log("FALSE multiple = " + matrixresult.multiple); 
+
                             }
 
                         }
 
-                        if (result.hasOwnProperty('pixels')) {
-                            $("#nopixels").val(result.pixels);
+                        if (matrixresult.hasOwnProperty('x')) {
+                            $("#gridx").val(matrixresult.x);
                         }
-                        if (result.hasOwnProperty('grid_x')) {
-                            $("#gridx").val(result.grid_x);
+                        if (matrixresult.hasOwnProperty('y')) {
+                            $("#gridy").val(matrixresult.y);
                         }
-                        if (result.hasOwnProperty('grid_y')) {
-                            $("#gridy").val(result.grid_y);
+                        // if (matrixresult.hasOwnProperty('config')) {
+                        //     $("#select-matrix-type").val(matrixresult.config).selectmenu("refresh");
+                        // }
+
+                        if (matrixresult.hasOwnProperty('firstpixel')) {
+                            $("#select-singlematrix").val(matrixresult.firstpixel).selectmenu("refresh");
                         }
-                        if (result.hasOwnProperty('matrixmode')) {
-                            $("#select-matrix-type").val(result.matrixmode).selectmenu("refresh");
+                        if (matrixresult.hasOwnProperty('axis')) {
+                            $("#select-singlematrix-axis").val(matrixresult.axis).selectmenu("refresh");
+                        }
+                        if (matrixresult.hasOwnProperty('sequence')) {
+                            $("#select-singlematrix-seq").val(matrixresult.sequence).selectmenu("refresh");
                         }
 
-                        if (result.hasOwnProperty('firstpixel')) {
-                            $("#select-singlematrix").val(result.firstpixel).selectmenu("refresh");
+                        if (matrixresult.hasOwnProperty('multimatrixtile')) {
+                            $("#select-multimatrix").val(matrixresult.multimatrixtile).selectmenu("refresh");
                         }
-                        if (result.hasOwnProperty('axis')) {
-                            $("#select-singlematrix-axis").val(result.axis).selectmenu("refresh");
+                        if (matrixresult.hasOwnProperty('multimatrixaxis')) {
+                            $("#select-multimatrix-axis").val(matrixresult.multimatrixaxis).selectmenu("refresh");
                         }
-                        if (result.hasOwnProperty('sequence')) {
-                            $("#select-singlematrix-seq").val(result.sequence).selectmenu("refresh");
-                        }
-
-                        if (result.hasOwnProperty('multimatrixtile')) {
-                            $("#select-multimatrix").val(result.multimatrixtile).selectmenu("refresh");
-                        }
-                        if (result.hasOwnProperty('multimatrixaxis')) {
-                            $("#select-multimatrix-axis").val(result.multimatrixaxis).selectmenu("refresh");
-                        }
-                        if (result.hasOwnProperty('multimatrixseq')) {
-                            $("#select-multimatrix-seq").val(result.multimatrixseq).selectmenu("refresh");
+                        if (matrixresult.hasOwnProperty('multimatrixseq')) {
+                            $("#select-multimatrix-seq").val(matrixresult.multimatrixseq).selectmenu("refresh");
                         }
 
                         sortmatrix('#select-matrix-type');
-
+                      } 
                     }
+                  }
 
                     if ($.mobile.activePage.attr('id') == 'palette') {
                       
@@ -1489,8 +1492,8 @@
                       
                       //console.log(result);
                       
-                        if (palettevars.hasOwnProperty('mode')) {
-                            $("#select-palettes2").val(palettevars.mode).selectmenu("refresh");
+                        if (palettevars.hasOwnProperty('name')) {
+                            $("#select-palettes2").val(palettevars.name).selectmenu("refresh");
                         } else {
                           $("#select-palettes2").val("off").selectmenu("refresh");
                         }
@@ -1517,6 +1520,7 @@
                          $("#select-palettes-randomness").val("off").selectmenu("refresh");
                          
                        }
+                    
                     }
                     
     }
