@@ -147,6 +147,16 @@
                     </select>
                 </div>
 
+                <div class="ui-field-contain input_selectmenu use_matrix">
+                    <label for="input_use_matrix">Use Matrix:</label>
+                    <select name="use_matrix" id="input_use_matrix" class="mysubmitthis">
+                        <option value="true">Yes</option>
+                        <option value="false" selected="selected">No</option>
+                    </select>
+                </div> 
+                
+                
+                
                 <div class="ui-field-contain  input_textbox_rgb color1">
                     <label for="input_color1">Color One</label>
                     <input type="text" name="color1" id="input_color1" class="color no-alpha " data-control="hue" display="none" value="">
@@ -1306,11 +1316,12 @@
                             $("#palettebutton").hide();
                           }
                           if (result.settings.hasOwnProperty("Matrix")) {
-                            $("#matrixbutton").show();
-                          } else {
-                            $("#matrixbutton").hide();
+                            if (result.settings.Matrix.enabled) {
+                                $("#matrixbutton").show();
+                            } else {
+                                $("#matrixbutton").hide();
+                            }
                           }
-                          
                           
                         $('#effectoptions').children('div').each(function(index) {
                           $(this).hide();
