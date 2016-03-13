@@ -63,15 +63,6 @@ public:
 	void setPixels(const uint16_t pixels);
 	inline const uint16_t getPixels() const  { return _pixels; }
 
-	// Matrix functions
-	void  grid(const uint16_t x, const uint16_t y);
-	void  setmatrix(const uint8_t i);
-	inline const uint8_t getmatrix() const { return _matrixconfig; }
-	Melvtrix * matrix() { return _matrix; } //  returns pointer to the GFX melvtrix
-	inline const uint16_t getX() const {  return _grid_x ; }
-	inline const uint16_t getY() const {  return _grid_y; }
-	bool multiplematrix = false; //
-
 	// autowait functions
 	void setWaiting(bool wait = true);
 	void autoWait();
@@ -94,7 +85,6 @@ private:
 	bool _saveGeneral(bool override = false);
 	bool _loadGeneral();
 	void _init_LEDs();
-	void _init_matrix();
 
 	void _sendData(String page, int8_t code); 
 	void _handleWebRequest();
@@ -105,9 +95,6 @@ private:
 
 	uint16_t  _pixels;
 	uint8_t _pin;
-	Melvtrix * _matrix;
-	uint8_t _matrixconfig;
-	uint16_t _grid_x, _grid_y;
 	bool _settings_changed;
 	//File _settings;
 

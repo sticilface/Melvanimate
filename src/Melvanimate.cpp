@@ -8,10 +8,8 @@ NeoPixelAnimator * animator = nullptr;
 MyPixelBus * strip = nullptr;
 
 Melvanimate::Melvanimate(ESP8266WebServer & HTTP, uint16_t pixels, uint8_t pin): _HTTP(HTTP), _pixels(pixels), _pin(pin)
-	, _grid_x(8), _grid_y(8), _matrixconfig(0), _matrix(nullptr)
 	, _settings_changed(false)
 {
-	_matrixconfig = ( NEO_MATRIX_TOP + NEO_MATRIX_LEFT +  NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE );
 	setWaitFn ( std::bind (&Melvanimate::returnWaiting, this)  );   //  this callback gives bool to Effectmanager... "am i waiting..."
 
 }
@@ -29,7 +27,6 @@ bool Melvanimate::begin()
 
 	_loadGeneral();
 	_init_LEDs();
-	_init_matrix();
 
 	fillPresetArray();
 }
@@ -82,7 +79,6 @@ void Melvanimate::_init_LEDs()
 
 	}
 
-	setmatrix(_matrixconfig);
 
 	if (strip) {
 		strip->Begin();
@@ -104,27 +100,28 @@ void Melvanimate::_init_LEDs()
 // }
 
 
-void        Melvanimate::grid(const uint16_t x, const uint16_t y)
-{
-	if ( x * y > _pixels) { return; } // bail if grid is too big for pixels.. not sure its required
-	if (_grid_x == x && _grid_y == y) { return; } // return if unchanged
-	Start("Off");
-	_grid_x = x;
-	_grid_y = y;
-	DebugMelvanimatef("NEW grids (%u,%u)\n", _grid_x, _grid_y);
-	_settings_changed = true;
-	if (_matrix) { delete _matrix; _matrix = nullptr; }
-	_matrix = new Melvtrix(_grid_x, _grid_y, _matrixconfig);
-}
-void        Melvanimate::setmatrix(const uint8_t i)
-{
-	if (_matrixconfig == i && _matrix) { return; } //  allow for first initialisation with params = initialised state.
-	Start("Off");
-	_matrixconfig = i;
-	DebugMelvanimatef("NEW matrix Settings (%u)\n", _matrixconfig);
-	_settings_changed = true;
-	_init_matrix();
-}
+// void        Melvanimate::grid(const uint16_t x, const uint16_t y)
+// {
+// 	if ( x * y > _pixels) { return; } // bail if grid is too big for pixels.. not sure its required
+// 	if (_grid_x == x && _grid_y == y) { return; } // return if unchanged
+// 	Start("Off");
+// 	_grid_x = x;
+// 	_grid_y = y;
+// 	DebugMelvanimatef("NEW grids (%u,%u)\n", _grid_x, _grid_y);
+// 	_settings_changed = true;
+// 	if (_matrix) { delete _matrix; _matrix = nullptr; }
+// 	_matrix = new Melvtrix(_grid_x, _grid_y, _matrixconfig);
+// }
+
+// void        Melvanimate::setmatrix(const uint8_t i)
+// {
+// 	if (_matrixconfig == i && _matrix) { return; } //  allow for first initialisation with params = initialised state.
+// 	Start("Off");
+// 	_matrixconfig = i;
+// 	DebugMelvanimatef("NEW matrix Settings (%u)\n", _matrixconfig);
+// 	_settings_changed = true;
+// 	_init_matrix();
+// }
 
 void        Melvanimate::setPixels(const uint16_t pixels)
 {
@@ -215,10 +212,6 @@ bool Melvanimate::_saveGeneral(bool override)
 	JsonObject& globals = root.createNestedObject("globals");
 	{
 		globals["pixels"] = _pixels ;
-		globals["matrixconfig"] = _matrixconfig ;
-		globals["gridx"] = _grid_x ;
-		globals["gridy"] = _grid_y ;
-		globals["rotation"] = _matrix->getRotation();
 	}
 
 
@@ -314,9 +307,7 @@ bool Melvanimate::_loadGeneral()
 			JsonObject& globals = root["globals"];
 
 			_pixels = globals["pixels"].as<long>() ;
-			_matrixconfig = globals["matrixconfig"].as<long>()  ;
-			_grid_x  = globals["gridx"].as<long>();
-			_grid_y  = globals["gridy"].as<long>();
+
 
 
 		} else { DebugMelvanimatef("[Melvanimate::load] No Globals\n"); }
@@ -458,62 +449,65 @@ void Melvanimate::_sendData(String page, int8_t code)
 	[ARG:8] multimatrixaxis = rowmajor
 	[ARG:9] multimatrixseq = progressive
 	*/
-	if (page == "layout" || page == "all") {
-		//root["pixels"] = getPixels();
-		root["grid_x"] = getX();
-		root["grid_y"] = getY();
-		root["multiplematrix"] = multiplematrix;
-		root["matrixconfig"] = getmatrix();
 
 
-		uint8_t matrixconfig = getmatrix();
-		bool bottom = (matrixconfig & NEO_MATRIX_BOTTOM) ;
-		bool right = (matrixconfig & NEO_MATRIX_RIGHT) ;
 
-// single matrix
-		if (!bottom && !right) { root["firstpixel"] = "topleft"; }
-		if (!bottom && right) { root["firstpixel"] = "topright"; }
-		if (bottom && !right) { root["firstpixel"] = "bottomleft"; }
-		if (bottom && right ) { root["firstpixel"] = "bottomright"; }
-
-		if ((matrixconfig & NEO_MATRIX_AXIS) == NEO_MATRIX_ROWS) {
-			root["axis"] = "rowmajor";
-		} else {
-			root["axis"] = "columnmajor";
-		}
-
-		if ((matrixconfig & NEO_MATRIX_SEQUENCE) == NEO_MATRIX_PROGRESSIVE) {
-			root["sequence"] = "progressive";
-		} else {
-			root["sequence"] = "zigzag";
-		}
+// 	if (page == "layout" || page == "all") {
+// 		//root["pixels"] = getPixels();
+// 		root["grid_x"] = getX();
+// 		root["grid_y"] = getY();
+// 		root["multiplematrix"] = multiplematrix;
+// 		root["matrixconfig"] = getmatrix();
 
 
-// Tiles
+// 		uint8_t matrixconfig = getmatrix();
+// 		bool bottom = (matrixconfig & NEO_MATRIX_BOTTOM) ;
+// 		bool right = (matrixconfig & NEO_MATRIX_RIGHT) ;
 
-		bottom = (matrixconfig & NEO_TILE_BOTTOM) ;
-		right = (matrixconfig & NEO_TILE_RIGHT) ;
+// // single matrix
+// 		if (!bottom && !right) { root["firstpixel"] = "topleft"; }
+// 		if (!bottom && right) { root["firstpixel"] = "topright"; }
+// 		if (bottom && !right) { root["firstpixel"] = "bottomleft"; }
+// 		if (bottom && right ) { root["firstpixel"] = "bottomright"; }
 
-		if (!bottom && !right) { root["multimatrixtile"] = "topleft"; }
-		if (!bottom && right) { root["multimatrixtile"] = "topright"; }
-		if (bottom && !right) { root["multimatrixtile"] = "bottomleft"; }
-		if (bottom && right ) { root["multimatrixtile"] = "bottomright"; }
+// 		if ((matrixconfig & NEO_MATRIX_AXIS) == NEO_MATRIX_ROWS) {
+// 			root["axis"] = "rowmajor";
+// 		} else {
+// 			root["axis"] = "columnmajor";
+// 		}
 
-		if ((matrixconfig & NEO_TILE_AXIS) == NEO_TILE_ROWS) {
-			root["multimatrixaxis"] = "rowmajor";
-		} else {
-			root["multimatrixaxis"] = "columnmajor";
-		}
-
-
-		if ((matrixconfig & NEO_TILE_SEQUENCE) == NEO_TILE_PROGRESSIVE) {
-			root["multimatrixseq"] = "progressive";
-		} else {
-			root["multimatrixseq"] = "zigzag";
-		}
+// 		if ((matrixconfig & NEO_MATRIX_SEQUENCE) == NEO_MATRIX_PROGRESSIVE) {
+// 			root["sequence"] = "progressive";
+// 		} else {
+// 			root["sequence"] = "zigzag";
+// 		}
 
 
-	}
+// // Tiles
+
+// 		bottom = (matrixconfig & NEO_TILE_BOTTOM) ;
+// 		right = (matrixconfig & NEO_TILE_RIGHT) ;
+
+// 		if (!bottom && !right) { root["multimatrixtile"] = "topleft"; }
+// 		if (!bottom && right) { root["multimatrixtile"] = "topright"; }
+// 		if (bottom && !right) { root["multimatrixtile"] = "bottomleft"; }
+// 		if (bottom && right ) { root["multimatrixtile"] = "bottomright"; }
+
+// 		if ((matrixconfig & NEO_TILE_AXIS) == NEO_TILE_ROWS) {
+// 			root["multimatrixaxis"] = "rowmajor";
+// 		} else {
+// 			root["multimatrixaxis"] = "columnmajor";
+// 		}
+
+
+// 		if ((matrixconfig & NEO_TILE_SEQUENCE) == NEO_TILE_PROGRESSIVE) {
+// 			root["multimatrixseq"] = "progressive";
+// 		} else {
+// 			root["multimatrixseq"] = "zigzag";
+// 		}
+
+
+// 	}
 
 
 	if (page == "configpage" || page == "all") {
