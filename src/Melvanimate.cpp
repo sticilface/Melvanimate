@@ -55,12 +55,12 @@ void Melvanimate::loop()
 
 }
 
-void Melvanimate::_init_matrix()
-{
-	if (_matrix) { delete _matrix; _matrix = nullptr; }
-	_matrix = new Melvtrix(_grid_x, _grid_y, _matrixconfig);
+// void Melvanimate::_init_matrix()
+// {
+// 	if (_matrix) { delete _matrix; _matrix = nullptr; }
+// 	_matrix = new Melvtrix(_grid_x, _grid_y, _matrixconfig);
 
-}
+// }
 
 void Melvanimate::_init_LEDs()
 {
