@@ -175,6 +175,18 @@
                     <label for="input_speed">Speed:</label>
                     <input class="mysubmitslider  " type="range" name="speed" id="input_speed" min="0" max="255" step="1" value="0">
                 </div>
+                
+                <div class="ui-field-contain input_slider size">
+                    <label for="input_size">Size:</label>
+                    <input class="mysubmitslider  " type="range" name="size" id="input_size" min="1" max="255" step="1" value="1">
+                </div>
+                
+                <div class="ui-field-contain input_slider effectnumber">
+                    <label for="input_effectnumber">Number of Effects:</label>
+                    <input class="mysubmitslider  " type="range" name="effectnumber" id="input_effectnumber" min="1" max="25" step="1" value="1">
+                </div>
+
+            
                 <div class="ui-field-contain input_slider randomness ">
                     <label for="input_randomness">Randomness:</label>
                     <input class="mysubmitslider  " type="range" name="randomness" id="input_randomness" min="0" max="8" step="1" value="0">
@@ -1493,7 +1505,7 @@
                       } 
                     }
                   }
-
+//palette
                     if ($.mobile.activePage.attr('id') == 'palette') {
                       
                        if (result.hasOwnProperty('settings') && result.settings.hasOwnProperty('Palette'))
@@ -1503,8 +1515,8 @@
                       
                       //console.log(result);
                       
-                        if (palettevars.hasOwnProperty('name')) {
-                            $("#select-palettes2").val(palettevars.name).selectmenu("refresh");
+                        if (palettevars.hasOwnProperty('mode')) {
+                            $("#select-palettes2").val(palettevars.mode).selectmenu("refresh");
                         } else {
                           $("#select-palettes2").val("off").selectmenu("refresh");
                         }
