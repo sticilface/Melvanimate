@@ -1,8 +1,8 @@
 /*
 
 Thanks to Adafruit for their GFX and Matrix libs.  Modified here by Sticilface, aka Andrew Melvin.
-Provides a callback method for pixel location! 
-Creates class to set params using json. 
+Provides a callback method for pixel location!
+Creates class to set params using json.
 
 This is the core graphics library for all our displays, providing a common
 set of graphics primitives (points, lines, circles, etc.).  It needs to be
@@ -70,7 +70,7 @@ POSSIBILITY OF SUCH DAMAGE.
 #define NEO_TILE_ZIGZAG        0x80 // Tile order reverses between lines
 #define NEO_TILE_SEQUENCE      0x80 // Bitmask for tile line order
 
-//  not sure why but i have to define this.  Not picked up from GFX lib. 
+//  not sure why but i have to define this.  Not picked up from GFX lib.
 #define _swap_int16_t(a, b) { int16_t t = a; a = b; b = t; }
 
 typedef std::function<void(uint16_t, int16_t, int16_t)> ShapeUpdateCallback; // Callback for drawing the pixels..
@@ -104,19 +104,28 @@ private:
 
 };
 
-//  **  NOT being used yet ** // 
-//  This adds ability to Melvtix_json to use json object to set params, and handle dynamix creation and deletetino. 
+//  **  NOT being used yet ** //
+//  This adds ability to Melvtix_json to use json object to set params, and handle dynamix creation and deletetino.
 class MelvtrixMan
 {
 public:
-   MelvtrixMan(); 
-   MelvtrixMan(uint16_t x, uint16_t y, uint8_t config);
-   ~MelvtrixMan(); 
-   bool createMatrix(); 
-   Melvtrix * getMatrix() { return _matrix; }
+  MelvtrixMan();
+  MelvtrixMan(uint16_t x, uint16_t y, uint8_t config);
+  ~MelvtrixMan();
+  bool createMatrix();
+  void set(uint16_t x, uint16_t y) { _grid_x = x ; _grid_y = y ; createMatrix() ; }
+  void enable() { createMatrix() ; }
+  void disable()
+  {
+    if (_matrix) {
+      delete _matrix;
+      _matrix = nullptr;
+    };
+  }
+  Melvtrix * getMatrix() { return _matrix; }
 
-   bool addJson(JsonObject & root);
-   bool parseJson(JsonObject & root);
+  bool addJson(JsonObject & root);
+  bool parseJson(JsonObject & root);
 private:
   Melvtrix * _matrix{nullptr};
   uint8_t _matrixconfig{NEO_MATRIX_TOP + NEO_MATRIX_LEFT +  NEO_MATRIX_ROWS + NEO_MATRIX_PROGRESSIVE};
