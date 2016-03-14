@@ -51,6 +51,7 @@
 #include "effects/AdalightEffect.h"
 #include "effects/UDPEffect.h"
 #include "effects/RainbowChase.h"
+#include "effects/blobs.h"
 
 
 #define WS2812_PIXELS 118
@@ -89,7 +90,7 @@ SimpleTimer timer;
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "MobileWiFi-743e", "wellcometrust");
 
 //ESPmanager settings(HTTP, SPIFFS, "Melvanimate", "Andrew's iPhone", "jok4axwt4vf4u");
-ESPmanager settings(HTTP, SPIFFS, "tv-lights", "fyffest", "wellcometrust");
+ESPmanager settings(HTTP, SPIFFS);//, "lamp", "fyffest", "wellcometrust");
 
 
 
@@ -102,6 +103,7 @@ void install_effects()
   lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));       
   lights.Add("RainbowChase", new RainbowChase); 
   lights.Add("BobblySquares", new SimpleEffect2(BobblySquaresFn)); 
+  lights.Add("Blobs", new Blobs); 
 
   lights.Add("CuriousCat",   new Effect2);
   lights.Add("Adalight",     new AdalightEffect(Serial, 115000));    // working - need to test
@@ -148,6 +150,11 @@ void setup()
 
   //SPIFFS.remove(PRESETS_FILE);
 
+  install_effects();
+
+  lights.begin();
+
+
  settings.begin();
   fsbrowser.begin();
 
@@ -170,7 +177,7 @@ void setup()
   }
 
 
-  //HTTP.on("/crash", HTTP_ANY, []() { NeoPixelBus * voidpointer; voidpointer->Show(); });
+  HTTP.on("/restart", HTTP_ANY, []() {         ESP.restart();   });
 
   HTTP.on("/memory", HTTP_ANY, []() {
      size_t freemem = cont_get_free_stack(&g_cont);
@@ -377,9 +384,7 @@ void setup()
 
   // });
 
-  install_effects();
 
-  lights.begin();
 
   lights.Start("Off");
 
