@@ -6,16 +6,16 @@ EffectGroup::~EffectGroup()
 {
 	//  iterate through all objects and delete them properly...
 	EffectObjectHandler * holding = _firstHandle, *todelete;
-	uint16_t count = 0; 
+	uint16_t count = 0;
 	do {
 		todelete = holding;
 		holding = holding->next();
-		if (todelete) { 
+		if (todelete) {
 			delete todelete;
 			count++;
 		}
 	} while (holding);
-	Debugobjf("[~EffectGroup] %u effects deleted\n", count); 
+	Debugobjf("[~EffectGroup] %u effects deleted\n", count);
 
 }
 
@@ -46,8 +46,9 @@ EffectObjectHandler* EffectGroup::Get(uint16_t x)
 	EffectObjectHandler* handler; ;
 
 	for (handler = _firstHandle; handler; handler = handler->next() ) {
-		if ( handler->id() == x)
+		if ( handler->id() == x) {
 			break;
+		}
 	}
 	return handler;
 }
@@ -62,15 +63,15 @@ void EffectGroup::Update()
 
 	for (handler = _firstHandle; handler; handler = handler->next() ) {
 
-		uint32_t lasttick = handler->Lasttick();
-		uint32_t timeout = handler->Timeout();
-		if (millis() - lasttick > timeout || lasttick == 0) {
+		// uint32_t lasttick = handler->Lasttick();
+		// uint32_t timeout = handler->Timeout();
+		// if (millis() - lasttick > timeout || lasttick == 0) {
 
-			handler->UpdateObject(); 
-			handler->StartAnimations(); 
+			handler->UpdateObject();
+			handler->StartAnimations();
 			handler->Lasttick(millis());
-		
-		}
+
+//		}
 
 	}
 }
@@ -93,7 +94,7 @@ bool EffectGroup::Inuse(uint16_t pixel)
 		int16_t * data = handler->getdata();
 
 		for (uint16_t i = 0; i < handler->total(); i++) {
-			if (data[i] == pixel) return true;
+			if (data[i] == pixel) { return true; }
 		}
 
 	}
@@ -103,24 +104,28 @@ bool EffectGroup::Inuse(uint16_t pixel)
 
 bool EffectObject::UpdateObject()
 {
-	if (!_ObjUpdate) return false;
-	_ObjUpdate();
-}
-
-bool EffectObject::StartAnimations()
-{
-
-	if (!_AniUpdate) return false;
-
-	for (uint16_t i = 0; i < _total; i++) {
-
-		int16_t  current = _details[i];
-		if (current == -1) break;
-		_AniUpdate(i, current);
+	if (_ObjUpdate) {
+		_ObjUpdate();
+	} else {
+		return false;
 	}
 
-	return true;
 }
+
+// bool EffectObject::StartAnimations()
+// {
+
+// 	if (!_AniUpdate) { return false; }
+
+// 	for (uint16_t i = 0; i < _total; i++) {
+
+// 		int16_t  current = _details[i];
+// 		if (current == -1) { break; }
+// 		_AniUpdate(i, current);
+// 	}
+
+// 	return true;
+// }
 
 void EffectObject::SetObjectUpdateCallback(ObjectUpdateCallback Fn)
 {

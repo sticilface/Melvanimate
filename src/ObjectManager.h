@@ -54,7 +54,7 @@ class EffectObjectHandler
 {
 public:
 	EffectObjectHandler() : _next(nullptr) {}
-	virtual ~EffectObjectHandler() {}; 
+	virtual ~EffectObjectHandler() {};
 
 	virtual void SetObjectUpdateCallback(ObjectUpdateCallback Fn) {}
 	virtual void SetPixelUpdateCallback(AnimationUpdateCallback Fn) {}
@@ -77,11 +77,14 @@ public:
 	const uint16_t id() { return _id; };
 	bool virtual reset() {}
 
+	uint16_t x{0};
+	uint16_t y{0};
+
 private:
-	EffectObjectHandler* _next = nullptr;
+	EffectObjectHandler* _next{nullptr};
 	uint16_t _id;
-	uint32_t _timeout = 0;
-	uint32_t _lasttick = 0;
+	uint32_t _timeout{0};
+	uint32_t _lasttick{0};
 protected:
 
 
@@ -92,8 +95,8 @@ class EffectObject : public EffectObjectHandler
 {
 private:
 	int16_t * _details;
-	ObjectUpdateCallback _ObjUpdate = nullptr; 
-	AnimationUpdateCallback _AniUpdate = nullptr; 
+	ObjectUpdateCallback _ObjUpdate = nullptr;
+	AnimationUpdateCallback _AniUpdate = nullptr;
 	uint16_t _position = 0;
 	uint16_t _total;
 public:
@@ -107,7 +110,7 @@ public:
 
 		Debugobjf("Created Object size %u \n", _total);
 	};
-	~EffectObject() override 
+	~EffectObject() override
 	{
 		Debugobjf("[EffectObject] Deconstructor\n");
 		delete[] _details;
@@ -121,19 +124,19 @@ public:
 	inline void Addpixel(uint16_t p) override
 	{
 		uint16_t n = _position++;
-		if (_position > _total) return;
+		if (_position > _total) { return; }
 		_details[n] = p;
 	}
 
 	inline void Addpixel(uint16_t n, uint16_t p) override
 	{
-		if (n > _total) return;
+		if (n > _total) { return; }
 		_details[n] = p;
 	}
 
 	int16_t * getdata() override { return _details;};
 
-	bool StartAnimations() override;
+//	bool StartAnimations() override;
 	bool UpdateObject() override;
 	bool reset() override
 	{
@@ -142,6 +145,56 @@ public:
 			_details[i] = -1;
 		}
 	}
+
+
+};
+
+
+
+
+class SimpleEffectObject : public EffectObjectHandler
+{
+private:
+	ObjectUpdateCallback _ObjUpdate = nullptr;
+
+	enum Direction {UP = 0, DOWN, LEFT, RIGHT};
+
+public:
+	SimpleEffectObject() : _ObjUpdate(nullptr)
+	{
+
+	};
+	~SimpleEffectObject() override
+	{
+		if (pixels)
+		{
+			delete[] pixels; 
+		}
+	}
+	void create(uint16_t size) {
+		if (pixels)
+		{
+			delete[] pixels; 
+		}
+		pixels = new uint16_t[size]; 
+		//Serial.printf("  [SimpleEffectObject::create] %u\n", size);
+		total = size; 
+	}
+
+	void SetObjectUpdateCallback(ObjectUpdateCallback Fn) override {
+	 _ObjUpdate = Fn; 
+	 //Serial.printf("[SetObjectUpdateCallback] called\n"); 
+	}
+
+	bool UpdateObject() override
+	{
+//		if (_ObjUpdate && millis() - Lasttick() < Timeout() ) {
+			_ObjUpdate() ;
+			Lasttick(millis());
+//		}
+	}
+	uint16_t * pixels{nullptr};  
+	uint16_t total{0}; 
 
 
 };
