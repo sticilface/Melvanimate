@@ -68,6 +68,7 @@ public:
 	bool parseJsonProperty(JsonObject & root) override
 	{
 		if (root.containsKey(_name)) {
+			
 			if (_var != root[_name] ) {
 				_var = root[_name];
 				return true;
@@ -159,15 +160,16 @@ public:
 	{
 		_name = name;
 	};
-	Variable(const char * name, Palette* value)
+	Variable(const char * name, palette_type  value)
 	{
 		_name = name;
-		set(value);
+		//set(value);
+		_var.mode(value); 
 	};
 	~Variable() override {}
 
 	Palette * get() { return &_var; }
-	void set(Palette * value) { _var = *value; }
+	//void set(Palette * value) { _var = *value; }
 
 	bool addJsonProperty(JsonObject & root) override
 	{
