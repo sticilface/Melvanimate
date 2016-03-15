@@ -15,7 +15,7 @@ extern MyPixelBus * strip;
 
 bool RainbowChase::Start()
 {
-
+ //  think about a fade in sequence?
 }
 
 bool RainbowChase::Run()
@@ -33,7 +33,6 @@ bool RainbowChase::Run()
 	}
 
 	_vars->lasttime = millis();
-
 
 	return true;
 }

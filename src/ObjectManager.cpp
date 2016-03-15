@@ -63,15 +63,15 @@ void EffectGroup::Update()
 
 	for (handler = _firstHandle; handler; handler = handler->next() ) {
 
-		// uint32_t lasttick = handler->Lasttick();
-		// uint32_t timeout = handler->Timeout();
-		// if (millis() - lasttick > timeout || lasttick == 0) {
+		uint32_t lasttick = handler->Lasttick();
+		uint32_t timeout = handler->Timeout();
+		if (millis() - lasttick > timeout || lasttick == 0) {
 
 			handler->UpdateObject();
 			handler->StartAnimations();
 			handler->Lasttick(millis());
 
-//		}
+		}
 
 	}
 }

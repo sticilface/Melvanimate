@@ -121,7 +121,9 @@ bool Blobs::Start()
 				pixel_count = 0;
 
 				matrix()->setShapeFn( [ current, &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
-					current->pixels[pixel_count++] = pixel;
+					if (current->pixels) {
+						current->pixels[pixel_count++] = pixel;
+					}
 				});
 
 				//drawfunc(matrix());
@@ -129,7 +131,7 @@ bool Blobs::Start()
 				matrix()->fillCircle(x, y, size() / 2 , 0); //  fills shape with
 
 			} else {
-
+				//  linear points creation
 				current->create(size());
 
 				uint16_t x = current->x = random(0, strip->PixelCount() - size() + 1);
@@ -140,11 +142,21 @@ bool Blobs::Start()
 
 			}
 
-			//matrix()->fillRect(x, y, x + size(), y + size(), 0); //  fills shape with
 
-			//fillCircle
-			//drawCircle
-			//fillRect
+
+			// pixels chosen check not overlapping
+
+			for (uint16_t i = 0; i < current->total; i++) {
+
+				if ( animator.isAnimating(i)) {
+					if (current->pixels) {
+						delete current->pixels;
+						break;
+					}
+				}
+			}
+
+			if (!current->pixels) { break; } //  break if there are no pixels to draw. 
 
 
 			RgbColor targetColor = palette()->next();
@@ -170,7 +182,15 @@ bool Blobs::Start()
 
 			// now use the animation properties we just calculated and start the animation
 			// which will continue to run and call the update function until it completes
-			animator->StartAnimation(obj, 1000, animUpdate);
+
+			uint32_t lower = map( speed(), 0, 255, 100, 5000 );
+			uint32_t upper = map( speed(), 0, 255, lower, lower + 5000 );
+
+			uint32_t timefor = random(lower, upper );
+
+			current->Timeout(timefor);
+
+			animator->StartAnimation(obj, timefor - 50 , animUpdate);
 
 
 
@@ -188,14 +208,15 @@ bool Blobs::Run()
 {
 	if (_vars) {
 
-		if (millis() - _vars->lasttick > 2000) {
+		//if (millis() - _vars->lasttick > 1000) {
 
-			if (_vars->manager) {
+		if (_vars->manager) {
 
-				_vars->manager->Update();
-			}
-			_vars->lasttick = millis();
+			_vars->manager->Update();
 		}
+
+		//_vars->lasttick = millis();
+		//}
 	}
 }
 
