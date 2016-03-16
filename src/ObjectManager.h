@@ -252,6 +252,15 @@ public:
 
 	uint16_t * pixels() override { return _pixels;};
 
+	bool animating() 
+	{
+		if (animator)
+		{
+			return animator->IsAnimating(); 
+		}
+		return false; 
+	}
+
 
 	bool UpdateObject() override
 	{
