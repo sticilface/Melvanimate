@@ -63,15 +63,16 @@ void EffectGroup::Update()
 
 	for (handler = _firstHandle; handler; handler = handler->next() ) {
 
-		uint32_t lasttick = handler->Lasttick();
-		uint32_t timeout = handler->Timeout();
-		if (millis() - lasttick > timeout || lasttick == 0) {
+		// uint32_t lasttick = handler->Lasttick();
+		// uint32_t timeout = handler->Timeout();
 
-			handler->UpdateObject();
-			handler->StartAnimations();
-			handler->Lasttick(millis());
+		// if (millis() - lasttick > timeout || lasttick == 0) {
 
-		}
+		handler->UpdateObject();
+		// 	handler->StartAnimations();
+		// 	handler->Lasttick(millis());
+
+		// }
 
 	}
 }
@@ -85,16 +86,26 @@ void EffectGroup::Run()
 
 }
 
-bool EffectGroup::Inuse(uint16_t pixel)
+bool EffectGroup::Inuse(EffectObjectHandler* exclude,  uint16_t pixel)
 {
 
 	EffectObjectHandler* handler;
+
 	for (handler = _firstHandle; handler; handler = handler->next() ) {
 
-		int16_t * data = handler->getdata();
+		uint16_t * data = handler->pixels();
 
-		for (uint16_t i = 0; i < handler->total(); i++) {
-			if (data[i] == pixel) { return true; }
+		if (data && handler != exclude) {
+
+			for (uint16_t i = 0; i < handler->total(); i++) {
+
+				if (data[i] == pixel) {
+					//Serial.printf("%u = %u\n", data[i] , pixel);
+					return true;
+
+				}
+
+			}
 		}
 
 	}
@@ -102,6 +113,22 @@ bool EffectGroup::Inuse(uint16_t pixel)
 	return false;
 }
 
+bool SimpleEffectObject::UpdateObject()
+{
+	if (millis() - Lasttick() > Timeout() ) {
+		if (_ObjUpdate) {
+			if (_ObjUpdate()) {
+				Lasttick(millis());
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+
+
+//  maybe not in use...
 bool EffectObject::UpdateObject()
 {
 	if (_ObjUpdate) {
