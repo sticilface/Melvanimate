@@ -13,6 +13,8 @@ class Blobs : public EffectHandler
 public:
 
 	typedef std::function<void(EffectObjectHandler *)> ShapeCallback;
+	enum Shapetype {RANDOM = 0, FILLCIRCLE, DRAWCIRCLE, FILLSQUARE, DRAWSQUARE, FILLTRIANGLE, DRAWTRIANGLE };
+
 
 	Blobs() {};
 	bool InitVars();
@@ -25,6 +27,7 @@ public:
 	}
 
 	void setshape(Blobs::ShapeCallback Fn) { _shape = Fn; }
+	void setshape(Shapetype shape); 
 
 	void shape(EffectObjectHandler * Object);
 
@@ -37,14 +40,17 @@ public:
 	inline Palette* palette() { return getVar<Palette*>("Palette"); }
 	inline uint8_t effectnumber() { return getVar<uint8_t>("effectnumber"); }
 	inline uint8_t size() { return map(getVar<uint8_t>("size"), 0, 255, 1, 20); }
+	inline Shapetype shapemode() { return (Shapetype)getVar<uint8_t>("shapemode"); }
 
 private:
 
-	void fillcircle(EffectObjectHandler * Object) ;
+	void fillCircle(EffectObjectHandler * Object) ;
 	void drawCircle(EffectObjectHandler * Object) ;
 	void drawRect(EffectObjectHandler * Object) ;
 	void fillRect(EffectObjectHandler * Object) ;
-
+	void fillTriangle(EffectObjectHandler * Object);
+	void drawTriangle(EffectObjectHandler * Object); 
+	//void randomshape(EffectObjectHandler * Object); 
 
 	struct position_s {
 		uint16_t x = 0;

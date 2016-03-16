@@ -1,4 +1,4 @@
-#include "effects/Blobs.h"
+#include "Blobs.h"
 #include <NeopixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "mybus.h"
@@ -27,6 +27,7 @@ bool Blobs::InitVars()
 	addVar(new Variable<Palette*>("Palette", WHEEL));
 	addVar(new Variable<uint8_t>("effectnumber", 1));
 	addVar(new Variable<uint8_t>("size", 3));
+	addVar(new Variable<uint8_t>("shapemode", 1));
 
 	if (_vars) {
 		delete _vars;
@@ -37,18 +38,12 @@ bool Blobs::InitVars()
 
 bool Blobs::Start()
 {
-
 	strip->ClearTo(0);
-	//palette->mode(WHEEL);
-
-	Serial.printf("[Blobs::Start] Creating Objects (%u)\n", ESP.getFreeHeap());
 
 	if (matrixMan()) {
 		if (usematrix()) {
-			Serial.printf("[Blobs::Start] Enable matrix\n");
 			matrixMan()->enable();
 		} else {
-			Serial.printf("[Blobs::Start] Disable matrix\n");
 			matrixMan()->disable();
 		}
 	}
@@ -57,14 +52,12 @@ bool Blobs::Start()
 		delete animator;
 		animator = nullptr;
 	}
-	Serial.printf("[Blobs::Start] Create Animator\n");
+
 	animator = new NeoPixelAnimator(effectnumber());
 
 	if (_vars->manager) {
 		delete _vars->manager;
 	}
-
-	Serial.printf("[Blobs::Start] Create manager\n");
 
 	_vars->manager = new EffectGroup;
 
@@ -72,59 +65,39 @@ bool Blobs::Start()
 		_vars->manager->Add(i, 100 , new SimpleEffectObject()); // if its 2d then no need to hold so many pixels
 	}
 
-	Serial.printf("[Blobs::Start] size = %u\n", size() / 2 );
-
-	////////////
-
-	setshape( std::bind(&Blobs::drawCircle, this, _1 )); 
-
-	// need to make array of new pixels temporary... to exclude it from the inuse search...
-	// or exclude current handle form it...
-
-	////////////
-
-	//shapefn(shape);
+	setshape( shapemode() );
 
 	for (uint8_t obj = 0; obj < effectnumber(); obj++) {
 
-		SimpleEffectObject * current =  static_cast<SimpleEffectObject*>(_vars->manager->Get(obj));  //    pointer
+		SimpleEffectObject * current =  static_cast<SimpleEffectObject*>(_vars->manager->Get(obj));  // cast handler to the Blobs class...
 
-		// nullptr protection
-		if (!current) { Serial.printf("[Blobs::Start] !current bailing\n"); ; break; }
+		if (!current) { break; }
 
 		current->SetObjectUpdateCallback( [ current, this ]() {
-
 
 			uint16_t pixel_count = 0;
 
 			//  count the number of pixels... not sure of a better way to get this from adafruit lib...
 			if (matrix()) {
 
+				setshape(shapemode());
+
 				if (size() * 2 < matrix()->width() || size() * 2 < matrix()->height() ) {
 					current->x = random(0, matrix()->width() - size() + 1);
 					current->y = random(0, matrix()->height() - size() + 1);
-
 				} else {
-
 					current->x = random(0, matrix()->width() );
 					current->y = random(0, matrix()->height() );
-
 				}
 
-				current->size = size(); 
+				current->size = size();
 
 				matrix()->setShapeFn( [ &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
 					pixel_count++;
 				});
 
-				//drawfunc(matrix());
-				//matrix()->fillCircle(current->x, current->y, size() / 2, 0); //  fills shape with
 				shape(current);
-
-				//matrix()->drawCircle(x, y, size(), 0); //  fills shape with
-
 				current->create(pixel_count);
-
 				pixel_count = 0;
 
 				matrix()->setShapeFn( [ current, &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
@@ -133,15 +106,12 @@ bool Blobs::Start()
 					}
 				});
 
-				//drawfunc(matrix());
-
-				//matrix()->fillCircle(current->x, current->y, size() / 2 , 0); //  fills shape with
 				shape(current);
 
 			} else {
 				//  linear points creation
+				//  This kicks in if the Matrix is disabled to give simple linear effects...
 				current->create(size());
-
 				current->x = random(0, strip->PixelCount() - size() + 1);
 
 				for (uint16_t pixel = 0; pixel < size(); pixel++) {
@@ -150,24 +120,15 @@ bool Blobs::Start()
 
 			}
 
-
-
 			// pixels chosen check not in use by another animator...
 
 			for (uint16_t i = 0; i < current->total(); i++) {
-
 				if (_vars->manager->Inuse(current,  current->pixels()[i] ) ) {
-					//Serial.printf("[inuse yes]\n");
 					return false;
-					//current->end();
-					//break;
 				}
 			}
 
 			if (!current->pixels()) { return false ; } //  break if there are no pixels to draw.
-
-//			Serial.printf("[Blobs::Start] after pixels return effect %u\n", current->id());
-
 
 			RgbColor targetColor = palette()->next();
 
@@ -201,8 +162,8 @@ bool Blobs::Start()
 			// now use the animation properties we just calculated and start the animation
 			// which will continue to run and call the update function until it completes
 
-			uint32_t lower = map( speed(), 0, 255, 100, 5000 );
-			uint32_t upper = map( speed(), 0, 255, lower, lower + 5000 );
+			uint32_t lower = map( speed(), 0, 255, 100, 10000 );
+			uint32_t upper = map( speed(), 0, 255, lower, lower + 10000 );
 
 			uint32_t timefor = random(lower, upper );
 
@@ -215,27 +176,14 @@ bool Blobs::Start()
 
 	}
 
-
-	Serial.printf("[Blobs::Start] Done\n");
-
 }
 
 bool Blobs::Run()
 {
 	if (_vars) {
-
-		//if (millis() - _vars->lasttick > 1000) {
-
-		setshape( std::bind(&Blobs::drawCircle, this, _1 )); 
-
-
 		if (_vars->manager) {
-
 			_vars->manager->Update();
 		}
-
-		//_vars->lasttick = millis();
-		//}
 	}
 }
 
@@ -256,33 +204,78 @@ bool Blobs::Stop()
 	}
 }
 
-// void Blobs::drawfunc(Melvtrix* matrix, ) {
-
-// 	if (matrix) {
-// 	 matrix()->drawRect(x, y,  size(), size(), 0); //  fills shape with
-// 	}
-
-// }
-
-
-void Blobs::fillcircle(EffectObjectHandler * Object) 
+void Blobs::setshape(Shapetype shape)
 {
+	switch ( shape ) {
+
+	case RANDOM: {
+		setshape( (Shapetype)random(1, 7));
+		break;
+	}
+	case FILLCIRCLE: {
+		setshape( std::bind(&Blobs::fillCircle, this, _1 ));
+		break;
+	}
+	case DRAWCIRCLE: {
+		setshape( std::bind(&Blobs::drawCircle, this, _1 ));
+		break;
+	}
+	case FILLSQUARE: {
+		setshape( std::bind(&Blobs::fillRect, this, _1 ));
+		break;
+	}
+	case DRAWSQUARE: {
+		setshape( std::bind(&Blobs::drawRect, this, _1 ));
+		break;
+	}
+	case FILLTRIANGLE: {
+		setshape( std::bind(&Blobs::fillTriangle, this, _1 ));
+		break;
+	}
+	case DRAWTRIANGLE: {
+		setshape( std::bind(&Blobs::drawTriangle, this, _1 ));
+		break;
+	}
+
+	}
+}
+
+void Blobs::fillCircle(EffectObjectHandler * Object)
+{
+	if (!Object || !matrix()) { return; }
 	matrix()->fillCircle(Object->x, Object->y, Object->size / 2, 0); //  fills shape with
-
 }
 
-void Blobs::drawCircle(EffectObjectHandler * Object)  
+void Blobs::drawCircle(EffectObjectHandler * Object)
 {
-	matrix()->drawCircle(Object->x, Object->y, Object->size, 0); //  fills shape with
+	if (!Object || !matrix()) { return; }
+	matrix()->drawCircle(Object->x, Object->y, Object->size / 2, 0); //  fills shape with
 }
 
-void Blobs::drawRect(EffectObjectHandler * Object)  
+void Blobs::drawRect(EffectObjectHandler * Object)
 {
-    matrix()->drawRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
+	if (!Object || !matrix()) { return; }
+	matrix()->drawRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
 }
-void Blobs::fillRect(EffectObjectHandler * Object)  
+void Blobs::fillRect(EffectObjectHandler * Object)
 {
-    matrix()->fillRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
+	if (!Object || !matrix()) { return; }
+	matrix()->fillRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
 }
+
+void Blobs::fillTriangle(EffectObjectHandler * Object)
+{
+	if (!Object || !matrix()) { return; }
+	matrix()->fillTriangle(Object->x, Object->y, Object->x + Object->size, Object->y, Object->x + (Object->size / 2), Object->y + Object->size , 0); //  fills shape with
+}
+
+void Blobs::drawTriangle(EffectObjectHandler * Object)
+{
+	if (!Object || !matrix()) { return; }
+	matrix()->drawTriangle(Object->x, Object->y, Object->x + Object->size, Object->y, Object->x + (Object->size / 2), Object->y + Object->size , 0); //  fills shape with
+}
+
+
+
 
 
