@@ -10,7 +10,12 @@ using namespace helperfunc;
 extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
-
+void Blobs::shape(EffectObjectHandler * obj)
+{
+	if (_shape) {
+		(_shape)(obj);
+	}
+}
 
 
 bool Blobs::InitVars()
@@ -58,37 +63,27 @@ bool Blobs::Start()
 	if (_vars->manager) {
 		delete _vars->manager;
 	}
+
 	Serial.printf("[Blobs::Start] Create manager\n");
 
 	_vars->manager = new EffectGroup;
 
-	// if (_vars->pPosition) {
-	// 	delete[] _vars->pPosition;
-	// }
-	// Serial.printf("[Blobs::Start] Create pPosition\n");
-	// _vars->pPosition = new position_s[effectnumber()];
-
-	// if (_vars->pGroup) {
-	// 	delete[] _vars->pGroup;
-	// }
-	// Serial.printf("[Blobs::Start] Create pGroup\n");
-
-	// _vars->pGroup = new EffectObjectHandler* [effectnumber()];
-
-	// Serial.printf("[Blobs::Start] Fill pGroup..");
-
 	for (uint8_t i = 0; i < effectnumber(); i++) {
-		// EffectObjectHandler* Add(uint16_t i, uint32_t timeout, EffectObjectHandler* Fn);
-		//_vars->pGroup[i] =  _vars->manager->Add(i, 100 , new EffectObject( (usematrix()) ? size() * size() : size()) ); // if its 2d then no need to hold so many pixels
 		_vars->manager->Add(i, 100 , new SimpleEffectObject()); // if its 2d then no need to hold so many pixels
-
 	}
+
 	Serial.printf("[Blobs::Start] size = %u\n", size() / 2 );
 
+	////////////
 
+	setshape( std::bind(&Blobs::drawCircle, this, _1 )); 
+
+	// need to make array of new pixels temporary... to exclude it from the inuse search...
+	// or exclude current handle form it...
 
 	////////////
-	////////////
+
+	//shapefn(shape);
 
 	for (uint8_t obj = 0; obj < effectnumber(); obj++) {
 
@@ -97,7 +92,7 @@ bool Blobs::Start()
 		// nullptr protection
 		if (!current) { Serial.printf("[Blobs::Start] !current bailing\n"); ; break; }
 
-		current->SetObjectUpdateCallback( [ current, this, obj ]() {
+		current->SetObjectUpdateCallback( [ current, this ]() {
 
 
 			uint16_t pixel_count = 0;
@@ -105,63 +100,78 @@ bool Blobs::Start()
 			//  count the number of pixels... not sure of a better way to get this from adafruit lib...
 			if (matrix()) {
 
-				uint16_t x = current->x = random(0, matrix()->width() - size() + 1);
-				uint16_t y = current->y = random(0, matrix()->height() - size() + 1);
+				if (size() * 2 < matrix()->width() || size() * 2 < matrix()->height() ) {
+					current->x = random(0, matrix()->width() - size() + 1);
+					current->y = random(0, matrix()->height() - size() + 1);
+
+				} else {
+
+					current->x = random(0, matrix()->width() );
+					current->y = random(0, matrix()->height() );
+
+				}
+
+				current->size = size(); 
 
 				matrix()->setShapeFn( [ &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
 					pixel_count++;
 				});
 
 				//drawfunc(matrix());
-				matrix()->fillCircle(x, y, size() / 2, 0); //  fills shape with
+				//matrix()->fillCircle(current->x, current->y, size() / 2, 0); //  fills shape with
+				shape(current);
 
 				//matrix()->drawCircle(x, y, size(), 0); //  fills shape with
 
 				current->create(pixel_count);
+
 				pixel_count = 0;
 
 				matrix()->setShapeFn( [ current, &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
-					if (current->pixels) {
-						current->pixels[pixel_count++] = pixel;
+					if (current->pixels()) {
+						current->pixels()[pixel_count++] = pixel;
 					}
 				});
 
 				//drawfunc(matrix());
 
-				matrix()->fillCircle(x, y, size() / 2 , 0); //  fills shape with
+				//matrix()->fillCircle(current->x, current->y, size() / 2 , 0); //  fills shape with
+				shape(current);
 
 			} else {
 				//  linear points creation
 				current->create(size());
 
-				uint16_t x = current->x = random(0, strip->PixelCount() - size() + 1);
+				current->x = random(0, strip->PixelCount() - size() + 1);
 
 				for (uint16_t pixel = 0; pixel < size(); pixel++) {
-					current->pixels[pixel] = x + pixel;
+					current->pixels()[pixel] = current->x + pixel;
 				}
 
 			}
 
 
 
-			// pixels chosen check not overlapping
+			// pixels chosen check not in use by another animator...
 
-			for (uint16_t i = 0; i < current->total; i++) {
+			for (uint16_t i = 0; i < current->total(); i++) {
 
-				if ( animator.isAnimating(i)) {
-					if (current->pixels) {
-						delete current->pixels;
-						break;
-					}
+				if (_vars->manager->Inuse(current,  current->pixels()[i] ) ) {
+					//Serial.printf("[inuse yes]\n");
+					return false;
+					//current->end();
+					//break;
 				}
 			}
 
-			if (!current->pixels) { break; } //  break if there are no pixels to draw. 
+			if (!current->pixels()) { return false ; } //  break if there are no pixels to draw.
+
+//			Serial.printf("[Blobs::Start] after pixels return effect %u\n", current->id());
 
 
 			RgbColor targetColor = palette()->next();
 
-			AnimUpdateCallback animUpdate = [ targetColor, current, this  ](const AnimationParam & param) {
+			AnimUpdateCallback animUpdate = [ targetColor, current, this ](const AnimationParam & param) {
 				// progress will start at 0.0 and end at 1.0
 				// we convert to the curve we want
 				float progress = param.progress;
@@ -174,8 +184,16 @@ bool Blobs::Start()
 					updatedColor = RgbColor::LinearBlend(targetColor, 0, (progress - 0.5f) * 2.0f);
 				}
 
-				for (uint16_t i = 0; i < current->total; i++) {
-					strip->SetPixelColor( current->pixels[i] , dim(updatedColor, brightness()));
+				if (current->pixels()) {
+					for (uint16_t i = 0; i < current->total(); i++) {
+						strip->SetPixelColor( current->pixels()[i] , dim(updatedColor, brightness()));
+					}
+				}
+				///  maybe need to delete pixels() at end of the effect here...
+				//  to remove it from the in use....
+
+				if (param.state == AnimationState_Completed) {
+					current->end();
 				}
 
 			};
@@ -190,10 +208,8 @@ bool Blobs::Start()
 
 			current->Timeout(timefor);
 
-			animator->StartAnimation(obj, timefor - 50 , animUpdate);
-
-
-
+			animator->StartAnimation(current->id(), timefor - 50 , animUpdate);
+			return true;
 
 		});
 
@@ -209,6 +225,9 @@ bool Blobs::Run()
 	if (_vars) {
 
 		//if (millis() - _vars->lasttick > 1000) {
+
+		setshape( std::bind(&Blobs::drawCircle, this, _1 )); 
+
 
 		if (_vars->manager) {
 
@@ -246,5 +265,24 @@ bool Blobs::Stop()
 // }
 
 
+void Blobs::fillcircle(EffectObjectHandler * Object) 
+{
+	matrix()->fillCircle(Object->x, Object->y, Object->size / 2, 0); //  fills shape with
+
+}
+
+void Blobs::drawCircle(EffectObjectHandler * Object)  
+{
+	matrix()->drawCircle(Object->x, Object->y, Object->size, 0); //  fills shape with
+}
+
+void Blobs::drawRect(EffectObjectHandler * Object)  
+{
+    matrix()->drawRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
+}
+void Blobs::fillRect(EffectObjectHandler * Object)  
+{
+    matrix()->fillRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
+}
 
 
