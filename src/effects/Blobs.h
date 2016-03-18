@@ -50,22 +50,14 @@ private:
 	void fillRect(EffectObjectHandler * Object) ;
 	void fillTriangle(EffectObjectHandler * Object);
 	void drawTriangle(EffectObjectHandler * Object); 
-	//void randomshape(EffectObjectHandler * Object); 
 
-	struct position_s {
-		uint16_t x = 0;
-		uint16_t y = 0;
-	};
+
 
 	struct BlobsVars {
 		uint32_t position{0};
 		uint32_t lasttick{0};
 		EffectGroup* manager{nullptr};
 		EffectObjectHandler ** pGroup{nullptr};
-		//position_s * pPosition{nullptr};
-
-
-
 	};
 
 	BlobsVars * _vars{nullptr};
@@ -73,28 +65,5 @@ private:
 
 };
 
-
-
-// class foo {
-// public:
-// 	typedef std::function<void(int)> Callback; // define callback
-// 	void setcallback(&foo::Callback Fn) { _Callback = Fn; }  //  function used to set which function to call
-// 	void runcallback(int a)  // function  that calls what ever function is set by setcallback
-// 	{
-// 		_Callback(a);
-// 	}
-// 	void thefunction(int value)  //  one of any number of functions that can be called....
-// 	{
-// 		Serial.printf("yes %u\n", value);
-// 	}
-
-// 	void randomfunction()   //  random function that sets the callback function...
-// 	{
-// 		setcallback(std::bind(&foo::thefunction, this, _1);
-// 	}
-// private:
-// 	Callback _Callback;  // stores the current function...
-
-// };
 
 

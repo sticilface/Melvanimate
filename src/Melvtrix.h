@@ -91,7 +91,7 @@ public:
 
   void drawPixel(int16_t x, int16_t y, uint16_t color); // colour is ignored here.. handle it in the actual function...
   void drawPixel(int16_t x, int16_t y) { drawPixel(x, y, 0); }
-  int getPixel(uint16_t x, uint16_t y);
+  int  getPixel(uint16_t x, uint16_t y);
 
   void setShapeFn(ShapeUpdateCallback Fn);
 private:

@@ -32,16 +32,13 @@
 
 #include <ArduinoJson.h>
 #include <NeoPixelBus.h>
-//#include <pubsubclient.h> //  to be implemented
+#include <PubSubClient.h>
 #include <Adafruit_GFX.h>
 
 #include <ESPmanager.h>
 #include <FSBrowser.h>
 
 #include "Melvanimate.h"
-
-
-
 
 
 #include "effects/SwitchEffect.h"
@@ -95,9 +92,11 @@ ESPmanager settings(HTTP, SPIFFS);//, "lamp", "fyffest", "wellcometrust");
 
 
 Melvanimate lights(HTTP, WS2812_PIXELS, 2);
+//MelvanimateMQTT MQTT(lights);
 
 void install_effects()
 {
+
 
   lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off... REQUIRED
   lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));       
@@ -154,8 +153,11 @@ void setup()
 
   lights.begin();
 
+  settings.begin();
 
- settings.begin();
+  lights.deviceName(settings.deviceName());  //  must go after page load.
+
+
   fsbrowser.begin();
 
   Serial.println("SPIFFS FILES:");

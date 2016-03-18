@@ -11,10 +11,14 @@
 
 #include "Arduino.h"
 #include <functional>
+#include "IPAddress.h"
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
 #include "BufferedPrint.h"
 #include "helperfunc.h"
+
+#include "MelvanimateMQTT.h"
+
 
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
@@ -35,7 +39,7 @@
 
 
 
-//#define DebugMelvanimate
+#define DebugMelvanimate
 
 #ifdef DebugMelvanimate
 #define DebugMelvanimatef(...) Serial.printf(__VA_ARGS__)
@@ -50,6 +54,8 @@ using namespace helperfunc;
 extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
+class MelvanimateMQTT;
+
 
 class Melvanimate : public EffectManager
 {
@@ -58,6 +64,9 @@ public:
 
 	bool begin();
 	void loop() override;
+	void deviceName(const char * name) { _deviceName = name; }
+	const char * deviceName() { return _deviceName; }
+
 
 	// pixel count functions
 	void setPixels(const uint16_t pixels);
@@ -70,33 +79,36 @@ public:
 
 	// timer functions
 	bool setTimer(int timer, String command, String effect = String() );
-
 	int getTimeLeft(); 
 
 	uint32_t getPower(); 
+
+
 
 	bool createAnimator(uint16_t count); 
 	bool createAnimator(); 
 	void deleteAnimator(); 
 
-	//static RgbColor dim( RgbColor input, const uint8_t brightness);
-
 private:
 	bool _saveGeneral(bool override = false);
 	bool _loadGeneral();
 	void _init_LEDs();
+	void _initMQTT(IPAddress addr, uint16_t port = 1883);
 
 	void _sendData(String page, int8_t code); 
 	void _handleWebRequest();
+	void _handleMQTTrequest(char* topic, byte* payload, unsigned int length);
+
 	template <class T> static void _sendJsontoHTTP( const T& root, ESP8266WebServer & _HTTP) ;
 	bool _check_duplicate_req();
 
 
+	MelvanimateMQTT * _mqtt{nullptr};
 
+	const char * _deviceName{nullptr}; 
 	uint16_t  _pixels;
 	uint8_t _pin;
 	bool _settings_changed;
-	//File _settings;
 
 	uint8_t _waiting{0};
 	uint32_t _waiting_timeout{0};

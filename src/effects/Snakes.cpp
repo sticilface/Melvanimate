@@ -10,12 +10,6 @@ using namespace helperfunc;
 extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
-void Snakes::shape(EffectObjectHandler * obj)
-{
-	if (_shape) {
-		(_shape)(obj);
-	}
-}
 
 
 bool Snakes::InitVars()
@@ -40,20 +34,9 @@ bool Snakes::Start()
 {
 	strip->ClearTo(0);
 
-	if (matrixMan()) {
-		if (usematrix()) {
-			matrixMan()->enable();
-		} else {
-			matrixMan()->disable();
-		}
-	}
 
-	if (animator) {
-		delete animator;
-		animator = nullptr;
-	}
+	matrixMan()->enable();
 
-	animator = new NeoPixelAnimator(effectnumber());
 
 	if (_vars->manager) {
 		delete _vars->manager;
@@ -62,63 +45,49 @@ bool Snakes::Start()
 	_vars->manager = new EffectGroup;
 
 	for (uint8_t i = 0; i < effectnumber(); i++) {
-		_vars->manager->Add(i, 100 , new SimpleEffectObject()); // if its 2d then no need to hold so many pixels
+		_vars->manager->Add(i, 100 , new AnimatedEffectObject(matrix())); // if its 2d then no need to hold so many pixels
 	}
 
-	setshape( shapemode() );
 
 	for (uint8_t obj = 0; obj < effectnumber(); obj++) {
 
-		SimpleEffectObject * current =  static_cast<SimpleEffectObject*>(_vars->manager->Get(obj));  // cast handler to the Blobs class...
+		AnimatedEffectObject * current =  static_cast<AnimatedEffectObject*>(_vars->manager->Get(obj));  // cast handler to the Blobs class...
 
 		if (!current) { break; }
+
+		current->x = random(0, matrix()->width() );
+		current->y = random(0, matrix()->height() );
+		current->size = size();
+
 
 		current->SetObjectUpdateCallback( [ current, this ]() {
 
 			uint16_t pixel_count = 0;
 
 			//  count the number of pixels... not sure of a better way to get this from adafruit lib...
-			if (matrix()) {
 
-				setshape(shapemode());
 
-				if (size() * 2 < matrix()->width() || size() * 2 < matrix()->height() ) {
-					current->x = random(0, matrix()->width() - size() + 1);
-					current->y = random(0, matrix()->height() - size() + 1);
-				} else {
-					current->x = random(0, matrix()->width() );
-					current->y = random(0, matrix()->height() );
+//  use this
+
+//			getPixel(x,y); 
+			
+
+			matrix()->setShapeFn( [ &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
+				pixel_count++;
+			});
+
+
+			current->create(pixel_count);
+			pixel_count = 0;
+
+			matrix()->setShapeFn( [ current, &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
+				if (current->pixels()) {
+					current->pixels()[pixel_count++] = pixel;
 				}
+			});
 
-				current->size = size();
 
-				matrix()->setShapeFn( [ &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
-					pixel_count++;
-				});
 
-				shape(current);
-				current->create(pixel_count);
-				pixel_count = 0;
-
-				matrix()->setShapeFn( [ current, &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
-					if (current->pixels()) {
-						current->pixels()[pixel_count++] = pixel;
-					}
-				});
-
-				shape(current);
-
-			} else {
-				//  linear points creation
-				//  This kicks in if the Matrix is disabled to give simple linear effects...
-				current->create(size());
-				current->x = random(0, strip->PixelCount() - size() + 1);
-
-				for (uint16_t pixel = 0; pixel < size(); pixel++) {
-					current->pixels()[pixel] = current->x + pixel;
-				}
-
-			}
 
 			// pixels chosen check not in use by another animator...
 
@@ -153,9 +122,9 @@ bool Snakes::Start()
 				///  maybe need to delete pixels() at end of the effect here...
 				//  to remove it from the in use....
 
-				if (param.state == AnimationState_Completed) {
-					current->end();
-				}
+				//if (param.state == AnimationState_Completed) {
+				//	current->end();
+				//}
 
 			};
 
@@ -204,76 +173,9 @@ bool Snakes::Stop()
 	}
 }
 
-void Snakes::setshape(Shapetype shape)
-{
-	switch ( shape ) {
 
-	case RANDOM: {
-		setshape( (Shapetype)random(1, 7));
-		break;
-	}
-	case FILLCIRCLE: {
-		setshape( std::bind(&Snakes::fillCircle, this, _1 ));
-		break;
-	}
-	case DRAWCIRCLE: {
-		setshape( std::bind(&Snakes::drawCircle, this, _1 ));
-		break;
-	}
-	case FILLSQUARE: {
-		setshape( std::bind(&Snakes::fillRect, this, _1 ));
-		break;
-	}
-	case DRAWSQUARE: {
-		setshape( std::bind(&Snakes::drawRect, this, _1 ));
-		break;
-	}
-	case FILLTRIANGLE: {
-		setshape( std::bind(&Snakes::fillTriangle, this, _1 ));
-		break;
-	}
-	case DRAWTRIANGLE: {
-		setshape( std::bind(&Snakes::drawTriangle, this, _1 ));
-		break;
-	}
 
-	}
-}
 
-void Snakes::fillCircle(EffectObjectHandler * Object)
-{
-	if (!Object || !matrix()) { return; }
-	matrix()->fillCircle(Object->x, Object->y, Object->size / 2, 0); //  fills shape with
-}
-
-void Snakes::drawCircle(EffectObjectHandler * Object)
-{
-	if (!Object || !matrix()) { return; }
-	matrix()->drawCircle(Object->x, Object->y, Object->size / 2, 0); //  fills shape with
-}
-
-void Snakes::drawRect(EffectObjectHandler * Object)
-{
-	if (!Object || !matrix()) { return; }
-	matrix()->drawRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
-}
-void Snakes::fillRect(EffectObjectHandler * Object)
-{
-	if (!Object || !matrix()) { return; }
-	matrix()->fillRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
-}
-
-void Snakes::fillTriangle(EffectObjectHandler * Object)
-{
-	if (!Object || !matrix()) { return; }
-	matrix()->fillTriangle(Object->x, Object->y, Object->x + Object->size, Object->y, Object->x + (Object->size / 2), Object->y + Object->size , 0); //  fills shape with
-}
-
-void Snakes::drawTriangle(EffectObjectHandler * Object)
-{
-	if (!Object || !matrix()) { return; }
-	matrix()->drawTriangle(Object->x, Object->y, Object->x + Object->size, Object->y, Object->x + (Object->size / 2), Object->y + Object->size , 0); //  fills shape with
-}
 
 
 

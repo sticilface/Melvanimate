@@ -11,6 +11,7 @@ Handler to add / create / run multiple Effect Objects at the same time...
 #include <functional>
 #include "Arduino.h"
 #include <NeoPixelAnimator.h>
+#include "melvtrix.h"
 
 //#define DebugObjectman
 
@@ -81,8 +82,10 @@ public:
 	const uint16_t id() { return _id; };
 	bool virtual reset() {}
 
-	uint16_t x{0};
-	uint16_t y{0};
+	//  needs to be able to handle -ve numbers for movement... 
+	int16_t x{0};
+	int16_t y{0};
+	
 	uint8_t size{0}; 
 
 private:
@@ -163,8 +166,9 @@ class SimpleEffectObject : public EffectObjectHandler
 {
 private:
 	ObjectUpdateCallback _ObjUpdate = nullptr;
-
 	enum Direction {UP = 0, DOWN, LEFT, RIGHT};
+	uint16_t * _pixels{nullptr};
+	uint16_t _total{0};
 
 public:
 	SimpleEffectObject() : _ObjUpdate(nullptr)
@@ -203,11 +207,6 @@ public:
 		_ObjUpdate = Fn;
 	}
 
-private:
-	uint16_t * _pixels{nullptr};
-	uint16_t _total{0};
-
-
 };
 
 
@@ -217,12 +216,18 @@ private:
 class AnimatedEffectObject : public EffectObjectHandler
 {
 private:
+	NeoPixelAnimator * animator{nullptr};
 	ObjectUpdateCallback _ObjUpdate = nullptr;
-
-	enum Direction {UP = 0, DOWN, LEFT, RIGHT};
+	Melvtrix * _matrix{nullptr};
+	uint16_t * _pixels{nullptr};
+	uint16_t _total{0};
+	bool _constrain{false}; 
 
 public:
-	AnimatedEffectObject() : _ObjUpdate(nullptr)
+
+	enum Direction {N = 0, NE , E, SE, S, SW, W, NW} ; //
+
+	AnimatedEffectObject(Melvtrix * matrix) : _ObjUpdate(nullptr), _matrix(matrix)
 	{
 
 	};
@@ -242,7 +247,7 @@ public:
 		}
 		_pixels = new uint16_t[size];
 		animator = new NeoPixelAnimator(size);
-		total = size;
+		_total = size;
 	}
 
 	void SetObjectUpdateCallback(ObjectUpdateCallback Fn) override
@@ -251,6 +256,7 @@ public:
 	}
 
 	uint16_t * pixels() override { return _pixels;};
+	uint16_t total() override { return _total; }
 
 	bool animating() 
 	{
@@ -261,6 +267,8 @@ public:
 		return false; 
 	}
 
+	bool move(Direction dir); 
+	void bounce(bool value) { _constrain = value; }
 
 	bool UpdateObject() override
 	{
@@ -282,11 +290,6 @@ public:
 		return updateflag;
 	}
 
-	uint16_t total{0};
-	NeoPixelAnimator * animator{nullptr};
-
-private:
-	uint16_t * _pixels{nullptr};
 
 };
 

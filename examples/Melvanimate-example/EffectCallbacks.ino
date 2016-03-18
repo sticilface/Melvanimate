@@ -945,9 +945,10 @@ struct EFFECT_s {
   EFFECT_s(uint8_t _count, uint8_t LEDs)//, uint8_t colorscount = 0)
   {
     count = _count;
+
     manager = new EffectGroup; // create effect group
     pPosition = new position_s[_count];
-    matrix = lights.matrix();
+    //matrix = lights.matrix();
     pGroup = new EffectObjectHandler* [count];
 
     for (uint8_t i = 0; i < count; i++) {
@@ -1067,7 +1068,7 @@ void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2,
     // nullptr protection
     if (!current) { break; }
 
-    current->SetObjectUpdateCallback( [ =]() {
+    current->SetObjectUpdateCallback( [=]() {
 
       current->reset(); // new set of pixels...
 
@@ -1076,8 +1077,8 @@ void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2,
       });
 
       uint8_t size = random(2, 6);
-      uint16_t x = EFFECT->position(obj).x = random(0, lights.matrix()->width() - size + 1);
-      uint16_t y = EFFECT->position(obj).y = random(0, lights.matrix()->height() - size + 1);
+      uint16_t x = EFFECT->position(obj).x = random(0, EFFECT->matrix->width() - size + 1);
+      uint16_t y = EFFECT->position(obj).y = random(0, EFFECT->matrix->height() - size + 1);
 
       uint16_t add_factor = (random1) ? random(5, 10) : 10;
 
@@ -1099,10 +1100,11 @@ void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2,
       }
 
       //EFFECT->matrix->drawRect(x, y,  size, size, 0); //  fills shape with
+      return true; 
 
     });
 
-    current->SetPixelUpdateCallback( [=] (uint16_t n, uint16_t pixel) {
+    current->SetPixelUpdateCallback( [=] (uint16_t n, uint16_t pixel)  {
 
       uint16_t add_factor = (random2) ? random(5, 10) : 10;
 
@@ -1139,6 +1141,7 @@ void BobblyShapeFn_create(struct EFFECT_s *& EFFECT, bool random1, bool random2,
       //FadeToAndBack(pixel, RgbColor(5,0,0), lights.speed() * random(5, 10) );
 
     });
+
   }
 
 }

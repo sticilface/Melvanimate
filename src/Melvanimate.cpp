@@ -38,6 +38,10 @@ void Melvanimate::loop()
 	_timer.run();
 	_saveGeneral();
 
+	if (_mqtt) {
+		_mqtt->loop();
+	}
+
 	static uint32_t tick = 0;
 
 	if ( millis() - tick > 30) {
@@ -55,12 +59,6 @@ void Melvanimate::loop()
 
 }
 
-// void Melvanimate::_init_matrix()
-// {
-// 	if (_matrix) { delete _matrix; _matrix = nullptr; }
-// 	_matrix = new Melvtrix(_grid_x, _grid_y, _matrixconfig);
-
-// }
 
 void Melvanimate::_init_LEDs()
 {
@@ -308,6 +306,26 @@ bool Melvanimate::_loadGeneral()
 
 			_pixels = globals["pixels"].as<long>() ;
 
+			if (globals.containsKey("MQTT")) {
+
+				JsonObject& MQTTjson = globals["MQTT"];
+
+				if (MQTTjson["enabled"] == true ) {
+
+					if (MQTTjson["IP"]) {
+						_initMQTT( IPAddress( MQTTjson["IP"][0], MQTTjson["IP"][1], MQTTjson["IP"][2], MQTTjson["IP"][3]), MQTTjson["Port"]);
+					} else {
+						_initMQTT( IPAddress( MQTTjson["IP"][0], MQTTjson["IP"][1], MQTTjson["IP"][2], MQTTjson["IP"][3]));
+					}
+				} else {
+					if (_mqtt) {
+						delete _mqtt;
+						_mqtt = nullptr;
+					}
+				}
+
+			}
+
 
 
 		} else { DebugMelvanimatef("[Melvanimate::load] No Globals\n"); }
@@ -334,6 +352,17 @@ bool Melvanimate::_loadGeneral()
 	}
 
 };
+
+void Melvanimate::_initMQTT(IPAddress addr, uint16_t port)
+{
+	DebugMelvanimatef("[Melvanimate::_initMQTT] [%u,%u,%u,%u] : %u\n", addr[0], addr[1], addr[2], addr[3], port );
+
+	if (_mqtt) {
+		delete _mqtt;
+	}
+	_mqtt = new MelvanimateMQTT(this, addr, port);
+
+}
 
 bool Melvanimate::setTimer(int timeout, String command, String option)
 {
@@ -384,8 +413,13 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 
 void Melvanimate::_sendData(String page, int8_t code)
 {
+
 	DynamicJsonBuffer jsonBuffer;
 	JsonObject& root = jsonBuffer.createObject();
+
+	if (_deviceName) {
+		root["device"] = _deviceName;
+	}
 
 	root["code"] = code;
 	root["heap"] = ESP.getFreeHeap();
@@ -396,119 +430,40 @@ void Melvanimate::_sendData(String page, int8_t code)
 	*/
 
 	//if (page == "homepage" || page == "palette" || page == "all") {
-		JsonArray& modes = root.createNestedArray("modes");
-		//Serial.printf("Total effects: %u\n", total());
-		for (uint8_t i = 0; i < total(); i++) {
-			modes.add(getName(i));
+	JsonArray& modes = root.createNestedArray("modes");
+	//Serial.printf("Total effects: %u\n", total());
+	for (uint8_t i = 0; i < total(); i++) {
+		modes.add(getName(i));
+	}
+	// creates settings node for web page
+	JsonObject& settings = root.createNestedObject("settings");
+	// adds minimum current effect name, if there if addJson returns false.
+	if (Current()) {
+
+		settings["currentpreset"] = Current()->preset();
+
+		if (!Current()->addJson(settings)) {
+			settings["effect"] = Current()->name();
 		}
-		// creates settings node for web page
-		JsonObject& settings = root.createNestedObject("settings");
-		// adds minimum current effect name, if there if addJson returns false.
-		if (Current()) {
 
-			settings["currentpreset"] = Current()->preset();
-//			settings["currentpresetFile"] = Current()->saveFileID;
-
-			if (!Current()->addJson(settings)) {
-				settings["effect"] = Current()->name();
-			}
-
-			if (!settings.containsKey("effect")) {
-				settings["effect"] = Current()->name();
-			}
+		if (!settings.containsKey("effect")) {
+			settings["effect"] = Current()->name();
+		}
 
 
-			addCurrentPresets(root);
+		addCurrentPresets(root);
 
 
-	//	}
+		//	}
 
 
-
-// *  Not needed as palette is added within the add of a secific effect..
-
-		// Palette * palette = Current()->getPalette();
-		// if (palette) {
-		//   root["palettename"] = String(palette->getModeString());
-		// }
-
+		//  this is needed as the matrix settings is simple x, y, uin8_t... not all the required settings for the gui...
 		if (expandMatrixConfigToJson(settings)) {
 			//DebugMelvanimatef("[Melvanimate::_sendData] matrix json expanded!\n");
 		}
 
 
 	}
-	/*
-	      Layout Page
-
-	[ARG:3] matrixmode = singlematrix
-	[ARG:4] firstpixel = topleft
-	[ARG:5] axis = rowmajor
-	[ARG:6] sequence = progressive
-	[ARG:7] multimatrixtile = topleft
-	[ARG:8] multimatrixaxis = rowmajor
-	[ARG:9] multimatrixseq = progressive
-	*/
-
-
-
-// 	if (page == "layout" || page == "all") {
-// 		//root["pixels"] = getPixels();
-// 		root["grid_x"] = getX();
-// 		root["grid_y"] = getY();
-// 		root["multiplematrix"] = multiplematrix;
-// 		root["matrixconfig"] = getmatrix();
-
-
-// 		uint8_t matrixconfig = getmatrix();
-// 		bool bottom = (matrixconfig & NEO_MATRIX_BOTTOM) ;
-// 		bool right = (matrixconfig & NEO_MATRIX_RIGHT) ;
-
-// // single matrix
-// 		if (!bottom && !right) { root["firstpixel"] = "topleft"; }
-// 		if (!bottom && right) { root["firstpixel"] = "topright"; }
-// 		if (bottom && !right) { root["firstpixel"] = "bottomleft"; }
-// 		if (bottom && right ) { root["firstpixel"] = "bottomright"; }
-
-// 		if ((matrixconfig & NEO_MATRIX_AXIS) == NEO_MATRIX_ROWS) {
-// 			root["axis"] = "rowmajor";
-// 		} else {
-// 			root["axis"] = "columnmajor";
-// 		}
-
-// 		if ((matrixconfig & NEO_MATRIX_SEQUENCE) == NEO_MATRIX_PROGRESSIVE) {
-// 			root["sequence"] = "progressive";
-// 		} else {
-// 			root["sequence"] = "zigzag";
-// 		}
-
-
-// // Tiles
-
-// 		bottom = (matrixconfig & NEO_TILE_BOTTOM) ;
-// 		right = (matrixconfig & NEO_TILE_RIGHT) ;
-
-// 		if (!bottom && !right) { root["multimatrixtile"] = "topleft"; }
-// 		if (!bottom && right) { root["multimatrixtile"] = "topright"; }
-// 		if (bottom && !right) { root["multimatrixtile"] = "bottomleft"; }
-// 		if (bottom && right ) { root["multimatrixtile"] = "bottomright"; }
-
-// 		if ((matrixconfig & NEO_TILE_AXIS) == NEO_TILE_ROWS) {
-// 			root["multimatrixaxis"] = "rowmajor";
-// 		} else {
-// 			root["multimatrixaxis"] = "columnmajor";
-// 		}
-
-
-// 		if ((matrixconfig & NEO_TILE_SEQUENCE) == NEO_TILE_PROGRESSIVE) {
-// 			root["multimatrixseq"] = "progressive";
-// 		} else {
-// 			root["multimatrixseq"] = "zigzag";
-// 		}
-
-
-// 	}
-
 
 	if (page == "configpage" || page == "all") {
 
@@ -516,32 +471,6 @@ void Melvanimate::_sendData(String page, int8_t code)
 
 
 	}
-
-	/*
-	      palette page
-	*/
-
-	// Palette is now handled by each effect handler... WICKED
-
-	// if (page == "palette" || page == "all") {
-
-	//   Palette * palette = Current()->getPalette();
-
-	//   if (palette) {
-
-	//     if (page != "all") { root["palette"] = String(palette->getModeString()); } // ignore if already sent
-	//     root["paletterandom"] = String(palette->randommodeAsString());
-	//     root["palettespread"] = String(palette->range());
-	//     root["palettedelay"] = String(palette->delay());
-
-	//     if (palette->addJson( root)) {
-	//       Serial.println("[send_data] palette data added");
-	//       JsonObject& Palette = root["Palette"];
-	//       Palette["modeString"] = String(palette->getModeString()); //  This adds it as string.. saves having it saved to SPIFFS.
-	//     }
-
-	//   }
-	// }
 
 	if (page == "timer" || page == "all" || page == "homepage") {
 
@@ -569,25 +498,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 
 			settings["currentpreset"] = Current()->preset();
 			settings["currentpresetname"] = Current()->name();
-//			settings["currentpresetFile"] = Current()->saveFileID;
-
-			// if (!Current()->addJson(settings)) {
-			//   settings["effect"] = Current()->name();
-			// }
-
-			// if (!settings.containsKey("effect")) {
-			//   settings["effect"] = Current()->name();
-			// }
-
-			// if (_numberofpresets) {
-			// 	JsonObject& currentpresets = root.createNestedObject("currentpresets");
-			// 	for (uint8_t i = 0; i < _numberofpresets; i++ ) {
-			// 		currentpresets[ String(_presets[i])] = _preset_names[i];
-			// 	}
-			// }
 			addCurrentPresets(root);
-
-
 		}
 
 		addAllpresets(root);
@@ -808,9 +719,9 @@ void Melvanimate::_handleWebRequest()
 
 				matrixnode["config"] = matrixvar;
 
-				Serial.println("[Melvanimate::_handleWebRequest] matrixnode dump");
-				matrixnode.prettyPrintTo(Serial);
-				Serial.println();
+				//Serial.println("[Melvanimate::_handleWebRequest] matrixnode dump");
+				//matrixnode.prettyPrintTo(Serial);
+				//Serial.println();
 			}
 		}
 
@@ -1114,6 +1025,8 @@ void Melvanimate::deleteAnimator()
 		animator = nullptr;
 	}
 }
+
+
 
 
 
