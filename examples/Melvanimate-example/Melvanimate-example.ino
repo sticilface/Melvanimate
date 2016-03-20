@@ -32,7 +32,11 @@
 
 #include <ArduinoJson.h>
 #include <NeoPixelBus.h>
+
+#define MQTT_MAX_PACKET_SIZE 1024 //  this overrides the default packet size for pubsubclient packet.. otherwise it is 128 bytes. 
+
 #include <PubSubClient.h>
+
 #include <Adafruit_GFX.h>
 
 #include <ESPmanager.h>

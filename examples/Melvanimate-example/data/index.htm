@@ -3,7 +3,7 @@
 <html>
 
 <head>
-    <title>NODEMCU-new</title>
+    <title class="devicename">NODEMCU-new</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -71,7 +71,7 @@
   
 
     <div data-role="header" data-theme="a" data-position="fixed">
-        <h1 class='myheader'>WS2812-ESPWiFi</h1>
+        <h1 class='myheader'><var class="devicename">Melvanimate</var></h1>
         <a href="#leftpanel" class="ui-btn ui-btn-left ui-alt-icon ui-nodisc-icon ui-corner-all ui-btn-icon-notext ui-icon-bars">Menu</a>
         <!--                <a href="#rightpanel"  class="ui-btn ui-btn-right ui-alt-icon ui-nodisc-icon ui-corner-all ui-btn-icon-notext ui-icon-gear">Menu</a>
  --></div>
@@ -1299,6 +1299,11 @@
                     // Homepage        
 
                     if ($.mobile.activePage.attr('id') == 'homepage') {
+                      
+                      if (result.hasOwnProperty('device')) {
+                        $('.devicename').empty().append(result.device);
+                      }
+                      
 
                         if (result.hasOwnProperty('modes') && result.hasOwnProperty('settings')) {
                             temp = result.modes;

@@ -45,6 +45,63 @@ bool EffectManager::Add(const char * name, EffectHandler* handle, bool defaultef
 	DebugEffectManagerf("ADDED EFFECT %u: %s\n", _count, handle->name());
 }
 
+bool EffectManager::parse(JsonObject & root)
+{
+	bool code = false;
+
+	if (root.containsKey("enable")) {
+		String data = root["enable"];
+		if ( data.equalsIgnoreCase("on")) {
+			Start();
+		} else if ( data.equalsIgnoreCase("off")) {
+			if (_defaulteffecthandle) {
+				Start(_defaulteffecthandle);
+			} else {
+				Start(_firstHandle);
+			}
+		}
+		code = true;
+
+	}
+
+	if (root.containsKey("mode") ) {
+		Start(root["mode"].asString());
+		code = true;
+
+	}
+
+	if (root.containsKey("effect") ) {
+		Start(root["effect"].asString());
+		code = true;
+
+	}
+
+	if (root.containsKey("preset")) {
+		String data = root["preset"];
+		uint8_t preset = data.toInt();
+		Load(preset);
+		code = true;
+
+	}
+
+
+	if (root.containsKey("presetstring")) {
+		Load(root["presetString"].asString());
+		code = true;
+
+	}
+
+	if (Current()) {
+		if (Current()->parseJson(root)) {
+			code = true;
+		}
+	}
+
+	return code;
+}
+
+
+
 EffectHandler* EffectManager::_findhandle(const char * handle)
 {
 	EffectHandler* handler;
@@ -67,14 +124,13 @@ bool EffectManager::Start(EffectHandler* handler)
 {
 
 #ifdef DebugEffectManager
-	DebugEffectManagerf("\n"); 
-	DebugEffectManagerf("[Start] called for %s\n", handler->name()); 
+	DebugEffectManagerf("\n");
+	DebugEffectManagerf("[Start] called for %s\n", handler->name());
 	uint32_t heap;
 #endif
 
-	if (handler == _currentHandle) 
-	{
-		return false; 
+	if (handler == _currentHandle) {
+		return false;
 	}
 
 	Stop();
@@ -754,6 +810,20 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 
 // 	return Load(File, ID);
 // }
+bool EffectManager::Load(const char * name)
+{
+	// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+	if (name && _presetS) {
+		for (uint8_t i = 0; i < _presetcountS; i++) {
+			Presets_s * preset = &_presetS[i];
+			if ( ! strcmp(preset->name, name) ) {
+				return Load(preset->file, preset->id);
+			}
+		}
+	}
+
+	return false;
+}
 
 bool EffectManager::Load(uint8_t ID)
 {
@@ -763,7 +833,6 @@ bool EffectManager::Load(uint8_t ID)
 			Presets_s * preset = &_presetS[i];
 			if (preset->id == ID) {
 				return Load(preset->file, ID);
-
 			}
 		}
 	}
@@ -1123,6 +1192,9 @@ int EffectManager::_nextFreeFile()
 	return -1;
 
 }
+
+
+
 
 
 /*
@@ -1502,7 +1574,6 @@ bool DummyEffect::parseJsonEffect(JsonObject& root)
 
 
 */
-
 
 
 

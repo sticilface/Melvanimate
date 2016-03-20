@@ -82,12 +82,11 @@ public:
 	int getTimeLeft(); 
 
 	uint32_t getPower(); 
-
-
-
 	bool createAnimator(uint16_t count); 
 	bool createAnimator(); 
 	void deleteAnimator(); 
+
+	void populateJson(JsonObject & root) ; 
 
 private:
 	bool _saveGeneral(bool override = false);

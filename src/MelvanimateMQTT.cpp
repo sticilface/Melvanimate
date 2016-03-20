@@ -8,78 +8,176 @@ void MelvanimateMQTT::loop()
 {
 	if (_client.connected()) {
 		_client.loop();
+		_sendFullJson(); // done async to take it out of handler.
 	} else {
 		_reconnect();
 	}
 
 }
 
+void MelvanimateMQTT::sendPresets()
+{
+
+	DynamicJsonBuffer jsonBufferReply;
+	JsonObject & reply = jsonBufferReply.createObject();
+	if (_melvanimate) {
+		_melvanimate->addAllpresets(reply);
+		size_t length = reply.measureLength();
+		char * data = new char[length + 2];
+		if (data) {
+			memset(data, '\0', length + 2);
+			reply.printTo(data, length + 1);
+			publish( "presets", data, length + 1 );
+			delete[] data;
+		}
+
+	}
+}
+
+void MelvanimateMQTT::_sendFullJson()
+{
+	if ( _send_flag &&  millis()  - _send_flag > 500 ) {
+		DynamicJsonBuffer jsonBufferReply;
+		JsonObject & reply = jsonBufferReply.createObject();
+		if (_melvanimate) {
+
+			_melvanimate->populateJson(reply);
+			size_t length = reply.measureLength();
+			char * data = new char[length + 2];
+			if (data) {
+
+				memset(data, '\0', length + 2);
+				reply.printTo(data, length + 1);
+				publish( "json", data, length + 1 );
+				delete[] data;
+			}
+		}
+		_send_flag = 0; 
+	}
+}
 
 
 void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
 {
 
+	bool sendresponse = false;
 
-	if ( _melvanimate->deviceName() && !strcmp(topic, _melvanimate->deviceName() ) ) {
-		DebugMelvanimateMQTTf("JSON topic recieved for %s\n", _melvanimate->deviceName() );
+	{
 		DynamicJsonBuffer jsonBuffer;
-		JsonObject & root = jsonBuffer.parseObject( (char*)payload, length);
-		root.prettyPrintTo(Serial);
-		DebugMelvanimateMQTTf("\n"); 
+
+		String Stopic = String(topic);
+		char * data = new char[length + 1];
+		memset(data, '\0', length + 1);
+		memcpy( data, (char*)payload, length);
+		//String message = String(data);
+
+		DebugMelvanimateMQTTf("[MelvanimateMQTT::_handle] DEBUG: %s : %s\n", topic, data );
+
+
+		if (Stopic.endsWith("/json/set")) {
+
+			JsonObject & root = jsonBuffer.parseObject( (char*)payload, length);
+			_melvanimate->parse(root);
+			sendresponse = true;
+
+
+			sendFullJson();
+
+
+		} else if (Stopic.endsWith("/set")) {
+
+			//  not found.. so send to melvanimate...
+			JsonObject & root = jsonBuffer.createObject();
+
+			String shorttopic = String(topic).substring( String(_melvanimate->deviceName()).length() + 1 , strlen(topic) - 4 );
+			root[shorttopic.c_str()] = data;
+			_melvanimate->parse(root);
+
+			DynamicJsonBuffer jsonBufferReply;
+			JsonObject & reply = jsonBufferReply.createObject();
+
+			_melvanimate->populateJson(reply);
+
+			if (reply.containsKey("settings")) {
+
+				JsonObject & settings = reply["settings"];
+
+				String shorttopic = String(topic).substring( String(_melvanimate->deviceName()).length() + 1 , strlen(topic) - 4 );
+
+
+				for (JsonObject::iterator it = settings.begin(); it != settings.end(); ++it) {
+
+					if (shorttopic == String(it->key)) {
+
+						if (it->value.is<const char *>()) {
+							publish( it->key, it->value.asString() );
+
+						} else {
+
+							size_t length = it->value.measureLength();
+							char * data = new char[length + 2];
+
+							if (data) {
+								memset(data, '\0', length + 2);
+								it->value.printTo(data, length + 1);
+								publish( it->key, data, length + 1 );
+								delete[] data;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		if (data) {
+			delete[] data;
+			data = nullptr;
+		}
+
 	}
-
-
-
-
-	/*
-
-	 	ON / OFF
-		load save preset
-
-
-	*/
-
-
-
-//  this has to go last for the JSON to be passed to the current effect
-// 	if (Current()) {
-// 		if (Current()->parseJson(root)) {
-// //      Serial.println("[handle] JSON Setting applied");
-// 			code = 1;
-// 		}
-// 	}
-
-
-
-
 
 }
 
+bool MelvanimateMQTT::publish(const char * topic, const char * payload)
+{
+
+	return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + topic).c_str() , payload );
+}
+bool MelvanimateMQTT::publish(const char * topic, const char * payload, size_t length)
+{
+
+	return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + String(topic)).c_str() , payload, length );
+}
 
 
 void MelvanimateMQTT::_reconnect()
 {
 
 	if (!_client.connected()) {
-		if (millis() - _reconnectTimer > 5000) {
-		DebugMelvanimateMQTTf("[MelvanimateMQTT::_reconnect] ReConnect Attempted\n");
 
-			if (_client.connect("ESP8266Client")) {
+		if (millis() - _reconnectTimer > 5000) {
+			DebugMelvanimateMQTTf("[MelvanimateMQTT::_reconnect] MQTT Connect Attempted...");
+
+//    boolean connect(const char* id, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage);
+
+			if (_client.connect(_melvanimate->deviceName(), (String(_melvanimate->deviceName()) + "/status").c_str(), 1, false, "offline"  )    ) {
 				DebugMelvanimateMQTTf("connected\n");
 				// Once connected, publish an announcement...
 				if (_melvanimate->deviceName()) {
-					_client.publish(_melvanimate->deviceName(), "Ready");
 
+					_client.publish(  ( "esp/" + String(_melvanimate->deviceName() ) ).c_str() , WiFi.localIP().toString().c_str() , true);
 
+					publish( "status", "online", true);
+					publish( "IP" , WiFi.localIP().toString().c_str() , true);
 					// ... and resubscribe
-					_client.subscribe(_melvanimate->deviceName());
-					_client.publish( (String(_melvanimate->deviceName()) + "/" + "modes").c_str(), "modes here" );
+					_client.subscribe( ( String(_melvanimate->deviceName()) + "/+/set").c_str()) ;
+
+					sendPresets();
 
 				}
-				_reconnectTimer = 0; 
+				_reconnectTimer = 0;
 				return;
 			}
-
 			_reconnectTimer = millis();
 		}
 	}

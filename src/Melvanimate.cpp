@@ -411,17 +411,12 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 
 }
 
-void Melvanimate::_sendData(String page, int8_t code)
+void Melvanimate::populateJson(JsonObject & root) 
 {
-
-	DynamicJsonBuffer jsonBuffer;
-	JsonObject& root = jsonBuffer.createObject();
-
 	if (_deviceName) {
 		root["device"] = _deviceName;
 	}
 
-	root["code"] = code;
 	root["heap"] = ESP.getFreeHeap();
 	root["power"] = String(getPower());
 
@@ -456,14 +451,25 @@ void Melvanimate::_sendData(String page, int8_t code)
 
 		//	}
 
-
 		//  this is needed as the matrix settings is simple x, y, uin8_t... not all the required settings for the gui...
 		if (expandMatrixConfigToJson(settings)) {
 			//DebugMelvanimatef("[Melvanimate::_sendData] matrix json expanded!\n");
 		}
-
-
 	}
+
+
+}
+
+void Melvanimate::_sendData(String page, int8_t code)
+{
+
+	DynamicJsonBuffer jsonBuffer;
+	JsonObject& root = jsonBuffer.createObject();
+
+	populateJson(root);
+
+	root["code"] = code;
+
 
 	if (page == "configpage" || page == "all") {
 
@@ -544,7 +550,7 @@ void Melvanimate::_handleWebRequest()
 	DebugMelvanimatef("Heap = [%u]\n", ESP.getFreeHeap());
 
 
-	if (_HTTP.hasArg("plain")) {
+	//if (_HTTP.hasArg("plain")) {
 		//  ABANDONED
 		// DynamicJsonBuffer jsonBufferplain;
 		// JsonObject& root = jsonBufferplain.parseObject(_HTTP.arg("plain").c_str());
@@ -557,32 +563,32 @@ void Melvanimate::_handleWebRequest()
 		//   }
 
 		// }
-	}
+	//}
 
-	if (_HTTP.hasArg("enable")) {
-		if (_HTTP.arg("enable").equalsIgnoreCase("on")) {
-			DebugMelvanimatef("[_handleWebRequest] Start() called\n");
-			code = Start();
-		} else if (_HTTP.arg("enable").equalsIgnoreCase("off")) {
-			DebugMelvanimatef("[_handleWebRequest] Start(\"Off\")\n");
-			code = Start("Off");
-		}
-	}
+	// if (_HTTP.hasArg("enable")) {
+	// 	if (_HTTP.arg("enable").equalsIgnoreCase("on")) {
+	// 		DebugMelvanimatef("[_handleWebRequest] Start() called\n");
+	// 		code = Start();
+	// 	} else if (_HTTP.arg("enable").equalsIgnoreCase("off")) {
+	// 		DebugMelvanimatef("[_handleWebRequest] Start(\"Off\")\n");
+	// 		code = Start("Off");
+	// 	}
+	// }
 
-	if (_HTTP.hasArg("mode")) {
-		code = Start(_HTTP.arg("mode"));
-	}
+	// if (_HTTP.hasArg("mode")) {
+	// 	code = Start(_HTTP.arg("mode"));
+	// }
 
 
-	if (_HTTP.hasArg("preset")) {
-		uint8_t preset = _HTTP.arg("preset").toInt();
-		if (Load(preset)) {
-			//  try to switch current effect to preset...
-			DebugMelvanimatef("[handle] Loaded preset %u\n", preset);
-			code = 1;
-		}
+	// if (_HTTP.hasArg("preset")) {
+	// 	uint8_t preset = _HTTP.arg("preset").toInt();
+	// 	if (Load(preset)) {
+	// 		//  try to switch current effect to preset...
+	// 		DebugMelvanimatef("[handle] Loaded preset %u\n", preset);
+	// 		code = 1;
+	// 	}
 
-	}
+	// }
 
 
 
@@ -728,14 +734,15 @@ void Melvanimate::_handleWebRequest()
 	}
 
 
+	code = parse(root); 
 
 //  this has to go last for the JSON to be passed to the current effect
-	if (Current()) {
-		if (Current()->parseJson(root)) {
-//      Serial.println("[handle] JSON Setting applied");
-			code = 1;
-		}
-	}
+// 	if (Current()) {
+// 		if (Current()->parseJson(root)) {
+// //      Serial.println("[handle] JSON Setting applied");
+// 			code = 1;
+// 		}
+// 	}
 
 
 
@@ -894,10 +901,13 @@ void Melvanimate::_handleWebRequest()
 
 
 	}
-//_HTTP.setContentLength(0);
-//_HTTP.send(200); // sends OK if were just receiving data...
 
 	_sendData(page, code);
+
+	if (code && _mqtt && *_mqtt )
+	{
+		_mqtt->sendFullJson(); 
+	}
 
 	DebugMelvanimatef("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());
 	return;

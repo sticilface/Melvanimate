@@ -7,6 +7,7 @@
 #include "IPAddress.h"
 #include <functional>
 
+
 #define DebugMelvanimateMQTT
 
 #ifdef DebugMelvanimateMQTT
@@ -28,8 +29,8 @@ public:
 		_client.setClient(_espClient);
 		_client.setServer(Addr, Port);
 		_client.setCallback(  std::bind (&MelvanimateMQTT::_handle, this, _1, _2, _3));
-
 	}
+
 	~MelvanimateMQTT() {}
 
 	void loop();
@@ -39,13 +40,16 @@ public:
 		return _client.connected();
 	}
 
-	bool publish(const char * topic, const char * payload)
-	{
-		return 	_client.publish( topic, payload );
-	}
+	bool publish(const char * topic, const char * payload); 
+	bool publish(const char * topic, const char * payload, size_t length); 
+
+	void sendFullJson() { _send_flag = millis(); } 
+	void sendPresets();  
 
 
 private:
+
+	void _sendFullJson(); 
 
 	void _reconnect();
 	void _handle(char* topic, byte* payload, unsigned int length);
@@ -54,5 +58,6 @@ private:
 	PubSubClient _client;
 	uint32_t _reconnectTimer{0};
 	Melvanimate * _melvanimate{nullptr};
+	uint32_t _send_flag{0}; 
 
 };
