@@ -2,7 +2,6 @@
 
 
 #include "MelvanimateMQTT.h"
-#include <ArduinoJson.h>
 
 void MelvanimateMQTT::loop()
 {
@@ -92,7 +91,6 @@ void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
 			String shorttopic = String(topic).substring( String(_melvanimate->deviceName()).length() + 1 , strlen(topic) - 4 );
 			root[shorttopic.c_str()] = data;
 			_melvanimate->parse(root);
-
 			DynamicJsonBuffer jsonBufferReply;
 			JsonObject & reply = jsonBufferReply.createObject();
 
@@ -115,13 +113,13 @@ void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
 						} else {
 
 							size_t length = it->value.measureLength();
-							char * data = new char[length + 2];
+							char * data2 = new char[length + 2];
 
-							if (data) {
+							if (data2) {
 								memset(data, '\0', length + 2);
-								it->value.printTo(data, length + 1);
-								publish( it->key, data, length + 1 );
-								delete[] data;
+								it->value.printTo(data2, length + 1);
+								publish( it->key, data2, length + 1 );
+								delete[] data2;
 							}
 						}
 					}
@@ -182,6 +180,27 @@ void MelvanimateMQTT::_reconnect()
 		}
 	}
 
+}
+
+bool MelvanimateMQTT::addJson(JsonObject & root)
+{
+
+	JsonObject & mqttjson = root.createNestedObject("MQTT"); 
+
+	mqttjson["enable"] = true; 
+
+	JsonArray & ip = mqttjson.createNestedArray("ip");
+	ip.add(_addr[0]);
+	ip.add(_addr[1]);
+	ip.add(_addr[2]);
+	ip.add(_addr[3]);
+
+	mqttjson["port"] = _port; 
+
+
+
+}
+
 
 //   // Loop until we're reconnected
 //   while (!client.connected()) {
@@ -201,4 +220,3 @@ void MelvanimateMQTT::_reconnect()
 //       delay(5000);
 //     }
 //   }
-}

@@ -6,6 +6,7 @@
 #include "Melvanimate.h"
 #include "IPAddress.h"
 #include <functional>
+#include <ArduinoJson.h>
 
 
 #define DebugMelvanimateMQTT
@@ -24,7 +25,7 @@ class MelvanimateMQTT
 {
 public:
 
-	MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t Port = 1883) : _melvanimate(lights)
+	MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t Port = 1883) : _melvanimate(lights), _addr(Addr), _port(Port)
 	{
 		_client.setClient(_espClient);
 		_client.setServer(Addr, Port);
@@ -46,6 +47,9 @@ public:
 	void sendFullJson() { _send_flag = millis(); } 
 	void sendPresets();  
 
+	bool addJson(JsonObject & root);
+	bool parseJson(JsonObject & root) {}; 
+
 
 private:
 
@@ -59,5 +63,7 @@ private:
 	uint32_t _reconnectTimer{0};
 	Melvanimate * _melvanimate{nullptr};
 	uint32_t _send_flag{0}; 
+	IPAddress _addr; 
+	uint16_t _port; 
 
 };

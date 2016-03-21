@@ -475,6 +475,12 @@ void Melvanimate::_sendData(String page, int8_t code)
 
 		root["pixels"] = getPixels();
 
+		if (_mqtt) {
+			_mqtt->addJson(root); 
+		} else {
+			JsonObject & mqtt = root.createNestedObject("MQTT");
+			mqtt["enable"] = false; 
+		}
 
 	}
 
