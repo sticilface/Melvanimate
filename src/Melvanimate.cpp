@@ -7,6 +7,8 @@
 NeoPixelAnimator * animator = nullptr;
 MyPixelBus * strip = nullptr;
 
+
+
 Melvanimate::Melvanimate(ESP8266WebServer & HTTP, uint16_t pixels, uint8_t pin): _HTTP(HTTP), _pixels(pixels), _pin(pin)
 	, _settings_changed(false)
 {
@@ -411,7 +413,7 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 
 }
 
-void Melvanimate::populateJson(JsonObject & root) 
+void Melvanimate::populateJson(JsonObject & root, bool onlychanged) 
 {
 	if (_deviceName) {
 		root["device"] = _deviceName;
@@ -437,7 +439,7 @@ void Melvanimate::populateJson(JsonObject & root)
 
 		settings["currentpreset"] = Current()->preset();
 
-		if (!Current()->addJson(settings)) {
+		if (!Current()->addJson(settings, onlychanged)) {
 			settings["effect"] = Current()->name();
 		}
 
@@ -912,7 +914,7 @@ void Melvanimate::_handleWebRequest()
 
 	if (code && _mqtt && *_mqtt )
 	{
-		_mqtt->sendFullJson(); 
+		_mqtt->sendChangedJson(); 
 	}
 
 	DebugMelvanimatef("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());

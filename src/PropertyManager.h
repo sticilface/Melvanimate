@@ -21,9 +21,10 @@ class AbstractPropertyHandler
 {
 public:
 	virtual ~AbstractPropertyHandler() {}
-	virtual bool addJsonProperty(JsonObject & root) {return false; };
+	virtual bool addJsonProperty(JsonObject & root, bool onlychanged = false) {return false; };
 	virtual bool parseJsonProperty(JsonObject & root) { return false; } ;
 
+	void setChanged(bool changed) { _changed = changed; }
 	const char * name() { return _name; }
 	AbstractPropertyHandler* next() { return _next; }
 	void next (AbstractPropertyHandler* next) { _next = next; }
@@ -34,6 +35,7 @@ private:
 
 protected:
 	const char * _name = nullptr;
+	bool _changed{false}; 
 
 };
 
@@ -59,8 +61,9 @@ public:
 	T get() { return _var; }
 
 	void set(T value) { _var = value; }
-	bool addJsonProperty(JsonObject & root) override
+	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override
 	{
+		if (onlychanged && !_changed) { return false; }
 		root[_name] = _var;
 		return true;
 	}
@@ -71,6 +74,7 @@ public:
 			
 			if (_var != root[_name] ) {
 				_var = root[_name];
+				_changed = true; 
 				return true;
 			}
 		}
@@ -101,7 +105,7 @@ public:
 	RgbColor& get() { return _var; }
 	void set(RgbColor value) { _var = value; }
 
-	bool addJsonProperty(JsonObject & root) override;
+	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override;
 	bool parseJsonProperty(JsonObject & root) override;
 
 
@@ -145,7 +149,7 @@ public:
 
 	}
 
-	bool addJsonProperty(JsonObject & root) override;
+	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override;
 	bool parseJsonProperty(JsonObject & root) override;
 
 private:
@@ -171,15 +175,17 @@ public:
 	Palette * get() { return &_var; }
 	//void set(Palette * value) { _var = *value; }
 
-	bool addJsonProperty(JsonObject & root) override
+	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override
 	{
+		if (onlychanged && !_changed) { return false; }
 		return _var.addJson(root);
 	}
 
 	bool parseJsonProperty(JsonObject & root) override
 	{
 		if (root.containsKey(_name)) {
-			return _var.parseJson(root);
+			_changed =  _var.parseJson(root);
+			return _changed; 
 		} else {
 			return false;
 		}
@@ -215,15 +221,17 @@ public:
 
 	void set(MelvtrixMan * value) { _var = value; }
 
-	bool addJsonProperty(JsonObject & root) override
+	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override
 	{
+		if (onlychanged && !_changed) { return false; }
 		return _var->addJson(root);
 	}
 
 	bool parseJsonProperty(JsonObject & root) override
 	{
 		if (root.containsKey(_name)) {
-			return _var->parseJson(root);
+			_changed = _var->parseJson(root);
+			return _changed; 
 		} else {
 			return false;
 		}
@@ -253,8 +261,9 @@ public:
 	IPAddress get() { return _var; }
 	void set(IPAddress value) { _var = value; }
 
-	bool addJsonProperty(JsonObject & root) override
+	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override
 	{
+		if (onlychanged && !_changed) { return false; }
 		JsonArray & IP = root.createNestedArray(_name);
 		for (uint8_t i = 0; i < 4; i++) {
 			IP.add(_var[i]);
@@ -276,12 +285,19 @@ public:
 
 				if (_var != ret) {
 					_var = ret;
+					_changed = true; 
 					return true;
 				}
 			} else {
 				const char * input = root[_name];
-//				Serial.printf("[Variable<IPAddress>::parseJsonProperty] IP as String %s\n", input);
-				return _var.fromString(input);
+				IPAddress temp; 
+				if (temp.fromString(input)) {
+					if (temp != _var) {
+						_var = temp;
+						_changed = true;
+						return true; 
+					}
+				}
 			}
 		}
 
@@ -295,76 +311,76 @@ private:
 
 
 
-template <class T>
-class Array: public AbstractPropertyHandler
-{
-public:
-	Array(const char * name, T value, uint16_t number)
-	{
-		_number = number;
-		_var = new T[_number];
-		_name = name;
-		if (_var) {
-			for (uint16_t i = 0; i < _number; i++) {
-				_var[i] = value;
-			}
-		}
-	};
+// template <class T>
+// class Array: public AbstractPropertyHandler
+// {
+// public:
+// 	Array(const char * name, T value, uint16_t number)
+// 	{
+// 		_number = number;
+// 		_var = new T[_number];
+// 		_name = name;
+// 		if (_var) {
+// 			for (uint16_t i = 0; i < _number; i++) {
+// 				_var[i] = value;
+// 			}
+// 		}
+// 	};
 
-	~Array() override
-	{
-		if (_var) {
-			delete[] _var;
-		}
-	}
+// 	~Array() override
+// 	{
+// 		if (_var) {
+// 			delete[] _var;
+// 		}
+// 	}
 
-	operator uint16_t() const
-	{
-		return _number;
-	}
+// 	operator uint16_t() const
+// 	{
+// 		return _number;
+// 	}
 
-	T operator[] (uint16_t i) const
-	{
-		return _var[i];
-	}
+// 	T operator[] (uint16_t i) const
+// 	{
+// 		return _var[i];
+// 	}
 
-	T& operator[] (uint16_t i)
-	{
-		return _var[i];
-	}
+// 	T& operator[] (uint16_t i)
+// 	{
+// 		return _var[i];
+// 	}
 
-	bool addJsonProperty(JsonObject & root) override
-	{
-		JsonArray& array = root.createNestedArray(_name);
+// 	bool addJsonProperty(JsonObject & root) override
+// 	{
+// 		JsonArray& array = root.createNestedArray(_name);
 
-		for (uint16_t i = 0; i < _number; i++) {
-			array.add(_var[i]);
-		}
-		return true;
-	}
+// 		for (uint16_t i = 0; i < _number; i++) {
+// 			array.add(_var[i]);
+// 		}
+// 		return true;
+// 	}
 
-	bool parseJsonProperty(JsonObject & root) override
-	{
-		if (root.containsKey(_name) ) {
-			if ( root[_name].is<JsonArray&>()) {
+// 	bool parseJsonProperty(JsonObject & root) override
+// 	{
+// 		if (root.containsKey(_name) ) {
+// 			if ( root[_name].is<JsonArray&>()) {
 
-				JsonArray& array = root[_name];
+// 				JsonArray& array = root[_name];
 
-				uint16_t count = 0;
+// 				uint16_t count = 0;
 
-				 for (uint16_t i = 0; i < _number; i++) {
-				 	_var[i] = (array[i]); 
-				}
-				return true;
-			}
-		}
-		return false;
-	}
+// 				 for (uint16_t i = 0; i < _number; i++) {
+// 				 	_var[i] = (array[i]); 
+// 				}
+// 				return true;
+// 			}
+// 		}
+// 		return false;
+// 	}
 
-private:
-	T* _var;
-	uint16_t _number;
-};
+// private:
+// 	T* _var;
+// 	uint16_t _number;
+// };
 
 
 // template <>
@@ -470,7 +486,7 @@ public:
 
 	//  these functions should 'overridde from the effectHandler'
 	bool parseJsonEffect(JsonObject & root) ;  // use json so it can be used with MQTT etc...
-	bool addEffectJson(JsonObject& root) ;
+	bool addEffectJson(JsonObject& root, bool onlychanged = false) ;
 	void EndVars();
 
 	virtual bool InitVars() { return false; }
@@ -488,31 +504,31 @@ public:
 		return false;
 	}
 
-	template<class T>
-	Array<T>& variable(const char * name)
-	{
+	// template<class T>
+	// Array<T>& variable(const char * name)
+	// {
 
-		AbstractPropertyHandler* handle = nullptr;
+	// 	AbstractPropertyHandler* handle = nullptr;
 
-		for (handle = _firsthandle; handle; handle = handle->next()) {
-			if (!strcmp(handle->name(), name)) {
-				return *((Variable<T>*)handle);
-			}
-		}
-	}
+	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
+	// 		if (!strcmp(handle->name(), name)) {
+	// 			return *((Variable<T>*)handle);
+	// 		}
+	// 	}
+	// }
 
-	template<class T>
-	Array<T>& array(const char * name)
-	{
+	// template<class T>
+	// Array<T>& array(const char * name)
+	// {
 
-		AbstractPropertyHandler* handle = nullptr;
+	// 	AbstractPropertyHandler* handle = nullptr;
 
-		for (handle = _firsthandle; handle; handle = handle->next()) {
-			if (!strcmp(handle->name(), name)) {
-				return *((Array<T>*)handle);
-			}
-		}
-	}
+	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
+	// 		if (!strcmp(handle->name(), name)) {
+	// 			return *((Array<T>*)handle);
+	// 		}
+	// 	}
+	// }
 
 
 	// overloaded index to allow getting and settings using index...

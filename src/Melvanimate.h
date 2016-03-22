@@ -54,6 +54,7 @@ using namespace helperfunc;
 extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
+
 class MelvanimateMQTT;
 
 
@@ -86,7 +87,7 @@ public:
 	bool createAnimator(); 
 	void deleteAnimator(); 
 
-	void populateJson(JsonObject & root) ; 
+	void populateJson(JsonObject & root, bool onlychanged = false) ; 
 
 private:
 	bool _saveGeneral(bool override = false);

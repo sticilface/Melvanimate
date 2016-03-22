@@ -8,10 +8,32 @@ void MelvanimateMQTT::loop()
 	if (_client.connected()) {
 		_client.loop();
 		_sendFullJson(); // done async to take it out of handler.
+		_sendChangedJson();
+		_sendASync();
 	} else {
 		_reconnect();
 	}
 
+}
+
+void MelvanimateMQTT::_sendASync()
+{
+	if (_firstmessage && millis() - _asyncTimeout < 1000) {
+		DebugMelvanimateMQTTf("[MelvanimateMQTT::_sendASync] Sending msg\n");
+		mqtt_message * handle = _firstmessage;
+		_firstmessage = handle->next();
+
+			if (handle->plength()) {
+				_client.publish( (String(_melvanimate->deviceName()) + "/" + String(handle->topic())).c_str() , (uint8_t*)handle->msg(), handle->retained());
+			} else {
+				_client.publish( (String(_melvanimate->deviceName()) + "/" + String(handle->topic() )).c_str() , (uint8_t*)handle->msg(), handle->plength(), handle->retained());
+			}
+
+
+		//handle->publish();
+		delete handle;
+		_asyncTimeout = millis();
+	}
 }
 
 void MelvanimateMQTT::sendPresets()
@@ -33,6 +55,47 @@ void MelvanimateMQTT::sendPresets()
 	}
 }
 
+
+
+void MelvanimateMQTT::_sendChangedJson()
+{
+	if ( _send_changed_flag &&  millis()  - _send_changed_flag > 500 ) {
+		DynamicJsonBuffer jsonBufferReply;
+		JsonObject & reply = jsonBufferReply.createObject();
+		if (_melvanimate) {
+
+			_melvanimate->populateJson(reply, true); //  this fills the json with only changed data
+
+
+			if (reply.containsKey("settings")) {
+
+				JsonObject & settings = reply["settings"];
+
+				for (JsonObject::iterator it = settings.begin(); it != settings.end(); ++it) {
+
+					if (it->value.is<const char *>()) {
+						publish( it->key, it->value.asString() );
+
+					} else {
+
+						size_t length = it->value.measureLength();
+						char * data2 = new char[length + 2];
+
+						if (data2) {
+							memset(data2, '\0', length + 2);
+							it->value.printTo(data2, length + 1);
+							publish( it->key, data2, length + 1 );
+							delete[] data2;
+						}
+					}
+				}
+			}
+		}
+		_send_changed_flag = 0;
+	}
+}
+
+
 void MelvanimateMQTT::_sendFullJson()
 {
 	if ( _send_flag &&  millis()  - _send_flag > 500 ) {
@@ -51,7 +114,7 @@ void MelvanimateMQTT::_sendFullJson()
 				delete[] data;
 			}
 		}
-		_send_flag = 0; 
+		_send_flag = 0;
 	}
 }
 
@@ -116,7 +179,7 @@ void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
 							char * data2 = new char[length + 2];
 
 							if (data2) {
-								memset(data, '\0', length + 2);
+								memset(data2, '\0', length + 2);
 								it->value.printTo(data2, length + 1);
 								publish( it->key, data2, length + 1 );
 								delete[] data2;
@@ -136,15 +199,37 @@ void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
 
 }
 
-bool MelvanimateMQTT::publish(const char * topic, const char * payload)
+// bool MelvanimateMQTT::publish(const char * topic, const char * payload)
+// {
+
+// 	return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + topic).c_str() , payload );
+// }
+
+bool MelvanimateMQTT::publish(const char * topic, const char * payload, size_t length, bool retained)
 {
 
-	return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + topic).c_str() , payload );
-}
-bool MelvanimateMQTT::publish(const char * topic, const char * payload, size_t length)
-{
+	if (!_firstmessage) {
+		_firstmessage = new mqtt_message(topic, payload, length, retained);
+		if (_firstmessage) {
+			return true;
+		}
+	} else {
 
-	return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + String(topic)).c_str() , payload, length );
+		mqtt_message * handle = _firstmessage;
+		mqtt_message * current = _firstmessage;
+
+		while (current->next())
+		{
+			current = current->next(); 
+			handle = current->next(); 
+		}
+
+		handle->next( new mqtt_message(topic, payload, length, retained));
+
+	}
+
+
+	//return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + String(topic)).c_str() , payload, length );
 }
 
 
@@ -185,9 +270,9 @@ void MelvanimateMQTT::_reconnect()
 bool MelvanimateMQTT::addJson(JsonObject & root)
 {
 
-	JsonObject & mqttjson = root.createNestedObject("MQTT"); 
+	JsonObject & mqttjson = root.createNestedObject("MQTT");
 
-	mqttjson["enable"] = true; 
+	mqttjson["enable"] = true;
 
 	JsonArray & ip = mqttjson.createNestedArray("ip");
 	ip.add(_addr[0]);
@@ -195,7 +280,7 @@ bool MelvanimateMQTT::addJson(JsonObject & root)
 	ip.add(_addr[2]);
 	ip.add(_addr[3]);
 
-	mqttjson["port"] = _port; 
+	mqttjson["port"] = _port;
 
 
 

@@ -35,7 +35,7 @@ public:
 
 	// needs to NOT be virtual... call parsejson instead... but then call a virtual member..
 
-	bool addJson(JsonObject& settings); // called first, iterates through 'installed properties' then calls addEffectJson
+	bool addJson(JsonObject& settings, bool onlychanged = false); // called first, iterates through 'installed properties' then calls addEffectJson
 	virtual bool addEffectJson(JsonObject& settings) const { return false; };
 
 	// save does NOT have to be overridden.  it calls addJson instead.

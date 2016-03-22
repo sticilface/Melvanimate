@@ -44,11 +44,11 @@ bool EffectHandler::save(JsonArray& array, uint8_t ID, const char * name)
 
 };
 
-bool EffectHandler::addJson(JsonObject & root)
+bool EffectHandler::addJson(JsonObject & root, bool onlychanged)
 {
 	bool found = false;
 
-	if (PropertyManager::addEffectJson(root)) {
+	if (PropertyManager::addEffectJson(root, onlychanged)) {
 		found = true;
 	}
 
