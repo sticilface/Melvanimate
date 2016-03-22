@@ -8,7 +8,7 @@
 #include <functional>
 #include <ArduinoJson.h>
 
-#define DebugMelvanimateMQTT
+//#define DebugMelvanimateMQTT
 
 #ifdef DebugMelvanimateMQTT
 #define DebugMelvanimateMQTTf(...) Serial.printf(__VA_ARGS__)
@@ -41,31 +41,30 @@ public:
 	}
 
 	//bool publish(const char * topic, const char * payload);
-	bool publish(const char * topic, const char * payload, size_t length = 0, bool retained = false );
+	bool publish(const char * topic, uint8_t * payload, size_t length, bool retained = false );
+	bool publish(const char * topic, const char * payload, bool retained = false );
 
-	void sendFullJson() { _send_flag = millis(); }
-	void sendChangedJson() { _send_changed_flag = millis(); }
+	//void sendFullJson() { _send_flag = millis(); }
+	void sendJson(bool onlychanged); //  { _send_changed_flag = millis();  _onlychanged = onlychanged; }
 	void sendPresets();
 
 	bool addJson(JsonObject & root);
 	bool parseJson(JsonObject & root) {};
-
+	PubSubClient * mqttclient() { return &_client; }
+	Melvanimate * pmelvanimate() { return _melvanimate; }
 
 private:
 
 	struct mqtt_message {
-		// mqtt_message(const char * topic, const char * msg, bool retained = false)
-		// {
-		// 	_topic = strdup(topic);
-		// 	_msg = strdup(msg);
-		// 	_retained = retained;
-		// };
-		mqtt_message(const char * topic, const char * msg, size_t plength = 0 , bool retained = false)
+		mqtt_message(MelvanimateMQTT * host, const char * topic, uint8_t * msg, size_t plength = 0 , bool retained = false)
+			: _host(host), _plength(plength), _retained(retained), _next(nullptr)
 		{
 			_topic = strdup(topic);
-			_msg = strdup(msg);
-			_plength = plength;
-			_retained = retained;
+
+			_msg = new uint8_t[plength];
+			if (_msg) {
+				memcpy(_msg, msg, plength);
+			}
 		};
 		~mqtt_message()
 		{
@@ -73,29 +72,19 @@ private:
 				free( (void*)_topic);
 			}
 			if (_msg) {
-				free( (void*)_msg);
+				delete[] _msg;
 			}
 		};
-		// bool publish()
-		// {
-		// 	if (_plength) {
-		// 		return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + String(_topic)).c_str() , msg);
-		// 	} else {
-		// 		return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + String(_topic)).c_str() , msg, _plength);
-		// 	}
-		// }
+		bool publish();
 		const char * topic() { return _topic; }
-		const char * msg() { return _msg; }
-		size_t plength() { return _plength; }
-		bool retained() { return _retained; }
-
-
 		void next(mqtt_message * next) { _next = next; }
 		mqtt_message * next() { return _next; }
 	private:
+		//PubSubClient * _mqttclient{nullptr};
+		MelvanimateMQTT * _host{nullptr};
 		mqtt_message * _next{nullptr};
 		const char * _topic{nullptr};
-		const char * _msg{nullptr};
+		uint8_t * _msg{nullptr};
 		size_t _plength{0};
 		bool _retained;
 
@@ -103,8 +92,8 @@ private:
 
 	void _sendASync();
 
-	void _sendFullJson();
-	void _sendChangedJson();
+	//void _sendFullJson();
+	//void _sendJson();
 
 	void _reconnect();
 	void _handle(char* topic, byte* payload, unsigned int length);
@@ -113,12 +102,14 @@ private:
 	PubSubClient _client;
 	uint32_t _reconnectTimer{0};
 	Melvanimate * _melvanimate{nullptr};
-	uint32_t _send_flag{0};
-	uint32_t _send_changed_flag{0};
+	//uint32_t _send_flag{0};
+	//uint32_t _send_changed_flag{0};
 	IPAddress _addr;
 	uint16_t _port;
 
 	mqtt_message * _firstmessage{nullptr};
-	uint32_t _asyncTimeout{0}; 
+	uint32_t _asyncTimeout{0};
+	bool _onlychanged{nullptr};
+
 
 };

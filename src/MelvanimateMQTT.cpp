@@ -7,9 +7,7 @@ void MelvanimateMQTT::loop()
 {
 	if (_client.connected()) {
 		_client.loop();
-		_sendFullJson(); // done async to take it out of handler.
-		_sendChangedJson();
-		_sendASync();
+		_sendASync(); //  handles actual send....
 	} else {
 		_reconnect();
 	}
@@ -18,19 +16,11 @@ void MelvanimateMQTT::loop()
 
 void MelvanimateMQTT::_sendASync()
 {
-	if (_firstmessage && millis() - _asyncTimeout < 1000) {
-		DebugMelvanimateMQTTf("[MelvanimateMQTT::_sendASync] Sending msg\n");
+	if (_firstmessage && millis() - _asyncTimeout > 100) {
 		mqtt_message * handle = _firstmessage;
 		_firstmessage = handle->next();
-
-			if (handle->plength()) {
-				_client.publish( (String(_melvanimate->deviceName()) + "/" + String(handle->topic())).c_str() , (uint8_t*)handle->msg(), handle->retained());
-			} else {
-				_client.publish( (String(_melvanimate->deviceName()) + "/" + String(handle->topic() )).c_str() , (uint8_t*)handle->msg(), handle->plength(), handle->retained());
-			}
-
-
-		//handle->publish();
+		DebugMelvanimateMQTTf("[MelvanimateMQTT::_sendASync] Sending msg [%s] (_next = %s)\n", handle->topic(), (_firstmessage) ? _firstmessage->topic() : "void") ;
+		handle->publish();
 		delete handle;
 		_asyncTimeout = millis();
 	}
@@ -43,80 +33,87 @@ void MelvanimateMQTT::sendPresets()
 	JsonObject & reply = jsonBufferReply.createObject();
 	if (_melvanimate) {
 		_melvanimate->addAllpresets(reply);
-		size_t length = reply.measureLength();
-		char * data = new char[length + 2];
-		if (data) {
-			memset(data, '\0', length + 2);
-			reply.printTo(data, length + 1);
-			publish( "presets", data, length + 1 );
-			delete[] data;
-		}
 
+		if (reply.containsKey("Presets")) {
+			JsonArray & presets = reply["Presets"];
+
+			size_t length = presets.measureLength();
+			char * data = new char[length + 2];
+			if (data) {
+				memset(data, '\0', length + 2);
+				presets.printTo(data, length + 1);
+				publish( "presets", data, length + 1 );
+				delete[] data;
+			}
+		}
 	}
 }
 
-
-
-void MelvanimateMQTT::_sendChangedJson()
+void MelvanimateMQTT::sendJson(bool onlychanged)
 {
-	if ( _send_changed_flag &&  millis()  - _send_changed_flag > 500 ) {
-		DynamicJsonBuffer jsonBufferReply;
-		JsonObject & reply = jsonBufferReply.createObject();
-		if (_melvanimate) {
 
-			_melvanimate->populateJson(reply, true); //  this fills the json with only changed data
+	DynamicJsonBuffer jsonBufferReply;
+	JsonObject & reply = jsonBufferReply.createObject();
+	if (_melvanimate) {
 
+		_melvanimate->populateJson(reply, onlychanged ); //  this fills the json with only changed data
 
-			if (reply.containsKey("settings")) {
+		if (reply.containsKey("settings")) {
 
-				JsonObject & settings = reply["settings"];
+			JsonObject & settings = reply["settings"];
 
-				for (JsonObject::iterator it = settings.begin(); it != settings.end(); ++it) {
+#ifdef DebugMelvanimateMQTT
+			Serial.println("Settings: ");
+			settings.prettyPrintTo(Serial);
+			Serial.println();
+#endif
 
-					if (it->value.is<const char *>()) {
-						publish( it->key, it->value.asString() );
+			for (JsonObject::iterator it = settings.begin(); it != settings.end(); ++it) {
 
-					} else {
+				if (it->value.is<const char *>()) {
+					publish( it->key, it->value.asString() );
 
-						size_t length = it->value.measureLength();
-						char * data2 = new char[length + 2];
+				} else {
 
-						if (data2) {
-							memset(data2, '\0', length + 2);
-							it->value.printTo(data2, length + 1);
-							publish( it->key, data2, length + 1 );
-							delete[] data2;
-						}
+					size_t length = it->value.measureLength();
+					char * data2 = new char[length + 2];
+
+					if (data2) {
+						memset(data2, '\0', length + 2);
+						it->value.printTo(data2, length + 1);
+						publish( it->key, data2, length + 1 );
+						delete[] data2;
 					}
 				}
 			}
 		}
-		_send_changed_flag = 0;
 	}
+//		_send_changed_flag = 0;
+//	}
 }
 
 
-void MelvanimateMQTT::_sendFullJson()
-{
-	if ( _send_flag &&  millis()  - _send_flag > 500 ) {
-		DynamicJsonBuffer jsonBufferReply;
-		JsonObject & reply = jsonBufferReply.createObject();
-		if (_melvanimate) {
+// void MelvanimateMQTT::_sendFullJson()
+// {
+// 	if ( _send_flag &&  millis()  - _send_flag > 500 ) {
+// 		DynamicJsonBuffer jsonBufferReply;
+// 		JsonObject & reply = jsonBufferReply.createObject();
+// 		if (_melvanimate) {
 
-			_melvanimate->populateJson(reply);
-			size_t length = reply.measureLength();
-			char * data = new char[length + 2];
-			if (data) {
+// 			_melvanimate->populateJson(reply);
+// 			size_t length = reply.measureLength();
+// 			char * data = new char[length + 2];
+// 			if (data) {
 
-				memset(data, '\0', length + 2);
-				reply.printTo(data, length + 1);
-				publish( "json", data, length + 1 );
-				delete[] data;
-			}
-		}
-		_send_flag = 0;
-	}
-}
+// 				memset(data, '\0', length + 2);
+// 				reply.printTo(data, length + 1);
+// 				publish( "json", data, length + 1 );
+// 				delete[] data;
+// 			}
+// 		}
+// 		_send_flag = 0;
+// 	}
+// }
 
 
 void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
@@ -142,9 +139,7 @@ void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
 			_melvanimate->parse(root);
 			sendresponse = true;
 
-
-			sendFullJson();
-
+			sendJson(true);
 
 		} else if (Stopic.endsWith("/set")) {
 
@@ -199,37 +194,35 @@ void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
 
 }
 
-// bool MelvanimateMQTT::publish(const char * topic, const char * payload)
-// {
+bool MelvanimateMQTT::publish(const char * topic, const char * payload, bool retained)
+{
+	publish (topic, (uint8_t*)payload, strlen(payload), retained);
+}
 
-// 	return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + topic).c_str() , payload );
-// }
-
-bool MelvanimateMQTT::publish(const char * topic, const char * payload, size_t length, bool retained)
+bool MelvanimateMQTT::publish(const char * topic, uint8_t * payload, size_t length, bool retained)
 {
 
 	if (!_firstmessage) {
-		_firstmessage = new mqtt_message(topic, payload, length, retained);
+		DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle assigned.\n");
+		_firstmessage = new mqtt_message(this, topic, payload, length, retained);
 		if (_firstmessage) {
 			return true;
 		}
 	} else {
+		DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle already assigned.\n");
 
 		mqtt_message * handle = _firstmessage;
 		mqtt_message * current = _firstmessage;
-
-		while (current->next())
-		{
-			current = current->next(); 
-			handle = current->next(); 
+		uint8_t count = 0;
+		while (current->next()) {
+			count++;
+			current = current->next();
 		}
 
-		handle->next( new mqtt_message(topic, payload, length, retained));
+		DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] assigning %u\n", count);
+		current->next( new mqtt_message(this, topic, payload, length, retained));
 
 	}
-
-
-	//return 	_client.publish( (String(_melvanimate->deviceName()) + "/" + String(topic)).c_str() , payload, length );
 }
 
 
@@ -281,27 +274,16 @@ bool MelvanimateMQTT::addJson(JsonObject & root)
 	ip.add(_addr[3]);
 
 	mqttjson["port"] = _port;
-
-
-
 }
 
 
-//   // Loop until we're reconnected
-//   while (!client.connected()) {
-//     DebugMelvanimateMQTTf("Attempting MQTT connection...\n");
-//     // Attempt to connect
-//     if (client.connect("ESP8266Client")) {
-//       DebugMelvanimateMQTTf("connected\n");
-//       // Once connected, publish an announcement...
-//       client.publish("outTopic", "hello world");
-//       // ... and resubscribe
-//       client.subscribe("inTopic");
-//     } else {
-//       DebugMelvanimateMQTTf("failed, rc=");
-//       DebugMelvanimateMQTTf("%s", String(client.state()).c_str() );
-//       DebugMelvanimateMQTTf(" try again in 5 seconds\n");
-//       // Wait 5 seconds before retrying
-//       delay(5000);
-//     }
-//   }
+bool MelvanimateMQTT::mqtt_message::publish()
+{
+	if (_host) {
+		return 	_host->mqttclient()->publish( (String(_host->pmelvanimate()->deviceName()) + "/" + String(_topic)).c_str() , _msg, _plength, _retained);
+	}
+	return false;
+}
+
+
+

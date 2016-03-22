@@ -10,7 +10,7 @@
 
 //#define DebugPropertyManager
 
-#ifdef DebugMelvanimate
+#ifdef DebugPropertyManager
 #define PropertyManagerf(...) Serial.printf(__VA_ARGS__)
 #else
 #define PropertyManagerf(...) {}
@@ -24,7 +24,9 @@ public:
 	virtual bool addJsonProperty(JsonObject & root, bool onlychanged = false) {return false; };
 	virtual bool parseJsonProperty(JsonObject & root) { return false; } ;
 
-	void setChanged(bool changed) { _changed = changed; }
+	void setChanged(bool changed) { 
+		_changed = changed; 
+		PropertyManagerf("[Variable::setChanged]  (%s)_changed  = %s\n", _name, (_changed)? "true": "false") ; }
 	const char * name() { return _name; }
 	AbstractPropertyHandler* next() { return _next; }
 	void next (AbstractPropertyHandler* next) { _next = next; }
@@ -63,7 +65,8 @@ public:
 	void set(T value) { _var = value; }
 	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override
 	{
-		if (onlychanged && !_changed) { return false; }
+		PropertyManagerf("[Variable::addJsonProperty] (%s) _changed = %s, onlychanged = %s\n", name() ,(_changed)? "true" : "false",(onlychanged)? "true" : "false"  ); 
+		if (onlychanged && !_changed) { PropertyManagerf("[Variable::addJsonProperty] returning \n"); return false; }
 		root[_name] = _var;
 		return true;
 	}
@@ -75,6 +78,7 @@ public:
 			if (_var != root[_name] ) {
 				_var = root[_name];
 				_changed = true; 
+				PropertyManagerf("[Variable::parseJsonProperty] _changed = true\n"); 
 				return true;
 			}
 		}

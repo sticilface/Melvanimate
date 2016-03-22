@@ -46,12 +46,13 @@ bool EffectHandler::save(JsonArray& array, uint8_t ID, const char * name)
 
 bool EffectHandler::addJson(JsonObject & root, bool onlychanged)
 {
+	DebugEffectHandlerf("[EffectHandler::addJson] called "); 
 	bool found = false;
 
 	if (PropertyManager::addEffectJson(root, onlychanged)) {
 		found = true;
 	}
-
+	// not sure i need this any more... 
 	if (addEffectJson(root)) { found = true; }
 
 	return found;

@@ -14,7 +14,7 @@ AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 	if (ptr) {
 
 		if (!_firsthandle) {
-			PropertyManagerf("[PropertyManager::addVar] 1st Var added: %s\n", ptr->name());
+			PropertyManagerf("[PropertyManager::addVar] Added: %s\n", ptr->name());
 			_firsthandle = ptr;
 			ptr->next(nullptr);
 		} else {
@@ -78,14 +78,20 @@ bool PropertyManager::parseJsonEffect(JsonObject & root)
 bool PropertyManager::addEffectJson(JsonObject & root, bool onlychanged)
 {
 //	Serial.printf("[PropertyManager::addEffectJson] called\n");
+	PropertyManagerf("[PropertyManager::addEffectJson] called\n"); 
+
 	bool success = false;
 
 	AbstractPropertyHandler* handle = nullptr;
 
 	for (handle = _firsthandle; handle; handle = handle->next()) {
+		PropertyManagerf("[PropertyManager::addEffectJson] Variable : %s \n", handle->name()); 
+
 		if (handle->addJsonProperty(root, onlychanged)) {
 			success = true;
-			handle->setChanged(false); //  once json has been added.  reset changed state... 
+			if (onlychanged) { handle->setChanged(false); } //  once json has been added.  reset changed state... 
+		} else {
+			PropertyManagerf("[PropertyManager::addEffectJson] addJsonProperty returned false \n"); 
 		}
 	}
 	return success;

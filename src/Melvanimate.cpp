@@ -413,50 +413,62 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 
 }
 
-void Melvanimate::populateJson(JsonObject & root, bool onlychanged) 
+void Melvanimate::populateJson(JsonObject & root, bool onlychanged)
 {
-	if (_deviceName) {
-		root["device"] = _deviceName;
-	}
-
-	root["heap"] = ESP.getFreeHeap();
-	root["power"] = String(getPower());
-
-	/*
-	      Home page
-	*/
-
-	//if (page == "homepage" || page == "palette" || page == "all") {
-	JsonArray& modes = root.createNestedArray("modes");
-	//Serial.printf("Total effects: %u\n", total());
-	for (uint8_t i = 0; i < total(); i++) {
-		modes.add(getName(i));
-	}
-	// creates settings node for web page
 	JsonObject& settings = root.createNestedObject("settings");
-	// adds minimum current effect name, if there if addJson returns false.
-	if (Current()) {
 
-		settings["currentpreset"] = Current()->preset();
-
-		if (!Current()->addJson(settings, onlychanged)) {
-			settings["effect"] = Current()->name();
+	if (!onlychanged) {
+		if (_deviceName) {
+			root["device"] = _deviceName;
 		}
 
-		if (!settings.containsKey("effect")) {
-			settings["effect"] = Current()->name();
+		root["heap"] = ESP.getFreeHeap();
+		root["power"] = String(getPower());
+
+		/*
+		      Home page
+		*/
+
+		//if (page == "homepage" || page == "palette" || page == "all") {
+		JsonArray& modes = root.createNestedArray("modes");
+		//Serial.printf("Total effects: %u\n", total());
+		for (uint8_t i = 0; i < total(); i++) {
+			modes.add(getName(i));
 		}
 
 
-		addCurrentPresets(root);
+		// creates settings node for web page
+		// adds minimum current effect name, if there if addJson returns false.
+		if (Current()) {
+
+			settings["currentpreset"] = Current()->preset();
+
+			if (!Current()->addJson(settings)) {
+				settings["effect"] = Current()->name();
+			}
+
+			if (!settings.containsKey("effect")) {
+				settings["effect"] = Current()->name();
+			}
 
 
-		//	}
+			addCurrentPresets(root);
 
-		//  this is needed as the matrix settings is simple x, y, uin8_t... not all the required settings for the gui...
-		if (expandMatrixConfigToJson(settings)) {
-			//DebugMelvanimatef("[Melvanimate::_sendData] matrix json expanded!\n");
+
+			//	}
+
+			//  this is needed as the matrix settings is simple x, y, uin8_t... not all the required settings for the gui...
+			if (expandMatrixConfigToJson(settings)) {
+				//DebugMelvanimatef("[Melvanimate::_sendData] matrix json expanded!\n");
+			}
 		}
+	} else {
+
+		DebugMelvanimatef("[Melvanimate::populateJson] Adding ONLY changed variables\n");
+
+		Current()->addJson(settings, onlychanged);
+		expandMatrixConfigToJson(settings);
+
 	}
 
 
@@ -478,10 +490,10 @@ void Melvanimate::_sendData(String page, int8_t code)
 		root["pixels"] = getPixels();
 
 		if (_mqtt) {
-			_mqtt->addJson(root); 
+			_mqtt->addJson(root);
 		} else {
 			JsonObject & mqtt = root.createNestedObject("MQTT");
-			mqtt["enable"] = false; 
+			mqtt["enable"] = false;
 		}
 
 	}
@@ -559,18 +571,18 @@ void Melvanimate::_handleWebRequest()
 
 
 	//if (_HTTP.hasArg("plain")) {
-		//  ABANDONED
-		// DynamicJsonBuffer jsonBufferplain;
-		// JsonObject& root = jsonBufferplain.parseObject(_HTTP.arg("plain").c_str());
-		// if (root.success()) {
+	//  ABANDONED
+	// DynamicJsonBuffer jsonBufferplain;
+	// JsonObject& root = jsonBufferplain.parseObject(_HTTP.arg("plain").c_str());
+	// if (root.success()) {
 
-		//   if (Current()) {
-		//     if (Current()->parseJsonArgs(root)) {
-		//       Serial.println("[handle] JSON (via Plain) Setting applied");
-		//     }
-		//   }
+	//   if (Current()) {
+	//     if (Current()->parseJsonArgs(root)) {
+	//       Serial.println("[handle] JSON (via Plain) Setting applied");
+	//     }
+	//   }
 
-		// }
+	// }
 	//}
 
 	// if (_HTTP.hasArg("enable")) {
@@ -742,7 +754,7 @@ void Melvanimate::_handleWebRequest()
 	}
 
 
-	code = parse(root); 
+	code = parse(root);
 
 //  this has to go last for the JSON to be passed to the current effect
 // 	if (Current()) {
@@ -912,11 +924,18 @@ void Melvanimate::_handleWebRequest()
 
 	_sendData(page, code);
 
-	if (code && _mqtt && *_mqtt )
-	{
-		_mqtt->sendChangedJson(); 
-	}
+	if (_mqtt && *_mqtt) {
 
+		if ( _HTTP.hasArg("effect") || _HTTP.hasArg("enable") ) {
+			DebugMelvanimatef("[_handle] only changed false\n");
+			_mqtt->sendJson(false);
+		} else {
+			DebugMelvanimatef("[_handle] only changed true\n");
+			_mqtt->sendJson(true);
+		}
+
+
+	}
 	DebugMelvanimatef("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());
 	return;
 

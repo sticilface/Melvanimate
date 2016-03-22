@@ -39,7 +39,7 @@
 
 
 
-#define DebugMelvanimate
+//#define DebugMelvanimate
 
 #ifdef DebugMelvanimate
 #define DebugMelvanimatef(...) Serial.printf(__VA_ARGS__)
