@@ -39,7 +39,7 @@
 
 
 
-//#define DebugMelvanimate
+#define DebugMelvanimate
 
 #ifdef DebugMelvanimate
 #define DebugMelvanimatef(...) Serial.printf(__VA_ARGS__)
@@ -93,7 +93,7 @@ private:
 	bool _saveGeneral(bool override = false);
 	bool _loadGeneral();
 	void _init_LEDs();
-	void _initMQTT(IPAddress addr, uint16_t port = 1883);
+	void _initMQTT(JsonObject & root);
 
 	void _sendData(String page, int8_t code); 
 	void _handleWebRequest();

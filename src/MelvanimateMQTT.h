@@ -8,7 +8,7 @@
 #include <functional>
 #include <ArduinoJson.h>
 
-//#define DebugMelvanimateMQTT
+#define DebugMelvanimateMQTT
 
 #ifdef DebugMelvanimateMQTT
 #define DebugMelvanimateMQTTf(...) Serial.printf(__VA_ARGS__)

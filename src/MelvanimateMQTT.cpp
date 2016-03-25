@@ -93,6 +93,37 @@ void MelvanimateMQTT::sendJson(bool onlychanged)
 }
 
 
+// bool MelvanimateMQTT::parseJson(JsonObject & root)
+// {
+
+
+// // [ARG:0] nopixels = 50
+// // [ARG:1] enablemqtt = off
+// // [ARG:2] mqtt_ip = 1.2.3.4
+// // [ARG:3] mqtt_port = 123
+
+
+
+
+//  if (root.containsKey("MQTT")) {
+
+//  	if (root.containsKey("enabled")) {
+
+//  		if (root["enabled"] == true) {
+
+
+
+//  		}
+//  	}
+//  }
+
+
+// return false; 
+// }
+
+
+
+
 // void MelvanimateMQTT::_sendFullJson()
 // {
 // 	if ( _send_flag &&  millis()  - _send_flag > 500 ) {
@@ -262,10 +293,11 @@ void MelvanimateMQTT::_reconnect()
 
 bool MelvanimateMQTT::addJson(JsonObject & root)
 {
+	DebugMelvanimateMQTTf("[MelvanimateMQTT::addJson] called\n" );
 
 	JsonObject & mqttjson = root.createNestedObject("MQTT");
 
-	mqttjson["enable"] = true;
+	mqttjson["enabled"] = true;
 
 	JsonArray & ip = mqttjson.createNestedArray("ip");
 	ip.add(_addr[0]);

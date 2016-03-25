@@ -7,7 +7,7 @@
 #include "EffectManager.h"
 #include "helperfunc.h"
 
-using namespace helperfunc; 
+using namespace helperfunc;
 
 AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 {
@@ -43,7 +43,7 @@ void PropertyManager::EndVars()
 
 #ifdef PropertyManager
 	if (!handle) {
-			PropertyManagerf("[EndVars] No handles Identified to delete for %s\n", static_cast<EffectHandler*>(this)->name());
+		PropertyManagerf("[EndVars] No handles Identified to delete for %s\n", static_cast<EffectHandler*>(this)->name());
 	}
 #endif
 
@@ -67,7 +67,7 @@ bool PropertyManager::parseJsonEffect(JsonObject & root)
 	AbstractPropertyHandler* handle = nullptr;
 
 	for (handle = _firsthandle; handle; handle = handle->next()) {
-		handle->setChanged(false); 
+		handle->setChanged(false);
 		if (handle->parseJsonProperty(root)) {
 			success = true;
 		}
@@ -78,20 +78,20 @@ bool PropertyManager::parseJsonEffect(JsonObject & root)
 bool PropertyManager::addEffectJson(JsonObject & root, bool onlychanged)
 {
 //	Serial.printf("[PropertyManager::addEffectJson] called\n");
-	PropertyManagerf("[PropertyManager::addEffectJson] called\n"); 
+	PropertyManagerf("[PropertyManager::addEffectJson] called\n");
 
 	bool success = false;
 
 	AbstractPropertyHandler* handle = nullptr;
 
 	for (handle = _firsthandle; handle; handle = handle->next()) {
-		PropertyManagerf("[PropertyManager::addEffectJson] Variable : %s \n", handle->name()); 
+		PropertyManagerf("[PropertyManager::addEffectJson] Variable : %s \n", handle->name());
 
 		if (handle->addJsonProperty(root, onlychanged)) {
 			success = true;
-			if (onlychanged) { handle->setChanged(false); } //  once json has been added.  reset changed state... 
+			if (onlychanged) { handle->setChanged(false); } //  once json has been added.  reset changed state...
 		} else {
-			PropertyManagerf("[PropertyManager::addEffectJson] addJsonProperty returned false \n"); 
+			PropertyManagerf("[PropertyManager::addEffectJson] addJsonProperty returned false \n");
 		}
 	}
 	return success;
@@ -155,12 +155,12 @@ bool Variable<const char *>::parseJsonProperty(JsonObject & root)
 			if ( strcmp(root[_name], _var)) {
 				free( (void*)_var);  //  not good... but i really want to free that const char *
 				_var = strdup(root[_name]);
-				_changed = true; 
+				_changed = true;
 				return true;
 			}
 		} else {
 			_var = strdup(root[_name]);
-			_changed = true; 
+			_changed = true;
 			return true;
 		}
 	}

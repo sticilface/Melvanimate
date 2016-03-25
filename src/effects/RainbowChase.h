@@ -15,7 +15,6 @@ public:
 		addVar(new Variable<bool>("usematrix", false));
 		addVar(new Variable<bool>("wholerainbow", false));
 
-
 		if (_vars) {
 			delete _vars; 
 		}

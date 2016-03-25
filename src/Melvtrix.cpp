@@ -187,7 +187,7 @@ MelvtrixMan::MelvtrixMan(uint16_t x, uint16_t y, uint8_t config): _grid_x(x), _g
 
 MelvtrixMan::~MelvtrixMan()
 {
-  Serial.printf("[~MelvtrixMan()] called\n");
+  //Serial.printf("[~MelvtrixMan()] called\n");
   if (_matrix) {
     delete _matrix;
     _matrix = nullptr;
