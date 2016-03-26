@@ -16,10 +16,10 @@ void MelvanimateMQTT::loop()
 
 void MelvanimateMQTT::_sendASync()
 {
-	if (_firstmessage && millis() - _asyncTimeout > 100) {
+	if (_firstmessage && millis() - _asyncTimeout > 1000) {
 		mqtt_message * handle = _firstmessage;
 		_firstmessage = handle->next();
-		DebugMelvanimateMQTTf("[MelvanimateMQTT::_sendASync] Sending msg [%s] (_next = %s)\n", handle->topic(), (_firstmessage) ? _firstmessage->topic() : "void") ;
+		DebugMelvanimateMQTTf("[MelvanimateMQTT::_sendASync] Sending msg [%s:%s]\n", handle->topic(), handle->msg() ) ;
 		handle->publish();
 		delete handle;
 		_asyncTimeout = millis();
@@ -63,9 +63,9 @@ void MelvanimateMQTT::sendJson(bool onlychanged)
 			JsonObject & settings = reply["settings"];
 
 #ifdef DebugMelvanimateMQTT
-			Serial.println("Settings: ");
-			settings.prettyPrintTo(Serial);
-			Serial.println();
+			// Serial.println("Settings: ");
+			// settings.prettyPrintTo(Serial);
+			// Serial.println();
 #endif
 
 			for (JsonObject::iterator it = settings.begin(); it != settings.end(); ++it) {
@@ -92,59 +92,6 @@ void MelvanimateMQTT::sendJson(bool onlychanged)
 //	}
 }
 
-
-// bool MelvanimateMQTT::parseJson(JsonObject & root)
-// {
-
-
-// // [ARG:0] nopixels = 50
-// // [ARG:1] enablemqtt = off
-// // [ARG:2] mqtt_ip = 1.2.3.4
-// // [ARG:3] mqtt_port = 123
-
-
-
-
-//  if (root.containsKey("MQTT")) {
-
-//  	if (root.containsKey("enabled")) {
-
-//  		if (root["enabled"] == true) {
-
-
-
-//  		}
-//  	}
-//  }
-
-
-// return false; 
-// }
-
-
-
-
-// void MelvanimateMQTT::_sendFullJson()
-// {
-// 	if ( _send_flag &&  millis()  - _send_flag > 500 ) {
-// 		DynamicJsonBuffer jsonBufferReply;
-// 		JsonObject & reply = jsonBufferReply.createObject();
-// 		if (_melvanimate) {
-
-// 			_melvanimate->populateJson(reply);
-// 			size_t length = reply.measureLength();
-// 			char * data = new char[length + 2];
-// 			if (data) {
-
-// 				memset(data, '\0', length + 2);
-// 				reply.printTo(data, length + 1);
-// 				publish( "json", data, length + 1 );
-// 				delete[] data;
-// 			}
-// 		}
-// 		_send_flag = 0;
-// 	}
-// }
 
 
 void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
@@ -233,27 +180,31 @@ bool MelvanimateMQTT::publish(const char * topic, const char * payload, bool ret
 bool MelvanimateMQTT::publish(const char * topic, uint8_t * payload, size_t length, bool retained)
 {
 
+	uint8_t count = 1;
 	if (!_firstmessage) {
-		DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle assigned.\n");
+
+		//DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle assigned.\n");
 		_firstmessage = new mqtt_message(this, topic, payload, length, retained);
 		if (_firstmessage) {
+			DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] assigning %u\n", count);
 			return true;
 		}
 	} else {
-		DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle already assigned.\n");
-
+		//DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle already assigned.\n");
+		count++;
 		mqtt_message * handle = _firstmessage;
 		mqtt_message * current = _firstmessage;
-		uint8_t count = 0;
 		while (current->next()) {
 			count++;
 			current = current->next();
 		}
 
-		DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] assigning %u\n", count);
 		current->next( new mqtt_message(this, topic, payload, length, retained));
 
 	}
+
+	DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] assigning %u\n", count);
+
 }
 
 
@@ -263,7 +214,7 @@ void MelvanimateMQTT::_reconnect()
 	if (!_client.connected()) {
 
 		if (millis() - _reconnectTimer > 5000) {
-			DebugMelvanimateMQTTf("[MelvanimateMQTT::_reconnect] MQTT Connect Attempted...");
+			DebugMelvanimateMQTTf("[MelvanimateMQTT::_reconnect] [%s] MQTT Connect Attempted...", _melvanimate->deviceName() );
 
 //    boolean connect(const char* id, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage);
 
@@ -285,6 +236,7 @@ void MelvanimateMQTT::_reconnect()
 				_reconnectTimer = 0;
 				return;
 			}
+			DebugMelvanimateMQTTf( "Failed\n");
 			_reconnectTimer = millis();
 		}
 	}

@@ -49,6 +49,8 @@ bool EffectHandler::addJson(JsonObject & root, bool onlychanged)
 	DebugEffectHandlerf("[EffectHandler::addJson] called\n"); 
 	bool found = false;
 
+	root["effect"] = name();
+
 	if (PropertyManager::addEffectJson(root, onlychanged)) {
 		found = true;
 	}

@@ -341,13 +341,9 @@ void Melvanimate::_initMQTT(JsonObject & root)
 	uint16_t port = 0;
 	DebugMelvanimatef("[Melvanimate::_initMQTT] called\n");
 	
-	Serial.println(); 
-	root.prettyPrintTo(Serial); 
-	Serial.println(); 
-
-	//if (root.containsKey("globals") ) {
-
-		//JsonObject & globals = root["globals"];
+	// Serial.println(); 
+	// root.prettyPrintTo(Serial); 
+	// Serial.println(); 
 
 		if  (root.containsKey("MQTT")) {
 
@@ -640,9 +636,9 @@ void Melvanimate::_handleWebRequest()
 
 		mqttjson["port"] = _HTTP.arg("mqtt_port");
 #ifdef DebugMelvanimate
-		Serial.println();
-		mqttjson.prettyPrintTo(Serial);
-		Serial.println();
+		// Serial.println();
+		// mqttjson.prettyPrintTo(Serial);
+		// Serial.println();
 #endif
 
 		_initMQTT(settings);

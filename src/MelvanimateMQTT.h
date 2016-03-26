@@ -61,8 +61,10 @@ private:
 		{
 			_topic = strdup(topic);
 
-			_msg = new uint8_t[plength];
+			_msg = new uint8_t[plength + 1];
+
 			if (_msg) {
+				memset(_msg, '\0', plength + 1);
 				memcpy(_msg, msg, plength);
 			}
 		};
@@ -76,7 +78,8 @@ private:
 			}
 		};
 		bool publish();
-		const char * topic() { return _topic; }
+		const char * topic() const { return _topic; }
+		const char * msg() const { return (const char *)_msg; }
 		void next(mqtt_message * next) { _next = next; }
 		mqtt_message * next() { return _next; }
 	private:
