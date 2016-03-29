@@ -220,6 +220,9 @@ bool Melvanimate::_saveGeneral(bool override)
 
 	if (_mqtt) {
 		_mqtt->addJson(globals);
+	} else {
+		JsonObject& MQTTjson = root["MQTT"];		
+		MQTTjson["enabled"] = false;
 	}
 
 	_settings.seek(0, SeekSet);
@@ -299,12 +302,9 @@ bool Melvanimate::_loadGeneral()
 
 			JsonObject& globals = root["globals"];
 
-			_pixels = globals["pixels"].as<long>() ;
+			_pixels = globals["pixels"].as<long>();
 
 			_initMQTT(globals);
-
-
-
 
 
 		} else { DebugMelvanimatef("[Melvanimate::load] No Globals\n"); }
@@ -340,47 +340,49 @@ void Melvanimate::_initMQTT(JsonObject & root)
 	IPAddress addr;
 	uint16_t port = 0;
 	DebugMelvanimatef("[Melvanimate::_initMQTT] called\n");
-	
-	// Serial.println(); 
-	// root.prettyPrintTo(Serial); 
-	// Serial.println(); 
 
-		if  (root.containsKey("MQTT")) {
+	// Serial.println();
+	// root.prettyPrintTo(Serial);
+	// Serial.println();
 
-			JsonObject& MQTTjson = root["MQTT"];
+	if  (root.containsKey("MQTT")) {
 
-			if (MQTTjson["enabled"] == true ) {
+		JsonObject& MQTTjson = root["MQTT"];
 
-				addr[0] = MQTTjson["ip"][0];
-				addr[1] = MQTTjson["ip"][1];
-				addr[2] = MQTTjson["ip"][2];
-				addr[3] = MQTTjson["ip"][3];
+		if (MQTTjson["enabled"] == true ) {
 
-				if (_mqtt) {
-					delete _mqtt;
-				}
+			addr[0] = MQTTjson["ip"][0];
+			addr[1] = MQTTjson["ip"][1];
+			addr[2] = MQTTjson["ip"][2];
+			addr[3] = MQTTjson["ip"][3];
 
-				if (MQTTjson["port"]) {
-
-					port = MQTTjson["port"];
-					_mqtt = new MelvanimateMQTT(this, addr, port);
-
-				} else {
-					_mqtt = new MelvanimateMQTT(this, addr);
-				}
-
-				DebugMelvanimatef("[Melvanimate::_initMQTT] (%u,%u,%u,%u) : %u \n", addr[0], addr[1], addr[2], addr[3], port );
-
-			} else {
-				if (_mqtt) {
-					delete _mqtt;
-					_mqtt = nullptr;
-				}
+			if (_mqtt) {
+				delete _mqtt;
 			}
 
-			_settings_changed = true;
+			if (MQTTjson["port"]) {
 
+				port = MQTTjson["port"];
+				_mqtt = new MelvanimateMQTT(this, addr, port);
+
+			} else {
+				_mqtt = new MelvanimateMQTT(this, addr);
+			}
+
+			DebugMelvanimatef("[Melvanimate::_initMQTT] (%u,%u,%u,%u) : %u \n", addr[0], addr[1], addr[2], addr[3], port );
+
+		} else {
+			DebugMelvanimatef("[Melvanimate::_initMQTT] Disabling MQTT\n" );
+
+			if (_mqtt) {
+				delete _mqtt;
+				_mqtt = nullptr;
+			}
 		}
+
+		_settings_changed = true;
+
+	}
 	//}
 
 }
@@ -512,7 +514,7 @@ void Melvanimate::_sendData(String page, int8_t code)
 			_mqtt->addJson(root);
 		} else {
 			JsonObject & mqtt = root.createNestedObject("MQTT");
-			mqtt["enable"] = false;
+			mqtt["enabled"] = false;
 		}
 
 	}
@@ -616,25 +618,33 @@ void Melvanimate::_handleWebRequest()
 		*/
 	}
 
-	if (_HTTP.hasArg("enablemqtt") &&  _HTTP.arg("enablemqtt") == "on" ) {
-		DebugMelvanimatef("[_handleWebRequest] doing mqtt..\n");
+	if (_HTTP.hasArg("enablemqtt")) {
 
 		JsonObject & settings = root.createNestedObject("globals");
-
 		JsonObject & mqttjson = settings.createNestedObject("MQTT");
 
-		mqttjson["enabled"] = true;
+//		if ( _HTTP.arg("enablemqtt") == "on" ) {
+
+		DebugMelvanimatef("[_handleWebRequest] Enable MQTT..\n");
+
+		mqttjson["enabled"] = (_HTTP.arg("enablemqtt") == "on") ? true : false;
+
 		IPAddress ip;
 
-		if (ip.fromString( _HTTP.arg("mqtt_ip"))) {
-			JsonArray & iparray = mqttjson.createNestedArray("ip");
-			iparray.add(ip[0]);
-			iparray.add(ip[1]);
-			iparray.add(ip[2]);
-			iparray.add(ip[3]);
+		if (_HTTP.hasArg("mqtt_ip")) {
+			if (ip.fromString( _HTTP.arg("mqtt_ip"))) {
+				JsonArray & iparray = mqttjson.createNestedArray("ip");
+				iparray.add(ip[0]);
+				iparray.add(ip[1]);
+				iparray.add(ip[2]);
+				iparray.add(ip[3]);
+			}
 		}
 
-		mqttjson["port"] = _HTTP.arg("mqtt_port");
+		if (_HTTP.hasArg("mqtt_port")) {
+			mqttjson["port"] = _HTTP.arg("mqtt_port");
+		}
+
 #ifdef DebugMelvanimate
 		// Serial.println();
 		// mqttjson.prettyPrintTo(Serial);
@@ -643,10 +653,17 @@ void Melvanimate::_handleWebRequest()
 
 		_initMQTT(settings);
 
+//		} else if (_HTTP.arg("enablemqtt") == "off" ) {
+//			DebugMelvanimatef("[_handleWebRequest] Disable mqtt..");
+
+
+
+
+
+//		}
+
+
 	}
-
-
-
 
 
 	if (_HTTP.hasArg("palette")) {
