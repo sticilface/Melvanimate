@@ -34,6 +34,7 @@ public:
 
 	inline uint8_t speed() { return getVar<uint8_t>("speed"); }
 	inline uint8_t brightness() { return getVar<uint8_t>("brightness"); }
+	inline RgbColor color() { return getVar<RgbColor>("color1"); }
 	inline Melvtrix*  matrix() { return getVar<MelvtrixMan*>("Matrix")->getMatrix(); }
 	inline MelvtrixMan*  matrixMan() { return getVar<MelvtrixMan*>("Matrix"); }
 	inline bool usematrix() { return getVar<bool>("use_matrix");}

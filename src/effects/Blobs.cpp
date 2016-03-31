@@ -22,6 +22,7 @@ bool Blobs::InitVars()
 {
 	addVar(new Variable<uint8_t>("brightness", 10));
 	addVar(new Variable<uint8_t>("speed", 10));
+	addVar(new Variable<RgbColor>("color1", RgbColor(0)));
 	addVar(new Variable<bool>("use_matrix", true));
 	addVar(new Variable<MelvtrixMan*>("Matrix"));  // must be called Matrix.  very importnat...
 	addVar(new Variable<Palette*>("Palette", WHEEL));
@@ -74,6 +75,8 @@ bool Blobs::Start()
 		if (!current) { break; }
 
 		current->SetObjectUpdateCallback( [ current, this ]() {
+
+			palette()->input(color()); 
 
 			uint16_t pixel_count = 0;
 
@@ -182,6 +185,7 @@ bool Blobs::Run()
 {
 	if (_vars) {
 		if (_vars->manager) {
+
 			_vars->manager->Update();
 		}
 	}

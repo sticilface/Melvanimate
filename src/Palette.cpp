@@ -4,7 +4,7 @@
 const char * palettes_strings[9] = { "off", "complementary", "monochromatic", "analogous", "splitcomplements", "triadic", "tetradic", "multi", "wheel"};
 const char * random_mode_strings[4] = {"off", "totalrandom", "timebased", "randomafterloop"} ;
 
-Palette::Palette(const char * name): _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0), _name(name)
+Palette::Palette(const char * name): _mode(OFF), _total(0), _available(0), _position(0), _random(TOTAL_RANDOM), _input(RgbColor(0)), _delay(0), _name(name)
 {
 	Palette(OFF, 10);
 }
@@ -30,7 +30,7 @@ void Palette::mode(palette_type mode)
 	_available = available(_mode, _total);
 	_total = _available;
 	_position = 0 ;
-	PaletteDebugf("[Palette::mode] _mode = %u\n", (uint8_t)_mode); 
+	PaletteDebugf("[Palette::mode] _mode = %u\n", (uint8_t)_mode);
 }
 
 void Palette::randommode(const char * mode)
@@ -120,7 +120,8 @@ uint8_t Palette::available(palette_type mode, uint16_t total)
 
 RgbColor Palette::current()
 {
-	_position %= _available;
+
+
 
 	switch (_mode) {
 	case OFF:
@@ -164,14 +165,54 @@ RgbColor Palette::next()
 {
 	// _position++;
 	if (_mode == OFF) { return _input; }
+	bool changeinputflag = false;
+	RgbColor output;
+
 	uint16_t jump_size = (_total < _available) ?  _available / _total : 1;
+
+
 	_position += jump_size;
 
-	if (_random == TOTAL_RANDOM) {
-		_input = wheel(random(0, 255));
-		_position = random(0, _available);
+	switch (_random) {
+		
+	case TIME_BASED_RANDOM: {
+		if (millis() - _randtimertick > (_delay * 1000) ) {
+			PaletteDebugf("[Palette::current] _input changed: TIME_BASED_RANDOM\n ");
+			//_input = wheel(random(0, 255));
+			changeinputflag = true;
+			_randtimertick = millis();
+		}
+
+		break;
 	}
-	return current();
+	case TOTAL_RANDOM: {
+		changeinputflag = true;
+		//_input = wheel(random(0, 255));
+		_position = random(0, _available);
+		break;
+	}
+	case RANDOM_AFTER_LOOP: {
+		if (_position >= _available) {
+			changeinputflag = true;
+			//_input = wheel(random(0, 255));
+			PaletteDebugf("[Palette::current] _input changed: RANDOM_AFTER_LOOP\n ");
+		}
+		break;
+	}
+
+	}
+
+	_position %= _available;
+	
+	output = current();
+
+	if (changeinputflag) {
+		_input = wheel(random(0, 255));
+	}
+
+	PaletteDebugf("[Palette] next() _input (%u,%u,%u), _total:%u, _available:%u, jump_size=%u, _position=%u => (%u,%u,%u) \n", _input.R, _input.G, _input.B, _total, _available, jump_size, _position, output.R, output.G, output.B);
+
+	return output;
 }
 
 RgbColor Palette::previous()
@@ -190,10 +231,10 @@ RgbColor Palette::comlementary(RgbColor Value, uint16_t position)
 }
 
 // 3 colors..
-RgbColor Palette::splitcomplements(RgbColor Input, uint16_t position, float range)
+RgbColor Palette::splitcomplements(RgbColor Value, uint16_t position, float range)
 {
-	if (position == 0) { return Input; }
-	HslColor original = HslColor(Input);
+	if (position == 0) { return Value; }
+	HslColor original = HslColor(Value);
 	float HUE = original.H + 0.5;
 	HUE = HUE - (range / 2.0);
 	HUE = HUE + ( float(position) * range );
@@ -290,6 +331,9 @@ bool Palette::addJson(JsonObject& root)
 bool Palette::parseJson(JsonObject& root)
 {
 	PaletteDebugf("[Palette::parseJson] Func HIT\n");
+	root.prettyPrintTo(Serial);
+	Serial.println();
+
 	bool changed = false;
 
 	if (!root.containsKey(_name)) { return false; }
@@ -323,7 +367,7 @@ bool Palette::parseJson(JsonObject& root)
 	}
 	if (palette.containsKey("randmode")) {
 		random_mode mode = (random_mode)palette["randmode"].as<long>();
-		if (mode && mode != randommode()) {
+		if (mode != _random) {
 			randommode(mode);
 			changed = true;
 		}
