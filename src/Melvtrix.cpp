@@ -175,13 +175,13 @@ int Melvtrix::getPixel(uint16_t x, uint16_t y)
 
 MelvtrixMan::MelvtrixMan()
 {
-  Serial.printf("[MelvtrixMan()] called\n");
+//  Serial.printf("[MelvtrixMan()] called\n");
   createMatrix();
 }
 
 MelvtrixMan::MelvtrixMan(uint16_t x, uint16_t y, uint8_t config): _grid_x(x), _grid_y(y), _matrixconfig(config)
 {
-  Serial.printf("[MelvtrixMan(x,y,config)] called\n");
+//  Serial.printf("[MelvtrixMan(x,y,config)] called\n");
   createMatrix();
 }
 
@@ -223,12 +223,12 @@ bool MelvtrixMan::addJson(JsonObject & root)
 
 bool MelvtrixMan::parseJson(JsonObject & root)
 {
-  Serial.printf("[MelvtrixMan::parseJson] called\n");
+//  Serial.printf("[MelvtrixMan::parseJson] called\n");
 
   bool changed = false;
 
   if (!root.containsKey("Matrix") ) {
-    Serial.printf("[MelvtrixMan::parseJson] No Matrix Key\n");
+//    Serial.printf("[MelvtrixMan::parseJson] No Matrix Key\n");
 
     return false;
   }
@@ -271,7 +271,7 @@ bool MelvtrixMan::parseJson(JsonObject & root)
 
 
 
-    Serial.printf("[MelvtrixMan::parseJson] _grid_x = %u, _grid_y = %u, config = %u\n", _grid_x, _grid_y, _matrixconfig);
+//    Serial.printf("[MelvtrixMan::parseJson] _grid_x = %u, _grid_y = %u, config = %u\n", _grid_x, _grid_y, _matrixconfig);
 
 
     return changed;
