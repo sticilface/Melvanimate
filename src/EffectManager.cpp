@@ -409,7 +409,9 @@ void EffectManager::addAllpresets(JsonObject & root)
 				JsonObject & presetjson = array.createNestedObject();
 				presetjson["ID"] = preset->id;
 				presetjson["name"] = preset->name;
-				presetjson["effect"] = preset->handle->name();
+				if (preset->handle) {
+					presetjson["effect"] = preset->handle->name();
+				}
 			}
 
 		}
@@ -919,7 +921,7 @@ void EffectManager::dumpPresetArray()
 
 	for (uint8_t i = 0; i < _presetcountS; i++) {
 		Presets_s * preset = &_presetS[i];
-		if (preset) {
+		if (preset && preset->handle) {
 			DebugEffectManagerf("  [%3u] File: %3u, ID: %3u, effect: %30s, name: %30s\n", i, preset->file, preset->id, preset->handle->name(), preset->name);
 		}
 	}
