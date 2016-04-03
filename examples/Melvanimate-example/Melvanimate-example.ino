@@ -275,19 +275,19 @@ void setup()
 
 
 
-  //network.send(44, "ESPtest123", 10, 1000000);
-  network.set_receiver(receiver_function);
+  // //network.send(44, "ESPtest123", 10, 1000000);
+  // network.set_receiver(receiver_function);
 
 
-  timer.setInterval(1000, []() {
-    uint32_t tick = micros();
-    size_t len = strlen(settings.getHostname());
+  // timer.setInterval(1000, []() {
+  //   uint32_t tick = micros();
+  //   size_t len = strlen(settings.getHostname());
 
-    network.send(44, (char*)settings.getHostname(), len);
+  //   network.send(44, (char*)settings.getHostname(), len);
 
    
-    //Serial.printf("[PIRC send] %uus\n", micros() - tick); 
-  });
+  //   //Serial.printf("[PIRC send] %uus\n", micros() - tick); 
+  // });
 
 }
 
