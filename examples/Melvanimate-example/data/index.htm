@@ -919,10 +919,10 @@
               
               console.log("MQQT flip = " + $(this).val());
               
-              if ($(this).val() == on) {
+              if ($(this).val() == "on") {
                 $('#mqtt_ip').closest('div.ui-field-contain').show();
                 $('#mqtt_port').closest('div.ui-field-contain').show();
-              } else if ($(this).val() == off) {
+              } else if ($(this).val() == "off") {
                 $('#mqtt_ip').closest('div.ui-field-contain').hide();
                 $('#mqtt_port').closest('div.ui-field-contain').hide();
               }
@@ -1512,13 +1512,15 @@
                             
                             
                         // } 
-                        if (mqtt.hasOwnProperty('enable')) {
-                             if (mqtt.enable == "true") { 
-                              $("#flip-enable-MQTT").off("change").val("on").flipswitch('refresh').trigger("change"); 
+                        if (mqtt.hasOwnProperty('enabled')) {
+                          
+                          $("#flip-enable-MQTT").val((mqtt.enabled) ? "on" : "off").flipswitch('refresh').trigger("change");
+                            // if (mqtt.enable == "true") { 
+                            //   $("#flip-enable-MQTT").off("change").val("on").flipswitch('refresh').trigger("change"); 
                               
-                            } else {
-                              $("#flip-enable-MQTT").off("change").val("off").flipswitch('refresh').trigger("change");
-                            }
+                            // } else {
+                            //   $("#flip-enable-MQTT").off("change").val("off").flipswitch('refresh').trigger("change");
+                            // }
                         }
                             
                         if (mqtt.hasOwnProperty('ip')) {

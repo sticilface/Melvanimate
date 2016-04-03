@@ -54,6 +54,7 @@ using namespace helperfunc;
 extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
+
 class MelvanimateMQTT;
 
 
@@ -86,13 +87,13 @@ public:
 	bool createAnimator(); 
 	void deleteAnimator(); 
 
-	void populateJson(JsonObject & root) ; 
+	void populateJson(JsonObject & root, bool onlychanged = false) ; 
 
 private:
 	bool _saveGeneral(bool override = false);
 	bool _loadGeneral();
 	void _init_LEDs();
-	void _initMQTT(IPAddress addr, uint16_t port = 1883);
+	void _initMQTT(JsonObject & root);
 
 	void _sendData(String page, int8_t code); 
 	void _handleWebRequest();

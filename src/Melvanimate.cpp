@@ -7,6 +7,8 @@
 NeoPixelAnimator * animator = nullptr;
 MyPixelBus * strip = nullptr;
 
+
+
 Melvanimate::Melvanimate(ESP8266WebServer & HTTP, uint16_t pixels, uint8_t pin): _HTTP(HTTP), _pixels(pixels), _pin(pin)
 	, _settings_changed(false)
 {
@@ -212,20 +214,16 @@ bool Melvanimate::_saveGeneral(bool override)
 		globals["pixels"] = _pixels ;
 	}
 
-
-
-
-
-	//  need to check this... think it overwrites leaving old stuff behind...
-	// if (!_settings) {
-	// 	DebugMelvanimatef("ERROR File NOT open!\n");
-	//_settings = SPIFFS.open(MELVANA_SETTINGS, "r+");
-	//if (!_settings) {
 	_settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
-	//DebugMelvanimatef("Failed to create empty file too\n");
+
 	if (!_settings) { return false; }
-	//}
-	//}
+
+	if (_mqtt) {
+		_mqtt->addJson(globals);
+	} else {
+		JsonObject& MQTTjson = root["MQTT"];		
+		MQTTjson["enabled"] = false;
+	}
 
 	_settings.seek(0, SeekSet);
 	root.prettyPrintTo(_settings);
@@ -304,28 +302,9 @@ bool Melvanimate::_loadGeneral()
 
 			JsonObject& globals = root["globals"];
 
-			_pixels = globals["pixels"].as<long>() ;
+			_pixels = globals["pixels"].as<long>();
 
-			if (globals.containsKey("MQTT")) {
-
-				JsonObject& MQTTjson = globals["MQTT"];
-
-				if (MQTTjson["enabled"] == true ) {
-
-					if (MQTTjson["IP"]) {
-						_initMQTT( IPAddress( MQTTjson["IP"][0], MQTTjson["IP"][1], MQTTjson["IP"][2], MQTTjson["IP"][3]), MQTTjson["Port"]);
-					} else {
-						_initMQTT( IPAddress( MQTTjson["IP"][0], MQTTjson["IP"][1], MQTTjson["IP"][2], MQTTjson["IP"][3]));
-					}
-				} else {
-					if (_mqtt) {
-						delete _mqtt;
-						_mqtt = nullptr;
-					}
-				}
-
-			}
-
+			_initMQTT(globals);
 
 
 		} else { DebugMelvanimatef("[Melvanimate::load] No Globals\n"); }
@@ -353,14 +332,58 @@ bool Melvanimate::_loadGeneral()
 
 };
 
-void Melvanimate::_initMQTT(IPAddress addr, uint16_t port)
+void Melvanimate::_initMQTT(JsonObject & root)
 {
-	DebugMelvanimatef("[Melvanimate::_initMQTT] [%u,%u,%u,%u] : %u\n", addr[0], addr[1], addr[2], addr[3], port );
 
-	if (_mqtt) {
-		delete _mqtt;
+
+
+	IPAddress addr;
+	uint16_t port = 0;
+	DebugMelvanimatef("[Melvanimate::_initMQTT] called\n");
+
+	// Serial.println();
+	// root.prettyPrintTo(Serial);
+	// Serial.println();
+
+	if  (root.containsKey("MQTT")) {
+
+		JsonObject& MQTTjson = root["MQTT"];
+
+		if (MQTTjson["enabled"] == true ) {
+
+			addr[0] = MQTTjson["ip"][0];
+			addr[1] = MQTTjson["ip"][1];
+			addr[2] = MQTTjson["ip"][2];
+			addr[3] = MQTTjson["ip"][3];
+
+			if (_mqtt) {
+				delete _mqtt;
+			}
+
+			if (MQTTjson["port"]) {
+
+				port = MQTTjson["port"];
+				_mqtt = new MelvanimateMQTT(this, addr, port);
+
+			} else {
+				_mqtt = new MelvanimateMQTT(this, addr);
+			}
+
+			DebugMelvanimatef("[Melvanimate::_initMQTT] (%u,%u,%u,%u) : %u \n", addr[0], addr[1], addr[2], addr[3], port );
+
+		} else {
+			DebugMelvanimatef("[Melvanimate::_initMQTT] Disabling MQTT\n" );
+
+			if (_mqtt) {
+				delete _mqtt;
+				_mqtt = nullptr;
+			}
+		}
+
+		_settings_changed = true;
+
 	}
-	_mqtt = new MelvanimateMQTT(this, addr, port);
+	//}
 
 }
 
@@ -411,50 +434,62 @@ bool Melvanimate::setTimer(int timeout, String command, String option)
 
 }
 
-void Melvanimate::populateJson(JsonObject & root) 
+void Melvanimate::populateJson(JsonObject & root, bool onlychanged)
 {
-	if (_deviceName) {
-		root["device"] = _deviceName;
-	}
-
-	root["heap"] = ESP.getFreeHeap();
-	root["power"] = String(getPower());
-
-	/*
-	      Home page
-	*/
-
-	//if (page == "homepage" || page == "palette" || page == "all") {
-	JsonArray& modes = root.createNestedArray("modes");
-	//Serial.printf("Total effects: %u\n", total());
-	for (uint8_t i = 0; i < total(); i++) {
-		modes.add(getName(i));
-	}
-	// creates settings node for web page
 	JsonObject& settings = root.createNestedObject("settings");
-	// adds minimum current effect name, if there if addJson returns false.
-	if (Current()) {
 
-		settings["currentpreset"] = Current()->preset();
-
-		if (!Current()->addJson(settings)) {
-			settings["effect"] = Current()->name();
+	if (!onlychanged) {
+		if (_deviceName) {
+			root["device"] = _deviceName;
 		}
 
-		if (!settings.containsKey("effect")) {
-			settings["effect"] = Current()->name();
+		root["heap"] = ESP.getFreeHeap();
+		root["power"] = String(getPower());
+
+		/*
+		      Home page
+		*/
+
+		//if (page == "homepage" || page == "palette" || page == "all") {
+		JsonArray& modes = root.createNestedArray("modes");
+		//Serial.printf("Total effects: %u\n", total());
+		for (uint8_t i = 0; i < total(); i++) {
+			modes.add(getName(i));
 		}
 
 
-		addCurrentPresets(root);
+		// creates settings node for web page
+		// adds minimum current effect name, if there if addJson returns false.
+		if (Current()) {
+
+			settings["currentpreset"] = Current()->preset();
+
+			if (!Current()->addJson(settings)) {
+				settings["effect"] = Current()->name();
+			}
+
+			if (!settings.containsKey("effect")) {
+				settings["effect"] = Current()->name();
+			}
 
 
-		//	}
+			addCurrentPresets(root);
 
-		//  this is needed as the matrix settings is simple x, y, uin8_t... not all the required settings for the gui...
-		if (expandMatrixConfigToJson(settings)) {
-			//DebugMelvanimatef("[Melvanimate::_sendData] matrix json expanded!\n");
+
+			//	}
+
+			//  this is needed as the matrix settings is simple x, y, uin8_t... not all the required settings for the gui...
+			if (expandMatrixConfigToJson(settings)) {
+				//DebugMelvanimatef("[Melvanimate::_sendData] matrix json expanded!\n");
+			}
 		}
+	} else {
+
+		DebugMelvanimatef("[Melvanimate::populateJson] Adding ONLY changed variables\n");
+
+		Current()->addJson(settings, onlychanged);
+		expandMatrixConfigToJson(settings);
+
 	}
 
 
@@ -476,10 +511,10 @@ void Melvanimate::_sendData(String page, int8_t code)
 		root["pixels"] = getPixels();
 
 		if (_mqtt) {
-			_mqtt->addJson(root); 
+			_mqtt->addJson(root);
 		} else {
 			JsonObject & mqtt = root.createNestedObject("MQTT");
-			mqtt["enable"] = false; 
+			mqtt["enabled"] = false;
 		}
 
 	}
@@ -556,48 +591,6 @@ void Melvanimate::_handleWebRequest()
 	DebugMelvanimatef("Heap = [%u]\n", ESP.getFreeHeap());
 
 
-	//if (_HTTP.hasArg("plain")) {
-		//  ABANDONED
-		// DynamicJsonBuffer jsonBufferplain;
-		// JsonObject& root = jsonBufferplain.parseObject(_HTTP.arg("plain").c_str());
-		// if (root.success()) {
-
-		//   if (Current()) {
-		//     if (Current()->parseJsonArgs(root)) {
-		//       Serial.println("[handle] JSON (via Plain) Setting applied");
-		//     }
-		//   }
-
-		// }
-	//}
-
-	// if (_HTTP.hasArg("enable")) {
-	// 	if (_HTTP.arg("enable").equalsIgnoreCase("on")) {
-	// 		DebugMelvanimatef("[_handleWebRequest] Start() called\n");
-	// 		code = Start();
-	// 	} else if (_HTTP.arg("enable").equalsIgnoreCase("off")) {
-	// 		DebugMelvanimatef("[_handleWebRequest] Start(\"Off\")\n");
-	// 		code = Start("Off");
-	// 	}
-	// }
-
-	// if (_HTTP.hasArg("mode")) {
-	// 	code = Start(_HTTP.arg("mode"));
-	// }
-
-
-	// if (_HTTP.hasArg("preset")) {
-	// 	uint8_t preset = _HTTP.arg("preset").toInt();
-	// 	if (Load(preset)) {
-	// 		//  try to switch current effect to preset...
-	// 		DebugMelvanimatef("[handle] Loaded preset %u\n", preset);
-	// 		code = 1;
-	// 	}
-
-	// }
-
-
-
 	// puts all the args into json...
 	// might be better to send pallette by json instead..
 
@@ -614,7 +607,64 @@ void Melvanimate::_handleWebRequest()
 		setPixels(_HTTP.arg("nopixels").toInt());
 		page = "layout";
 
+
+		//  also submits mqtt data
+		/*
+		[ARG:0] nopixels = 50
+		[ARG:1] enablemqtt = off
+		[ARG:2] mqtt_ip = 1.2.3.4
+		[ARG:3] mqtt_port = 123
+
+		*/
 	}
+
+	if (_HTTP.hasArg("enablemqtt")) {
+
+		JsonObject & settings = root.createNestedObject("globals");
+		JsonObject & mqttjson = settings.createNestedObject("MQTT");
+
+//		if ( _HTTP.arg("enablemqtt") == "on" ) {
+
+		DebugMelvanimatef("[_handleWebRequest] Enable MQTT..\n");
+
+		mqttjson["enabled"] = (_HTTP.arg("enablemqtt") == "on") ? true : false;
+
+		IPAddress ip;
+
+		if (_HTTP.hasArg("mqtt_ip")) {
+			if (ip.fromString( _HTTP.arg("mqtt_ip"))) {
+				JsonArray & iparray = mqttjson.createNestedArray("ip");
+				iparray.add(ip[0]);
+				iparray.add(ip[1]);
+				iparray.add(ip[2]);
+				iparray.add(ip[3]);
+			}
+		}
+
+		if (_HTTP.hasArg("mqtt_port")) {
+			mqttjson["port"] = _HTTP.arg("mqtt_port");
+		}
+
+#ifdef DebugMelvanimate
+		// Serial.println();
+		// mqttjson.prettyPrintTo(Serial);
+		// Serial.println();
+#endif
+
+		_initMQTT(settings);
+
+//		} else if (_HTTP.arg("enablemqtt") == "off" ) {
+//			DebugMelvanimatef("[_handleWebRequest] Disable mqtt..");
+
+
+
+
+
+//		}
+
+
+	}
+
 
 	if (_HTTP.hasArg("palette")) {
 		//palette().mode(_HTTP.arg("palette").c_str());
@@ -740,62 +790,7 @@ void Melvanimate::_handleWebRequest()
 	}
 
 
-	code = parse(root); 
-
-//  this has to go last for the JSON to be passed to the current effect
-// 	if (Current()) {
-// 		if (Current()->parseJson(root)) {
-// //      Serial.println("[handle] JSON Setting applied");
-// 			code = 1;
-// 		}
-// 	}
-
-
-
-
-
-
-
-////
-
-
-//					OLD METHODS
-
-
-
-////
-
-
-	// if (_HTTP.hasArg("matrixmode")) {
-	// 	page = "layout";
-	// 	uint8_t matrixvar = 0;
-	// 	if (_HTTP.arg("matrixmode") == "singlematrix") { multiplematrix = false; }
-	// 	if (_HTTP.arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
-	// 	if (_HTTP.arg("firstpixel") == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
-	// 	if (_HTTP.arg("firstpixel") == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
-	// 	if (_HTTP.arg("firstpixel") == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
-
-	// 	if (_HTTP.arg("axis") == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
-	// 	if (_HTTP.arg("axis") == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
-
-	// 	if (_HTTP.arg("sequence") == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
-	// 	if (_HTTP.arg("sequence") == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
-
-	// 	if (_HTTP.arg("matrixmode") == "multiplematrix") {
-	// 		multiplematrix = true;
-	// 		if (_HTTP.arg("multimatrixtile") == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
-	// 		if (_HTTP.arg("multimatrixtile") == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
-	// 		if (_HTTP.arg("multimatrixtile") == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
-	// 		if (_HTTP.arg("multimatrixtile") == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
-	// 		if (_HTTP.arg("multimatrixaxis") == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
-	// 		if (_HTTP.arg("multimatrixaxis") == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
-	// 		if (_HTTP.arg("multimatrixseq") == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
-	// 		if (_HTTP.arg("multimatrixseq") == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
-	// 	}
-
-	// 	DebugMelvanimatef("NEW Matrix params: %u\n", matrixvar);
-	// 	setmatrix(matrixvar);
-	// }
+	code = parse(root);
 
 
 	if (_HTTP.hasArg("flashfirst")) {
@@ -839,24 +834,6 @@ void Melvanimate::_handleWebRequest()
 
 
 	}
-
-
-
-// if (_HTTP.hasArg("palette-random")) {
-//   palette().randommode(_HTTP.arg("palette-random").c_str());
-//   page = "palette";
-// }
-
-
-// if (_HTTP.hasArg("palette-spread")) {
-//   palette().range(_HTTP.arg("palette-spread").toFloat());
-//   page = "palette";
-// }
-
-// if (_HTTP.hasArg("palette-delay")) {
-//   palette().delay(_HTTP.arg("palette-delay").toInt());
-//   page = "palette";
-// }
 
 
 	if (_HTTP.hasArg("data")) {
@@ -904,15 +881,19 @@ void Melvanimate::_handleWebRequest()
 			removeAllpresets();
 		}
 
-
-
 	}
 
 	_sendData(page, code);
 
-	if (code && _mqtt && *_mqtt )
-	{
-		_mqtt->sendFullJson(); 
+	if (_mqtt && *_mqtt) {
+
+		if ( _HTTP.hasArg("effect") || _HTTP.hasArg("enable") ) {
+			DebugMelvanimatef("[_handle] only changed false\n");
+			_mqtt->sendJson(false);
+		} else {
+			DebugMelvanimatef("[_handle] only changed true\n");
+			_mqtt->sendJson(true);
+		}
 	}
 
 	DebugMelvanimatef("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());

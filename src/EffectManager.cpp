@@ -141,16 +141,8 @@ bool EffectManager::Start(EffectHandler* handler)
 #ifdef DebugEffectManager
 		heap = ESP.getFreeHeap();
 #endif
+
 		_NextInLine->InitVars();
-
-//		bool result = getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
-
-		// if (result) {
-		// 	DebugEffectManagerf("[EffectManager::Start] Presets Fetched\n");
-		// } else {
-		// 	DebugEffectManagerf("[EffectManager::Start] Presets Fetched Failed\n");
-
-		// }
 
 		if (_NextInLine->preset() != 255) {
 			Load(_NextInLine->preset());
@@ -178,28 +170,6 @@ bool EffectManager::Start(EffectHandler* handler)
 				}
 			}
 
-
-
-
-
-
-			//for (uint8_t i = 0; i < _presetcountS; i++) {
-
-
-
-
-			// if (_preset_names[i]) {
-			// 	const char * name = (const char *)_preset_names[i];
-			// 	if (!strcmp(name, "Default") || !strcmp( name, "default")) {
-
-			// 		if (Load(_presets[i])) {
-			// 			DebugEffectManagerf("[Start] Default Loaded %u\n", _presets[i]);
-			// 		} else {
-			// 			DebugEffectManagerf("[Start] ERROR loading Default %u\n", _presets[i]);
-			// 		}
-			// 	}
-			// }
-			//}
 		}
 
 		//  This sets the toggle... as long as it is not the default handle... ie... Off....
@@ -275,24 +245,6 @@ void EffectManager::loop()
 	_process();
 };
 
-// void EffectManager::SetTimeout(uint32_t time)
-// {
-// 	if (_currentHandle) { _currentHandle->SetTimeout(time); }
-// }
-
-// void EffectManager::SetTimeout(const char * name, uint32_t time)
-// {
-
-// 	EffectHandler* handler;
-// 	for (handler = _firstHandle; handler; handler = handler->next()) {
-// 		if ( strcmp( handler->name(), name) == 0) {
-// 			break;
-// 		}
-// 	}
-
-// 	if (handler) { handler->SetTimeout(time); }
-
-// }
 
 void EffectManager::_process()
 {
@@ -432,7 +384,6 @@ bool EffectManager::removePreset(uint8_t ID)
 	}
 
 	if (success && Current()) {
-		//getPresets(Current(), _numberofpresets, _presets, _preset_names); // goes here.. to go outofscope of the previous data[] and jsonbuffer... needs lot of heap...
 		fillPresetArray();
 		return true;
 	} else {
@@ -442,126 +393,6 @@ bool EffectManager::removePreset(uint8_t ID)
 
 
 }
-/*
-bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names)
-{
-	char * data = nullptr;
-
-	// delete any existing preset information.
-
-	DebugEffectManagerf("[EffectManager::getPresets] Fetching for %s\n", handle->name());
-
-
-
-
-
-	for (uint8_t i = 0; i < numberofpresets; i++) {
-		char * p = preset_names[i];
-		if (p) { free(p); }
-	}
-
-	if (presets) {
-		delete[] presets;
-		presets = nullptr;
-	}
-
-	if (preset_names) {
-		delete[] preset_names;
-		preset_names = nullptr;
-	}
-
-	numberofpresets = 0;
-
-	if (handle) {
-		DynamicJsonBuffer jsonBuffer;
-		JsonObject * root = nullptr;
-		uint8_t count = 0;
-
-		String filename = " "; //PRESETS_FILE + String(handle->saveFileID) + ".txt";
-
-		// uint8_t FileID = filename.substring(   strlen(PRESETS_FILE) , filename.indexOf(".txt")  ).toInt();
-		// DebugEffectManagerf("[EffectManager::getPresets] ** check from %s, FileID %u\n", filename.c_str(), FileID) ;
-
-		if (parsespiffs(data, jsonBuffer, root, filename.c_str() )) {
-
-			//delay(0);
-
-			if (root) { // avoid nullptr ...
-
-				for (JsonObject::iterator it = root->begin(); it != root->end(); ++it) {
-					// get id of preset
-					const char * key = it->key;
-					// extract the json object for each effect
-					JsonObject& current = it->value.asObject();
-
-					// compare to the name of current effect
-					//	Serial.printf("[getPresets] Identified presets for %s (%s)\n", handle->name(), key);
-					if (current.containsKey("effect")) {
-						if ( strcmp( current["effect"], handle->name() ) == 0) {
-							// if matched then this preset is a valid effect for the current one.
-							DebugEffectManagerf("[getPresets] Found preset for %s (%s)\n", handle->name(), key);
-							count++;
-						}
-					}
-
-				}
-
-				// once number of presets identified, create array and fill it..
-				numberofpresets = count;
-
-				if (numberofpresets) {
-
-					presets = new uint8_t[numberofpresets];
-					preset_names = new char*[numberofpresets];
-
-					count = 0; // reset the counter...
-
-					if (presets && preset_names) {
-
-						memset(presets, 0, numberofpresets);
-						memset(preset_names, 0, numberofpresets);
-
-						for (JsonObject::iterator it = root->begin(); it != root->end(); ++it) {
-							// get id of preset
-							const char * key = it->key;
-							// extract the json object for each effect
-							JsonObject& current = it->value;
-							// compare to the name of current effect
-
-							if (current.containsKey("effect") && handle->name()) {
-								if ( strcmp(current["effect"], handle->name()) == 0) {
-									// if matched then this preset is a valid effect for the current one.
-									presets[count] = String(key).toInt();
-
-									if (current.containsKey("name")) {
-										preset_names[count] = strdup(current["name"]);
-									} else {
-										preset_names[count] = nullptr;
-									}
-
-									count++;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	if (data) { delete[] data; }
-
-	if (numberofpresets) {
-		return true;
-	} else {
-		return false;
-	}
-
-
-
-
-}
-*/
 
 void EffectManager::addAllpresets(JsonObject & root)
 {

@@ -7,14 +7,14 @@
 #include "EffectManager.h"
 #include "helperfunc.h"
 
-using namespace helperfunc; 
+using namespace helperfunc;
 
 AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 {
 	if (ptr) {
 
 		if (!_firsthandle) {
-			PropertyManagerf("[PropertyManager::addVar] 1st Var added: %s\n", ptr->name());
+			PropertyManagerf("[PropertyManager::addVar] Added: %s\n", ptr->name());
 			_firsthandle = ptr;
 			ptr->next(nullptr);
 		} else {
@@ -43,7 +43,7 @@ void PropertyManager::EndVars()
 
 #ifdef PropertyManager
 	if (!handle) {
-			PropertyManagerf("[EndVars] No handles Identified to delete for %s\n", static_cast<EffectHandler*>(this)->name());
+		PropertyManagerf("[EndVars] No handles Identified to delete for %s\n", static_cast<EffectHandler*>(this)->name());
 	}
 #endif
 
@@ -67,6 +67,7 @@ bool PropertyManager::parseJsonEffect(JsonObject & root)
 	AbstractPropertyHandler* handle = nullptr;
 
 	for (handle = _firsthandle; handle; handle = handle->next()) {
+		handle->setChanged(false);
 		if (handle->parseJsonProperty(root)) {
 			success = true;
 		}
@@ -74,24 +75,32 @@ bool PropertyManager::parseJsonEffect(JsonObject & root)
 	return success;
 }
 
-bool PropertyManager::addEffectJson(JsonObject & root)
+bool PropertyManager::addEffectJson(JsonObject & root, bool onlychanged)
 {
 //	Serial.printf("[PropertyManager::addEffectJson] called\n");
+	PropertyManagerf("[PropertyManager::addEffectJson] called\n");
+
 	bool success = false;
 
 	AbstractPropertyHandler* handle = nullptr;
 
 	for (handle = _firsthandle; handle; handle = handle->next()) {
-		if (handle->addJsonProperty(root)) {
+		PropertyManagerf("[PropertyManager::addEffectJson] Variable : %s \n", handle->name());
+
+		if (handle->addJsonProperty(root, onlychanged)) {
 			success = true;
+			if (onlychanged) { handle->setChanged(false); } //  once json has been added.  reset changed state...
+		} else {
+			PropertyManagerf("[PropertyManager::addEffectJson] addJsonProperty returned false \n");
 		}
 	}
 	return success;
 }
 
 
-bool Variable<RgbColor>::addJsonProperty(JsonObject & root)
+bool Variable<RgbColor>::addJsonProperty(JsonObject & root, bool onlychanged)
 {
+	if (onlychanged && !_changed) { return false; }
 	JsonArray& color = root.createNestedArray(_name);
 	color.add(_var.R);
 	color.add(_var.G);
@@ -101,7 +110,6 @@ bool Variable<RgbColor>::addJsonProperty(JsonObject & root)
 
 bool Variable<RgbColor>::parseJsonProperty(JsonObject & root)
 {
-	bool changed = false;
 	if (root.containsKey(_name)) {
 
 		if (root[_name].is<const char*>() ) {
@@ -115,26 +123,27 @@ bool Variable<RgbColor>::parseJsonProperty(JsonObject & root)
 
 		if (_var.R != R) {
 			_var.R = R;
-			changed = true;
+			_changed = true;
 		}
 		if (_var.G != G) {
 			_var.G = G;
-			changed = true;
+			_changed = true;
 		}
 		if (_var.B != B) {
 			_var.B = B;
-			changed = true;
+			_changed = true;
 		}
 
 //		Serial.printf("[Variable<RgbColor>::parseJsonProperty] color1 (%u,%u,%u)\n", _var.R, _var.G, _var.B);
 
 	}
 
-	return changed;
+	return _changed;
 }
 
-bool Variable<const char *>::addJsonProperty(JsonObject & root)
+bool Variable<const char *>::addJsonProperty(JsonObject & root, bool onlychanged)
 {
+	if (onlychanged && !_changed) { return false; }
 	root[_name] = _var;
 	return true;
 }
@@ -146,10 +155,12 @@ bool Variable<const char *>::parseJsonProperty(JsonObject & root)
 			if ( strcmp(root[_name], _var)) {
 				free( (void*)_var);  //  not good... but i really want to free that const char *
 				_var = strdup(root[_name]);
+				_changed = true;
 				return true;
 			}
 		} else {
 			_var = strdup(root[_name]);
+			_changed = true;
 			return true;
 		}
 	}

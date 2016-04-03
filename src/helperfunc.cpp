@@ -214,7 +214,7 @@ void  helperfunc::Adalight_Flash()
 		}
 	};
 
-		animator->StartAnimation(0, 1000, animUpdate);
+		animator->StartAnimation(0, 1200, animUpdate);
 }
 
 

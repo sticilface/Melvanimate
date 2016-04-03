@@ -60,6 +60,18 @@ bool AdalightEffect::Run()
 {
 	uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
 
+	if (animator)
+	{
+		if (animator->IsAnimating()) {
+			return false; 
+		}
+	}
+
+	if (animator) {
+		delete animator;
+		animator = nullptr; 
+	}
+
 	if (!_vars) {
 		Stop();
 		return false;
