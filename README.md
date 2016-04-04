@@ -1,12 +1,12 @@
 # Melvanimate
 An all-in-one WS2812 solution for the ESP8266!  
-This is a complete rework of my previous lib [WS2812-WiFi](https://github.com/sticilface/ESP8266-wifi), it now uses C++ style coding and very flexible effect methods. 
+This is a complete rework of my previous lib [WS2812-WiFi](https://github.com/sticilface/ESP8266-wifi), it now uses C++ style coding and very flexible effect methods, using abstract handler classes and polymorphism! WiFi and OTA is notlonger manager in example, you now have to do it yourself, or use my [ESPManager](https://github.com/sticilface/ESPmanager).  This lib is a lot more stable than WS2812-Wifi and has a lot more heap.  Mainly as the ESP8266 only sends the required data in json, not the whole web page! 
 
 ## Features
 + Full control via JqueryMobile interface.  Fast, responsive and efficient (only shows relevant options)
 + Basic control via MQTT (can be disabled, saves RAM). 
 + Custom MQTT manager that buffers MQTT msg sending so they are not all send in one loop.  Big improvement to GUI and lights. 
-+ Significant memory improvements!  Heap sits at XXX leaving lots for individual effects to run. 
++ Significant memory improvements!  Example heap sits at 35416 leaving lots for individual effects to run. 
 + Property manager handles effect variables reliably, easily and transparently.  
 + Full intelligent preset management, saving, creating, removing, loading.  All automatic you just add a variable to an effect. 
 + Palette creation to set available colours for effect.
@@ -14,6 +14,7 @@ This is a complete rework of my previous lib [WS2812-WiFi](https://github.com/st
 + Full Adafruit GFX support, can write effects using grid, or draw text, including fonts also works. 
 + LED length set in software, technically only limited by heap. Some effects for example Simplecolour will create an animator whose size is = to pixelcount.  This is bad if there are too many. so 300 is a practical limit.  However if you design your own effect, you can handle this.. create a new strip instance, use that... etc...   
 + Effects can be added or removed with one line of code, in setup(), simple! 
++ GUI reports current heap and power usage of WS2812. 
 
 ## Important **PLEASE READ**
 + **WARNING**:  this is beta software, most likely to work with lateset pull of ESP8266 Ardunio and other dependancies. Most likely NOT to work with older versions.  
@@ -106,5 +107,10 @@ This is a complete rework of my previous lib [WS2812-WiFi](https://github.com/st
 
 Happy Coding... 
 
-
+#Credits (in progress)
++ [Arduino ESP8266](https://github.com/esp8266/arduino) 
++ [Adafruit GFX](https://github.com/adafruit/Adafruit-GFX-Library) + [Matrix](https://github.com/adafruit/Adafruit_NeoMatrix) - modified matrix to work with callbacks. 
++ Makuna [NeoPixelBus](https://github.com/Makuna/NeoPixelBus)
++ [SimpleTimer](https://github.com/infomaniac50/SimpleTimer) - Used internally with version that can give timeleft.  
++ Forkineye [E131](https://github.com/forkineye/E131)
 

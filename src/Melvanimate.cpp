@@ -25,6 +25,7 @@ bool Melvanimate::begin()
 	DebugMelvanimatef("Begin Melvana called\n");
 
 	_HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this));
+	_HTTP.serveStatic("/", SPIFFS, "/index.htm", "max-age=86400");
 	_HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
 
 	_loadGeneral();
