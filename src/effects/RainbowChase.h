@@ -10,7 +10,7 @@ public:
 
 	bool InitVars()
 	{
-		addVar(new Variable<uint8_t>("brightness", 255));
+		addVar(new Variable<uint8_t>("brightness", 50)); // set default to 50, incase too much power
 		addVar(new Variable<uint8_t>("speed", 30));
 		addVar(new Variable<bool>("usematrix", false));
 		addVar(new Variable<bool>("wholerainbow", false));

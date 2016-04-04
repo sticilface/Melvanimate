@@ -10,7 +10,7 @@ public:
 
 	bool InitVars()
 	{
-		addVar(new Variable<uint8_t>("brightness", 255));
+		addVar(new Variable<uint8_t>("brightness", 50));
 		addVar(new Variable<RgbColor>("color1", RgbColor(0)));
 	}
 
@@ -18,6 +18,7 @@ public:
 	inline uint8_t brightness() { return getVar<uint8_t>("brightness"); }
 
 };
+
 
 
 class SimpleEffect2 : public SwitchEffect
@@ -28,7 +29,7 @@ public:
 
 	bool InitVars()
 	{
-		addVar(new Variable<uint8_t>("brightness", 100));
+		addVar(new Variable<uint8_t>("brightness", 50));
 		addVar(new Variable<RgbColor>("color1", RgbColor(0) ) );
 		addVar(new Variable<uint8_t>("speed", 30 ) );
 		addVar(new Variable<Palette*>("Palette")); 
