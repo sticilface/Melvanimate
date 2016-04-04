@@ -4,30 +4,30 @@ This is a complete rework of my previous project [WS2812-WiFi](https://github.co
 
 ## Features
 + Full control via JqueryMobile interface.  Fast, responsive and efficient (only shows relevant options)
-+ Basic control via MQTT (can be disabled, saves RAM). 
-+ Custom MQTT manager that buffers MQTT msg sending so they are not all send in one loop.  Big improvement to GUI and lights. 
-+ Significant memory improvements!  Example heap sits at 35416 leaving lots for individual effects to run. 
-+ Property manager handles effect variables reliably, easily and transparently.  
-+ Full intelligent preset management, saving, creating, removing, loading.  All automatic you just add a variable to an effect. 
-+ Palette creation to set available colours for effect.
++ Basic control via MQTT (can be disabled, saves about 1K RAM).
++ Custom MQTT manager that buffers MQTT msg sending so they are not all sent together which hangs the loop.  Big improvement to GUI and effects. 
++ Significant memory improvements, everything is allocated dynamically!  Melvanimate-Example heap sits at 35.4k leaving lots for individual effects to run. 
++ Property manager handles effect variables reliably, easily and transparently to GUI / SPIFFS. 
++ Full intelligent preset management, saving, creating, removing, loading.  All automatic you just add a variable to an effect.  Only required vars are saved with an effect, or loaded from a saved effect. 
++ Palette creates lots of different or similar colours for effects. 
 + Timer function. Turn lights off, or select preset after time. 
-+ Full Adafruit GFX support, can write effects using grid, or draw text, including fonts also works. 
-+ LED length set in software, technically only limited by heap. Some effects for example Simplecolour will create an animator whose size is = to pixelcount.  This is bad if there are too many. so 300 is a practical limit.  However if you design your own effect, you can handle this.. create a new strip instance, use that... etc...   
-+ Effects can be added or removed with one line of code, in setup(), simple! 
++ Full Adafruit GFX support, can write effects using grid, or draw text, including fonts also works, matrix settings are saved with that effect. You can have different matrix configurations for different effects. 
++ LED length set in software, technically only limited by RAM. Some effects for example Simplecolour will create an animator where size is equal to pixelcount.  This is bad if there are too many. Around 300 is what I've used with animations but that was starting with 20K heap.  With 30K  heap you can proably drive more with animations.  If you are not using animator then you can use even more.  just disable animator in off, and simplecolour.    
++ Effects can be added or removed with one line of code, in setup(), simple!  (can also remove the #include -/+ callback function)
 + GUI reports current heap and power usage of WS2812. 
 
 ## Important **PLEASE READ**
 + **WARNING**:  this is beta software, most likely to work with lateset pull of ESP8266 Ardunio and other dependancies. Most likely NOT to work with older versions.  
-+ **WARNING**:  this is a fairly complex set of code for me... there will be BUGS. and crashes...  let me know if you fine one please :)
-+ Runs by default on GPIO2 using UART. DMA method is available but the typdef located in ./mybus.h needs to be changed. 
++ **WARNING**:  this is a fairly complex set of code for me... there will be BUGS. and crashes...  let me know if you fine one please, via issues:)
++ Runs by default on GPIO2 using UART. DMA method is available but the typdef located in ./mybus.h needs to be changed. See NeoPixelBus for options
 + The MQTT_MAX_PACKET_SIZE in sketch must be there, otherwise pubsub only supports tiny 128B packets. May have to increase if you have a lot of presets. 
-+ Presets are saved to SPIFFS using json. Up to 1K, then a new file is created.  Settings files are chained together to avoid huge memory problems.  The files are read at boot, and each preset change, and each setting is placed in an array, with its name, effect and file location... ie...  this can get big too huge. 
++ Presets are saved to SPIFFS using json. Up to 1K, then a new file is created.  Settings files are chained together to avoid memory problems as whole json must fit into memory.  The files are read at boot, and each preset change, and each setting is placed in an array, with its name, effect and file location... ie...  the number of presets is limited only by uint_8 but don't go crazy.. i've not tested its limits. 
 + Call a preset Default or default for it to be loaded by default when that effect is selected. usefull for say Adalight, where you want a particular baudrate. 
-+ JqueryMobile files are loaded from a CDN, so you need a woring internet connection.  They 'can' be laoded locally but it is slower, and im trying to work out how to have the best of both worlds... 
++ JqueryMobile files are loaded from a CDN, so you need a working internet connection.  They 'can' be laoded locally but it is slower, and im trying to work out how to have the best of both worlds... 
 + My javascript is shocking!  It really is cobbled together, and buggy.  Any changes / comments welcome. 
 
 ## Dependancies
-+ [NeoPixelBus](https://github.com/Makuna/NeoPixelBus) 
++ [NeoPixelBus](https://github.com/Makuna/NeoPixelBus) - requires current master. 
 + [ArduinoJson](https://github.com/bblanchon/ArduinoJson)
 + [PubSubClient](https://github.com/knolleary/pubsubclient)
 + [Adafruit_GFX](https://github.com/adafruit/Adafruit-GFX-Library)
@@ -44,11 +44,11 @@ This is a complete rework of my previous project [WS2812-WiFi](https://github.co
 + Blobs (A complex effect, working with linear strips, or 2D matrix (with shapes), fading in and out, varies in number)
 + Adalight (Via serial up to 2,000,000 baud tested).
 + DMX (via [E131](https://github.com/forkineye/E131)) Not perfect yet. 
-+ UDP (Stream RGB packets straight to ESP).
++ UDP (Stream RGB packets straight to ESP, works from [PixelController](http://pixelinvaders.ch/?page_id=160)).
 + Snakes (to come).
 + Linear Blends (to come).
 
-## Palette (not finished)
+## Palette (not totally finished)
 + Created to give different scenes of colours, similar to different.  
 + If effect has Palette defined with addVar in initVar(), it will appear as menu option in GUI. 
 + When created using addVar() all options saved with presets and sent to GUI.
