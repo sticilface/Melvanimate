@@ -84,7 +84,8 @@ void setup()
   lights.Start("Off");
 
   HTTP.begin();
-
+  Serial.print(F("Free Heap: "));
+  Serial.println(ESP.getFreeHeap());
   Serial.println("Ready"); 
 
 }
