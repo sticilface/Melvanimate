@@ -903,40 +903,41 @@ void Melvanimate::_handleWebRequest()
 }
 
 
+// fixed... 
 //  this is required as some
-bool Melvanimate::_check_duplicate_req()
-{
-	static uint32_t last_time = 0;
-	static char last_request[16] = {0};
-	if (_HTTP.hasArg("data")) { return false; }
+// bool Melvanimate::_check_duplicate_req()
+// {
+// 	static uint32_t last_time = 0;
+// 	static char last_request[16] = {0};
+// 	if (_HTTP.hasArg("data")) { return false; }
 
-	MD5Builder md5;
-	md5.begin();
+// 	MD5Builder md5;
+// 	md5.begin();
 
-	for (uint8_t args = 0; args < _HTTP.args(); args++) {
-		String req = _HTTP.argName(args) + _HTTP.arg(args);
-		md5.add(req);
-	}
+// 	for (uint8_t args = 0; args < _HTTP.args(); args++) {
+// 		String req = _HTTP.argName(args) + _HTTP.arg(args);
+// 		md5.add(req);
+// 	}
 
-	md5.calculate();
-	bool match = false;
-	//Serial.printf("[MD5] %s\n", md5.toString().c_str());
-	char this_request[16] = {0};
-	md5.getChars(this_request);
+// 	md5.calculate();
+// 	bool match = false;
+// 	//Serial.printf("[MD5] %s\n", md5.toString().c_str());
+// 	char this_request[16] = {0};
+// 	md5.getChars(this_request);
 
-	if (memcmp(last_request, this_request, 16) == 0) {
-		match = true;
-		DebugMelvanimatef("Request ignored: duplicate");
-	}
+// 	if (memcmp(last_request, this_request, 16) == 0) {
+// 		match = true;
+// 		DebugMelvanimatef("Request ignored: duplicate");
+// 	}
 
-	memcpy(last_request, this_request, 16);
+// 	memcpy(last_request, this_request, 16);
 
-	bool time_elapsed = (millis() - last_time > 10000) ? true : false;
-	last_time = millis();
+// 	bool time_elapsed = (millis() - last_time > 10000) ? true : false;
+// 	last_time = millis();
 
-	return match & !time_elapsed;
+// 	return match & !time_elapsed;
 
-}
+// }
 
 uint32_t Melvanimate::getPower()
 {

@@ -100,7 +100,7 @@ private:
 	void _handleMQTTrequest(char* topic, byte* payload, unsigned int length);
 
 	template <class T> static void _sendJsontoHTTP( const T& root, ESP8266WebServer & _HTTP) ;
-	bool _check_duplicate_req();
+	//bool _check_duplicate_req();
 
 
 	MelvanimateMQTT * _mqtt{nullptr};
