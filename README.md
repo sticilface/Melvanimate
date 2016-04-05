@@ -74,7 +74,12 @@ This is a complete rework of my previous project [WS2812-WiFi](https://github.co
 + Adapted manager that saves messages and sends them async, so loop doesn't stall if you send 10 messages. 
 + device subscribes to deviceid/+/set, the + can be any variable created with addVar().  Eg..  device/brightness/255 will set brightness to 255.
 + It should reply with the new value. 
-+ On boot, it will send a variety of things, in json format... subscribe using MQTTspy and take a look. 
++ On boot, it will send a variety of things, in json format... subscribe using MQTTspy and take a look. (not working at the moment)
++ General Commands
+  * device/toggle/set on/off (turns it on or off, if it has been on since boot)
+  * device/effect/set effectname (starts the effect, case insensitive)
+  * device/preset/set ID of preset (loads preset of ID x)
+  * device/presetstring/set name (loads 1st preset of name)
 
 
 ## Effect Design
