@@ -1,11 +1,5 @@
 
 
-// ToDo
-
-//  Delete empty settings Files
-//  add device name to toolbar in jquery
-
-
 
 #pragma once
 
@@ -97,11 +91,9 @@ private:
 
 	void _sendData(String page, int8_t code); 
 	void _handleWebRequest();
-	void _handleMQTTrequest(char* topic, byte* payload, unsigned int length);
+	//void _handleMQTTrequest(char* topic, byte* payload, unsigned int length);
 
 	template <class T> static void _sendJsontoHTTP( const T& root, ESP8266WebServer & _HTTP) ;
-	//bool _check_duplicate_req();
-
 
 	MelvanimateMQTT * _mqtt{nullptr};
 

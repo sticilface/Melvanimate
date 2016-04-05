@@ -47,6 +47,7 @@ bool EffectManager::Add(const char * name, EffectHandler* handle, bool defaultef
 
 bool EffectManager::parse(JsonObject & root)
 {
+
 	bool code = false;
 
 	if (root.containsKey("enable")) {
@@ -77,17 +78,29 @@ bool EffectManager::parse(JsonObject & root)
 	}
 
 	if (root.containsKey("preset")) {
-		String data = root["preset"];
-		uint8_t preset = data.toInt();
-		Load(preset);
-		code = true;
 
-	}
+		//String data = root["preset"];
 
+		const char * preset = root["preset"];
+		bool isnumber = true;
 
-	if (root.containsKey("presetstring")) {
-		Load(root["presetString"].asString());
-		code = true;
+		for (int i = 0; i < strlen(preset); i++) {
+			if (!isdigit(preset[i])) {
+				isnumber = false;
+			}
+		}
+
+		if (isnumber) {
+			DebugEffectManagerf("[EffectManager::parse] preset is number: %s\n", preset);
+			long presetno = strtol( preset, nullptr , 10);
+			if (presetno < 256 > -1) {
+				code = Load( (uint8_t)presetno);
+			}
+		} else {
+			DebugEffectManagerf("[EffectManager::parse] preset is string: %s\n", preset);
+			code = Load(preset);
+
+		}
 
 	}
 
@@ -107,7 +120,7 @@ EffectHandler* EffectManager::_findhandle(const char * handle)
 	EffectHandler* handler;
 	bool found = false;
 	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( strcmp( handler->name(), handle) == 0) {
+		if ( stricmp( handler->name(), handle) == 0) {
 			found = true;
 			break;
 		}
@@ -646,10 +659,13 @@ bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
 bool EffectManager::Load(const char * name)
 {
 	// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+	DebugEffectManagerf("[EffectManager::Load char*] Called File: %s\n", name);
+
 	if (name && _presetS) {
+
 		for (uint8_t i = 0; i < _presetcountS; i++) {
 			Presets_s * preset = &_presetS[i];
-			if ( ! strcmp(preset->name, name) ) {
+			if (!stricmp(preset->name, name) ) {
 				return Load(preset->file, preset->id);
 			}
 		}
