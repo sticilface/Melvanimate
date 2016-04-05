@@ -32,7 +32,7 @@
 #include "effects/blobs.h"
 
 
-const uint16_t defaultpixelcount =  118;
+const uint16_t defaultpixelcount =  20;
 const char* devicename = "MyWS2812";  
 const char* ssid     = "ssid";
 const char* password = "password";
@@ -51,9 +51,23 @@ void setup()
   Serial.println("");
   
   SPIFFS.begin();
+  
+  Serial.println();
+  Serial.println();
 
-  Serial.println();
-  Serial.println();
+  Serial.println("SPIFFS FILES:");
+  {
+    Dir dir = SPIFFS.openDir("/");
+    while (dir.next()) {
+      String fileName = dir.fileName();
+      size_t fileSize = dir.fileSize();
+      Serial.printf("     FS File: %s\n", fileName.c_str());
+    }
+    Serial.printf("\n");
+  }
+
+
+
   Serial.print("Connecting to ");
   Serial.println(ssid);
   
@@ -86,6 +100,7 @@ void setup()
   lights.Start("Off");
 
   HTTP.begin();
+
   Serial.print(F("Free Heap: "));
   Serial.println(ESP.getFreeHeap());
   Serial.println("Ready"); 
