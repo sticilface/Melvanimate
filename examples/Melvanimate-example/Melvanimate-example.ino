@@ -79,7 +79,9 @@ void setup()
   lights.Add("UDP",          new UDPEffect);                        
   lights.Add("DMX",          new DMXEffect );                       // need to test - requires custom libs included
 
+  
   lights.begin();
+
   lights.deviceName(devicename);  
   lights.Start("Off");
 
