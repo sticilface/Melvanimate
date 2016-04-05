@@ -83,6 +83,8 @@ public:
 
 	void populateJson(JsonObject & root, bool onlychanged = false) ; 
 
+	bool parse(JsonObject & root);
+
 private:
 	bool _saveGeneral(bool override = false);
 	bool _loadGeneral();

@@ -222,7 +222,7 @@ bool Melvanimate::_saveGeneral(bool override)
 	if (_mqtt) {
 		_mqtt->addJson(globals);
 	} else {
-		JsonObject& MQTTjson = root["MQTT"];		
+		JsonObject& MQTTjson = root["MQTT"];
 		MQTTjson["enabled"] = false;
 	}
 
@@ -333,6 +333,89 @@ bool Melvanimate::_loadGeneral()
 
 };
 
+
+bool Melvanimate::parse(JsonObject & root)
+{
+
+	bool code = false;
+
+	if (root.containsKey("enable")) {
+		String data = root["enable"];
+		if ( data.equalsIgnoreCase("on")) {
+			Start();
+		} else if ( data.equalsIgnoreCase("off")) {
+			if (_defaulteffecthandle) {
+				Start(_defaulteffecthandle);
+			} else {
+				Start(_firstHandle);
+			}
+		}
+		code = true;
+
+	}
+
+
+	//  depreciated.....
+	if (root.containsKey("mode") ) {
+		Start(root["mode"].asString());
+		code = true;
+	}
+
+	if (root.containsKey("effect") ) {
+		Start(root["effect"].asString());
+		code = true;
+
+	}
+
+	if (root.containsKey("preset")) {
+
+		//String data = root["preset"];
+
+		const char * preset = root["preset"];
+		bool isnumber = true;
+
+		for (int i = 0; i < strlen(preset); i++) {
+			if (!isdigit(preset[i])) {
+				isnumber = false;
+			}
+		}
+
+		if (isnumber) {
+			DebugEffectManagerf("[EffectManager::parse] preset is number: %s\n", preset);
+			long presetno = strtol( preset, nullptr , 10);
+			if (presetno < 256 > -1) {
+				code = Load( (uint8_t)presetno);
+			}
+		} else {
+			DebugEffectManagerf("[EffectManager::parse] preset is string: %s\n", preset);
+			code = Load(preset);
+
+		}
+
+	}
+
+	if (Current()) {
+		if (Current()->parseJson(root)) {
+			code = true;
+		}
+	}
+
+	if (_mqtt && *_mqtt) {
+
+		if ( root.containsKey("effect") || root.containsKey("enable") || root.containsKey("preset") ) {
+			DebugMelvanimatef("[parse] only changed false\n");
+			_mqtt->sendJson(false);
+		} else {
+			DebugMelvanimatef("[parse] only changed true\n");
+			_mqtt->sendJson(true);
+		}
+	}
+
+	return code;
+}
+
+
+
 void Melvanimate::_initMQTT(JsonObject & root)
 {
 
@@ -371,6 +454,13 @@ void Melvanimate::_initMQTT(JsonObject & root)
 			}
 
 			DebugMelvanimatef("[Melvanimate::_initMQTT] (%u,%u,%u,%u) : %u \n", addr[0], addr[1], addr[2], addr[3], port );
+
+
+			// if (_mqtt && *_mqtt) {
+			// 	DebugMelvanimatef("[Melvanimate::_initMQTT] Sending Full initial config\n");
+			// 	_mqtt->sendJson(false);
+			// }
+
 
 		} else {
 			DebugMelvanimatef("[Melvanimate::_initMQTT] Disabling MQTT\n" );
@@ -796,10 +886,11 @@ void Melvanimate::_handleWebRequest()
 
 	if (_HTTP.hasArg("flashfirst")) {
 
-		// page = "layout";
-		// Start("Off");
-		// Stop();
-		// strip->ClearTo(0);
+		page = "layout";
+		Start("Off");
+		Stop();
+		strip->ClearTo(0);
+		strip->SetPixelColor(0, RgbColor(255, 0, 0));
 		// AnimUpdateCallback animUpdate = [] (float progress) {
 		// 	strip->SetPixelColor(0, Palette::wheel( (uint8_t)(progress * 255) ));
 		// 	if (progress == 1.0) { strip->SetPixelColor(0, 0); }
@@ -815,24 +906,19 @@ void Melvanimate::_handleWebRequest()
 		page = "layout";
 		Start("Off");
 		Stop();
+		strip->ClearTo(0);
 
-// 		strip->ClearTo(0);
-// 		// ToDo
-// 		float ratio = 1.0 / strip->PixelCount();
 
-// 		for (uint16_t pixel = 0; pixel < strip->PixelCount() ; pixel++) {
+		for (uint16_t pixel = 0; pixel < strip->PixelCount() ; pixel++) {
 
-// 			AnimUpdateCallback animUpdate = [this, ratio, pixel] (float progress) {
-// 				if ( (uint8_t)(progress * 100) == (uint8_t)(pixel * ratio * 100)) {
-// 					strip->SetPixelColor(pixel, Palette::wheel( (uint8_t)(ratio * 255)));
-// 					strip->SetPixelColor( (pixel > 2) ? pixel - 2 : 0 , 0 );
+			strip->SetPixelColor(pixel, RgbColor(255, 0, 0));
 
-// 				}
-// 				if (progress == 1.0) { Start("Off"); }
-// 			};
-// //      StartAnimation(pixel, 5000 , animUpdate);
-// 		}
+			if (pixel) {
+				strip->SetPixelColor(pixel - 1, RgbColor(0, 0, 0));
+			}
 
+
+		}
 
 	}
 
@@ -861,8 +947,6 @@ void Melvanimate::_handleWebRequest()
 	}
 
 
-
-
 	if (_HTTP.hasArg("presetcommand")) {
 
 		//String in = _HTTP.arg("selectedeffect").toInt()
@@ -886,24 +970,13 @@ void Melvanimate::_handleWebRequest()
 
 	_sendData(page, code);
 
-	if (_mqtt && *_mqtt) {
-
-		if ( _HTTP.hasArg("effect") || _HTTP.hasArg("enable") ) {
-			DebugMelvanimatef("[_handle] only changed false\n");
-			_mqtt->sendJson(false);
-		} else {
-			DebugMelvanimatef("[_handle] only changed true\n");
-			_mqtt->sendJson(true);
-		}
-	}
-
 	DebugMelvanimatef("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());
 	return;
 
 }
 
 
-// fixed... 
+// fixed...
 //  this is required as some
 // bool Melvanimate::_check_duplicate_req()
 // {

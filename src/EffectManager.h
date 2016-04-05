@@ -56,8 +56,6 @@ public:
 
 	const uint16_t total() const { return _count;}
 	const char* getName(uint8_t i);
-
-	bool parse(JsonObject & root);
 	
 	// preset hanlding
 	bool Save(uint8_t ID, const char * name, bool overwrite = false);
