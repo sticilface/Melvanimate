@@ -88,6 +88,7 @@
             <a href="#palette" data-role="button" class="ui-btn" id="palettebutton">Palette</a>
             <a href="#timer" data-role="button" class="ui-btn">Timer</a>
             <a href="#matrixpage" data-role="button" class="ui-btn" id ="matrixbutton">Matrix</a>
+            <a href="#eqpage" data-role="button" class="ui-btn" id ="eqbutton">EQ</a>
             <a href="#configpage" data-role="button" class="ui-btn">Config</a>
             <a href="/espman/" rel="external" data-role="button" class="ui-btn">ESPmanager</a>
             <a href="#my-header" data-rel="close" class="ui-btn">Close</a>
@@ -398,6 +399,57 @@
                     <label for="mqtt_port">Port:</label>
                     <input  type="text" name="mqtt_port" id="mqtt_port">
                 </div>                
+                <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+                
+            </form>
+            
+            
+            </div>
+  </div>
+
+
+
+<!--EQ Page-->
+
+
+    <div data-role="page" id="eqpage" data-close-btn="right" data-dialog="true">
+
+<div data-role="header">
+  <h1 class='myheader'> EQ </h1>
+  </div>
+          <div data-role="content">
+
+            <form id="eqform">
+              
+                <div class="ui-field-contain">
+                    <label for="flip-enable-EQ">On/Off:</label>
+                    <select id="flip-enable-EQ" name="enablebeats" data-role="flipswitch">
+                        <option>off</option>
+                        <option>on</option>
+                    </select>
+                </div>
+
+                
+                <div class="ui-field-contain">
+                    <label for="text-input-peakfactor">Beat Factor:</label>
+                    <input type="text" name="peakfactor" id="text-input-peakfactor" value="" class="noEnterSubmit">
+                </div>                
+
+                <div class="ui-field-contain">
+                    <label for="text-input-beatskiptime">Beat Timeout (ms):</label>
+                    <input type="text" name="beatskiptime" id="text-input-beatskiptime" value="" class="noEnterSubmit">
+                </div>                   
+                
+                <div class="ui-field-contain">
+                    <label for="text-input-samples">Samples:</label>
+                    <input type="text" name="samples" id="text-input-samples" value="" class="noEnterSubmit">
+                </div>
+                <div class="ui-field-contain">
+                    <label for="text-input-sampletime">Sample Time (ms):</label>
+                    <input type="text" name="sampletime" id="sampletime" value="" class="noEnterSubmit">
+                </div>                
+                
+              
                 <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
                 
             </form>
