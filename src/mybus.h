@@ -1,6 +1,6 @@
 #pragma once
 
-#include "NeopixelBus.h"
+#include "NeoPixelBus.h"
 
 //  
 /* Features

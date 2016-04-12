@@ -10,6 +10,7 @@
 #include <ESP8266WebServer.h>
 #include "BufferedPrint.h"
 #include "helperfunc.h"
+#include "EQ.h"
 
 #include "MelvanimateMQTT.h"
 

@@ -5,7 +5,7 @@
 #include <internal/RgbColor.h>
 #include <internal/HslColor.h>
 #include "mybus.h"
-#include "melvtrix.h"
+#include "Melvtrix.h"
 
 
 #include <ArduinoJson.h>

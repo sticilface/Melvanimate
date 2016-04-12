@@ -1,5 +1,5 @@
 #include "Snakes.h"
-#include <NeopixelBus.h>
+#include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "mybus.h"
 #include "helperfunc.h"

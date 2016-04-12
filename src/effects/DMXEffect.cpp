@@ -1,5 +1,5 @@
 #include "DMXEffect.h"
-#include "NeopixelBus.h"
+#include "NeoPixelBus.h"
 #include "mybus.h"
 
 

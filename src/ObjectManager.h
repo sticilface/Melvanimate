@@ -11,7 +11,7 @@ Handler to add / create / run multiple Effect Objects at the same time...
 #include <functional>
 #include "Arduino.h"
 #include <NeoPixelAnimator.h>
-#include "melvtrix.h"
+#include "Melvtrix.h"
 
 //#define DebugObjectman
 

@@ -1,7 +1,7 @@
 #include "AdalightEffect.h"
 
 
-#include <NeopixelBus.h>
+#include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "mybus.h"
 

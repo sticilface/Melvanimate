@@ -4,7 +4,7 @@
 #include <internal/RgbColor.h>
 #include <internal/HslColor.h>
 
-#include "palette.h"
+#include "Palette.h"
 #include <IPAddress.h>
 #include "melvtrix.h"
 
