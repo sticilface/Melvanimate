@@ -11,7 +11,7 @@ MSGEQ7 chip RESET pulse is 0.1us min, strobe pulse 0.018us min.  And it works fi
 
 
 #pragma once
-#include <arduino.h>
+#include <Arduino.h>
 #include <functional>
 #include "PropertyManager.h"
 #include <ArduinoJson.h>
