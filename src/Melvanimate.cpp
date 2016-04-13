@@ -802,7 +802,20 @@ void Melvanimate::_handleWebRequest()
 	}
 
 
+	if (_HTTP.hasArg("enablebeats")) {
 
+		DebugMelvanimatef("[_handleWebRequest] has enableeq\n");
+		JsonObject& EQjson = root.createNestedObject("EQ");
+		EQjson["enablebeats"] = (_HTTP.arg("enablebeats") == "on")? true : false ;
+		//EQjson["resetpin"] = _resetPin;
+		//EQjson["strobepin"] = _strobePin;
+		EQjson["peakfactor"] =  _HTTP.arg("peakfactor").toFloat();       
+		EQjson["beatskiptime"] = _HTTP.arg("beatskiptime").toInt();     
+
+		EQjson["samples"] = _HTTP.arg("samples").toInt();
+		EQjson["sampletime"] = _HTTP.arg("sampletime").toInt();
+
+	}
 
 
 // matrixmode stuff

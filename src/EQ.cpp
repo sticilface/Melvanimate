@@ -95,10 +95,10 @@ void EQ::Initialise(uint32_t samples, uint32_t totaltime)
 	_samples = samples;
 	_sampletime = totaltime;
 	_freq = totaltime / samples ;
-	DebugEQf("[EQ::initialise] Called %u, %ums, freq = %u\n", samples, totaltime,_freq);
+	DebugEQf("[EQ::initialise] Called %u, %ums, freq = %u\n", samples, totaltime, _freq);
 
 	_deinitialise();
-	uint32_t startheap = ESP.getFreeHeap() ; 
+	uint32_t startheap = ESP.getFreeHeap() ;
 	_data = new EQData_s*[7];
 
 	for (uint8_t i = 0; i < 7; i++) {
@@ -145,42 +145,46 @@ bool EQ::parseJson(JsonObject & root)
 		}
 	}
 
-	if (EQjson.containsKey("resetpin")) {
-		if (_resetPin != EQjson["resetpin"]) {
-			_resetPin = EQjson["resetpin"];
-			changed = true;
-		}
-	}
+	if (_enabled) {
 
-	if (EQjson.containsKey("strobepin")) {
-		if (_strobePin != EQjson["strobepin"]) {
-			_strobePin = EQjson["strobepin"];
-			changed = true;
+		if (EQjson.containsKey("resetpin")) {
+			if (_resetPin != EQjson["resetpin"]) {
+				_resetPin = EQjson["resetpin"];
+				changed = true;
+			}
 		}
-	}
 
-	if (EQjson.containsKey("peakfactor")) {
-		if (_peakfactor != EQjson["peakfactor"]) {
-			_peakfactor = EQjson["peakfactor"];
-			changed = true;
+		if (EQjson.containsKey("strobepin")) {
+			if (_strobePin != EQjson["strobepin"]) {
+				_strobePin = EQjson["strobepin"];
+				changed = true;
+			}
 		}
-	}
 
-	if (EQjson.containsKey("beatskiptime")) {
-		if (_beatskiptime != EQjson["beatskiptime"]) {
-			_beatskiptime = EQjson["beatskiptime"];
-			changed = true;
+		if (EQjson.containsKey("peakfactor")) {
+			if (_peakfactor != EQjson["peakfactor"]) {
+				_peakfactor = EQjson["peakfactor"];
+				changed = true;
+			}
 		}
-	}
 
-	if (EQjson.containsKey("samples") &&  EQjson.containsKey("sampletime")  ) {
-		if (_samples != EQjson["samples"] ||  _sampletime != EQjson["sampletime"]) {
-			
-			_samples = EQjson["samples"];
-			_sampletime = EQjson["sampletime"];
-			//Initialise(_samples, _sampletime);
-			changed = true;
+		if (EQjson.containsKey("beatskiptime")) {
+			if (_beatskiptime != EQjson["beatskiptime"]) {
+				_beatskiptime = EQjson["beatskiptime"];
+				changed = true;
+			}
 		}
+
+		if (EQjson.containsKey("samples") &&  EQjson.containsKey("sampletime")  ) {
+			if (_samples != EQjson["samples"] ||  _sampletime != EQjson["sampletime"]) {
+
+				_samples = EQjson["samples"];
+				_sampletime = EQjson["sampletime"];
+				//Initialise(_samples, _sampletime);
+				changed = true;
+			}
+		}
+
 	}
 
 	if (changed && _enabled) {
