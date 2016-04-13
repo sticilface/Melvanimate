@@ -1,11 +1,11 @@
 #pragma once
 
-#//include <RgbColor.h>
+//include <RgbColor.h>
 //#include <HslColor.h>
 #include <internal/RgbColor.h>
 #include <internal/HslColor.h>
 #include "mybus.h"
-#include "melvtrix.h"
+#include "Melvtrix.h"
 
 
 #include <ArduinoJson.h>

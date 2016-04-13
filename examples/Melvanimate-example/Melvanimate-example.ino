@@ -29,7 +29,7 @@
 #include "effects/AdalightEffect.h"
 #include "effects/UDPEffect.h"
 #include "effects/RainbowChase.h"
-#include "effects/blobs.h"
+#include "effects/Blobs.h"
 
 
 const uint16_t defaultpixelcount =  118;
