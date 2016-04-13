@@ -1,5 +1,6 @@
 # Melvanimate 
 [![Build Status](https://travis-ci.org/sticilface/Melvanimate.svg?branch=master)](https://travis-ci.org/sticilface/Melvanimate)
+
 An all-in-one WS2812 solution for the ESP8266!  
 This is a complete rework of my previous project [WS2812-WiFi](https://github.com/sticilface/ESP8266-wifi), it now uses C++ style coding and very flexible effect methods, using abstract handler classes and polymorphism! WiFi and OTA is no longer managed in the example, you now have to do it yourself, or use my [ESPManager](https://github.com/sticilface/ESPmanager).  This project is a lot more stable than WS2812-Wifi and has a lot more heap.  Mainly as the ESP8266 only sends the required data in json, not the whole web page!, which is kept in SPIFFS.  
 
