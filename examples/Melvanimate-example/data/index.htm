@@ -418,18 +418,20 @@
   <h1 class='myheader'> EQ </h1>
   </div>
           <div data-role="content">
-
+<!--//field-resetpin, field-strobepin-->
+          MSGEQ7: [Reset Pin: <var id="field-resetpin"></var>, Strobe Pin: <var id="field-strobepin"></var>]
             <form id="eqform">
               
                 <div class="ui-field-contain">
                     <label for="flip-enable-EQ">On/Off:</label>
-                    <select id="flip-enable-EQ" name="enablebeats" data-role="flipswitch">
+                    <select id="flip-enable-EQ" name="enablebeats" data-role="flipswitch" class="">
                         <option>off</option>
                         <option>on</option>
                     </select>
                 </div>
-
                 
+                <div id="eqvars">
+                                
                 <div class="ui-field-contain">
                     <label for="text-input-peakfactor">Beat Factor:</label>
                     <input type="text" name="peakfactor" id="text-input-peakfactor" value="" class="noEnterSubmit">
@@ -446,11 +448,14 @@
                 </div>
                 <div class="ui-field-contain">
                     <label for="text-input-sampletime">Sample Time (ms):</label>
-                    <input type="text" name="sampletime" id="sampletime" value="" class="noEnterSubmit">
+                    <input type="text" name="sampletime" id="text-input-sampletime" value="" class="noEnterSubmit">
                 </div>                
                 
+              </div>
               
                 <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+                
+                
                 
             </form>
             
@@ -619,7 +624,7 @@
 
                 <div class="ui-field-contain">
                     <label for="flip-enable-timer">Enable:</label>
-                    <select id="flip-enable-timer" name="enabletimer" data-role="flipswitch">
+                    <select id="flip-enable-timer" name="enabletimer" data-role="flipswitch" >
                         <option>off</option>
                         <option>on</option>
                     </select>
@@ -872,6 +877,37 @@
 
             });
 
+            $(document).on("pagecreate", "#eqpage", function() {
+
+// $(this).children(':input[value=""]').attr("disabled", "disabled");
+
+                $("#flip-enable-EQ").on("change", function() {
+  
+              if ($(this).val() == "on") {
+                    
+                    //$('#maintimerdiv').children('div').each(function(index) {
+
+                    $('#eqvars').children('div').each(function(index) {
+                        //if ($(this).hasClass(option)) {
+                            $(this).show();
+                            $(this).closest(":input").removeClass("ui-state-disabled");
+                            $(this).prop("disabled", false); 
+
+                        //}
+                    });
+              } else if ($(this).val() == "off") {
+                    $('#eqvars').children('div').each(function(index) {
+                        $(this).closest(":input").addClass("ui-state-disabled");
+                        $(this).hide();
+                        $(this).prop("disabled", true); 
+                    });
+
+
+              }
+                    
+                });
+
+              });
 
             //  
             $(document).on('touchstart click', '.myheader', function(e) {
@@ -1441,12 +1477,19 @@
                             $("#palettebutton").hide();
                           }
                           if (result.settings.hasOwnProperty("Matrix")) {
-                            if (result.settings.Matrix.enabled) {
+                            //if (result.settings.Matrix.enabled) {
                                 $("#matrixbutton").show();
                             } else {
                                 $("#matrixbutton").hide();
-                            }
+                            //}
                           }
+                          
+                        if (result.settings.hasOwnProperty('EQ')) {
+                                $("#eqbutton").show();
+                            } else {
+                                $("#eqbutton").hide();
+                        }
+                        
                           
                         $('#effectoptions').children('div').each(function(index) {
                           $(this).hide();
@@ -1508,11 +1551,11 @@
                       
                       if (result.hasOwnProperty('heap')) 
                       {
-                        $("#heap").empty().append(result.heap).css("color", "grey");;
+                        $("#heap").empty().append(result.heap).css("color", "grey");
                       }
                       if (result.hasOwnProperty('power')) 
                       {
-                        $("#power").empty().append(result.power).css("color", "orange");;
+                        $("#power").empty().append(result.power).css("color", "orange");
                       }
                       
                       
@@ -1557,22 +1600,8 @@
                         
                         var mqtt = result.MQTT; 
                             
-                        // if (mqtt.hasOwnProperty('enable')) {
-                          
-                        //     console.log("MQTT: " + mqtt.enable);
-                        //     $("#flip-enable-MQTT").val(mqtt.enable).slider("refresh");
-                            
-                            
-                        // } 
                         if (mqtt.hasOwnProperty('enabled')) {
-                          
                           $("#flip-enable-MQTT").val((mqtt.enabled) ? "on" : "off").flipswitch('refresh').trigger("change");
-                            // if (mqtt.enable == "true") { 
-                            //   $("#flip-enable-MQTT").off("change").val("on").flipswitch('refresh').trigger("change"); 
-                              
-                            // } else {
-                            //   $("#flip-enable-MQTT").off("change").val("off").flipswitch('refresh').trigger("change");
-                            // }
                         }
                             
                         if (mqtt.hasOwnProperty('ip')) {
@@ -1689,6 +1718,56 @@
                        }
                     
                     }
+//eqpage                    
+            if ($.mobile.activePage.attr('id') == 'eqpage') {
+              
+              if (result.hasOwnProperty('settings') && result.settings.hasOwnProperty('EQ')) {
+              
+              EQ = result.settings.EQ; 
+              
+              //         "resetpin":12,   field-resetpin, field-strobepin
+         //              "strobepin":13
+              
+                        if (EQ.hasOwnProperty('resetpin')) {
+                            $("#field-resetpin").empty().append(EQ.resetpin + " ").css("color", "red");
+                        }  
+                        
+                        if (EQ.hasOwnProperty('strobepin')) {
+                            $("#field-strobepin").empty().append(EQ.strobepin + " ").css("color", "red");
+                        }  
+                        
+              
+              
+                         if (EQ.hasOwnProperty('enablebeats')) {
+                           $("#flip-enable-EQ").val((EQ.enablebeats) ? "on" : "off").flipswitch('refresh').trigger("change");
+                        //     if (EQ.enablebeats) {
+                        //         $("#eqbutton").show();
+                        //     } else {
+                        //         $("#eqbutton").hide();
+                        //     }                          
+                         }
+
+                            
+                        if (EQ.hasOwnProperty('peakfactor')) {
+                            $("#text-input-peakfactor").val(EQ.peakfactor);
+                        }  
+                        
+                        if (EQ.hasOwnProperty('beatskiptime')) {
+                            $("#text-input-beatskiptime").val(EQ.beatskiptime); 
+                        }              
+              
+                        if (EQ.hasOwnProperty('samples')) {
+                            $("#text-input-samples").val(EQ.samples); 
+                        }               
+              
+                         if (EQ.hasOwnProperty('sampletime')) {
+                            $("#text-input-sampletime").val(EQ.sampletime); 
+                        }              
+              
+              }
+              
+              
+            }
                     
     }
 
