@@ -50,6 +50,6 @@ private:
 
 	UDPEffectVars * _vars; 
 	WiFiUDP* _udp;
-	IPAddress address; 
+	//IPAddress address; 
 
 };
