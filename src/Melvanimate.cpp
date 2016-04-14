@@ -802,18 +802,38 @@ void Melvanimate::_handleWebRequest()
 	}
 
 
-	if (_HTTP.hasArg("enablebeats")) {
+	if (_HTTP.hasArg("eqmode") || _HTTP.hasArg("eq_send_udp")) {
 
 		DebugMelvanimatef("[_handleWebRequest] has enableeq\n");
+
 		JsonObject& EQjson = root.createNestedObject("EQ");
-		EQjson["enablebeats"] = (_HTTP.arg("enablebeats") == "on")? true : false ;
+
+		if (_HTTP.hasArg("eqmode")) {
+		EQjson["eqmode"] = _HTTP.arg("eqmode").toInt();
+		}
 		//EQjson["resetpin"] = _resetPin;
 		//EQjson["strobepin"] = _strobePin;
-		EQjson["peakfactor"] =  _HTTP.arg("peakfactor").toFloat();       
-		EQjson["beatskiptime"] = _HTTP.arg("beatskiptime").toInt();     
-
+		if (_HTTP.hasArg("peakfactor")) {
+		EQjson["peakfactor"] =  _HTTP.arg("peakfactor").toFloat();
+		}
+		if (_HTTP.hasArg("beatskiptime")) {
+		EQjson["beatskiptime"] = _HTTP.arg("beatskiptime").toInt();
+		}
+		if (_HTTP.hasArg("samples")) {
 		EQjson["samples"] = _HTTP.arg("samples").toInt();
+		}
+		if (_HTTP.hasArg("sampletime")) {
 		EQjson["sampletime"] = _HTTP.arg("sampletime").toInt();
+		}
+		if (_HTTP.hasArg("eq_send_udp")) {
+		EQjson["eq_send_udp"] = (_HTTP.arg("eq_send_udp") == "on") ? true : false;
+		}
+		if (_HTTP.hasArg("eq_addr")) {
+		EQjson["eq_addr"] = _HTTP.arg("eq_addr");
+		}
+		if (_HTTP.hasArg("eq_port")) {
+		EQjson["eq_port"] = _HTTP.arg("eq_port").toInt();
+		}
 
 	}
 

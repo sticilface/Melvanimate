@@ -2,6 +2,21 @@
 
 #define EQFILTER 80
 
+
+/*
+  virtual int beginPacketMulticast(IPAddress multicastAddress,
+                                   uint16_t port,
+                                   IPAddress interfaceAddress,
+                                   int ttl = 1);
+  // Finish off this packet and send it
+  // Returns 1 if the packet was sent successfully, 0 if there was an error
+  virtual int endPacket();
+  // Write a single byte into the packet
+  virtual size_t write(uint8_t);
+  // Write size bytes from buffer into the packet
+  virtual size_t write(const uint8_t *buffer, size_t size);
+  */
+
 EQ::~EQ()
 {
 	_deinitialise();
@@ -38,39 +53,77 @@ void EQ::EndEQ()
 void EQ::loop()
 {
 
-	if (_enabled && millis() - _tick > _freq) {
+	if (_mode == ON && millis() - _tick > _freq) {
 
 		//uint16_t data[7];
 		GetEQ(data);
 
+		if (_data) {
+			for (uint8_t i = 0; i < 7; i++) {
+				data[i] = constrain(data[i], EQFILTER, 1023);
+				uint8_t value = map(data[i], EQFILTER, 1023, 0, 255);
 
-		for (uint8_t i = 0; i < 7; i++) {
-			data[i] = constrain(data[i], EQFILTER, 1023);
-			uint8_t value = map(data[i], EQFILTER, 1023, 0, 255);
+				if (_data[i]) {
 
-			if (_data[i]) {
+					EQData_s & current = *_data[i];
 
-				EQData_s & current = *_data[i];
+					if (value > 100 &&
+					        value > (current.average() * _peakfactor) &&
+					        millis() - current.lastbeat > _beatskiptime
+					   ) {
+						EQParam params;
+						params.channel = i;
+						params.average = current.average();
+						params.level = value;
+						params.bpm = ( 60000 / millis() - current.lastbeat );
+						_EQcallbackFN(params);
+						_sendUDP(params);
+						current.lastbeat = millis();
+					}
 
-				if (value > 100 &&
-				        value > (current.average() * _peakfactor) &&
-				        millis() - current.lastbeat > _beatskiptime
-				   ) {
-					EQParam params;
-					params.channel = i;
-					params.average = current.average();
-					params.level = value;
-					params.bpm = ( 60000 / millis() - current.lastbeat );
-					EQcallbackFN(params);
-					current.lastbeat = millis();
+					current.add(value);
 				}
-
-				current.add(value);
 			}
 		}
 		_tick = millis();
+
+	} else if (_mode == RECEIVEUDP) {
+		//  recieve UDP Packets if mode set
+		if (_udp) {
+			size_t packetSize = _udp->parsePacket();
+
+			if (packetSize == sizeof(EQParam)) {
+				EQParam params;
+				_udp->read( (unsigned char*)&params,  sizeof(EQParam)  );
+				_EQcallbackFN(params);
+
+			} else if (packetSize) {
+				DebugEQf("[EQ::loop] Packet Wrong size: is %u, expecting %u\n", packetSize, sizeof(EQParam));
+			}
+		}
+
+
 	}
 
+}
+
+void EQ::_sendUDP(const EQParam& param)
+{
+	if (!_udp) {
+		return;
+	}
+
+	if (!_send_udp) {
+		return;
+	}
+
+	if (_udp->beginPacketMulticast(_addr, _port, WiFi.localIP() )) {
+		size_t len = sizeof(param);
+		_udp->write( (const char *)&param, len);
+		if (_udp->endPacket()) {
+			DebugEQf("[EQ::_sendUDP] Packet Sent\n");
+		}
+	}
 }
 
 void EQ::_deinitialise()
@@ -87,27 +140,76 @@ void EQ::_deinitialise()
 		_data = nullptr;
 	}
 
+	if (_udp) {
+		delete _udp;
+		_udp = nullptr;
+	}
+
 	EndEQ();
 }
+
 
 void EQ::Initialise(uint32_t samples, uint32_t totaltime)
 {
 	_samples = samples;
 	_sampletime = totaltime;
 	_freq = totaltime / samples ;
-	DebugEQf("[EQ::initialise] Called %u, %ums, freq = %u\n", samples, totaltime, _freq);
+	_mode = ON;
+	DebugEQf("[EQ::initialise] Called %u, %ums, freq = %u\n", _samples, _sampletime, _freq);
+	Initialise();
 
+}
+
+
+
+
+void EQ::Initialise()
+{
+	DebugEQf("[EQ::initialise] _mode = %u\n", _mode);
 	_deinitialise();
-	uint32_t startheap = ESP.getFreeHeap() ;
-	_data = new EQData_s*[7];
 
-	for (uint8_t i = 0; i < 7; i++) {
-		_data[i] = new EQData_s(samples);
+
+	switch (_mode) {
+
+	case ON: {
+
+
+		uint32_t startheap = ESP.getFreeHeap() ;
+		if (_samples) {
+			_data = new EQData_s*[7];
+			if (_data) {
+				for (uint8_t i = 0; i < 7; i++) {
+					_data[i] = new EQData_s(_samples);
+				}
+			}
+		}
+
+		if (_send_udp) {
+			DebugEQf("[EQ::initialise] WiFiUDP SEND Service Started\n");
+
+			if (!_udp) {
+				_udp = new WiFiUDP;
+			}
+		}
+		DebugEQf("[EQ::initialise] END heap used = %u\n", startheap - ESP.getFreeHeap() );
+
+		StartEQ();
+	}
+	break;
+	case RECEIVEUDP: {
+
+		if (!_udp) {
+			_udp = new WiFiUDP;
+		}
+
+		uint8_t code = _udp->beginMulticast(WiFi.localIP(), _addr, _port);
+
+		DebugEQf("[EQ::initialise] UDP beginMulticast code: %u\n", code );
+
+
 	}
 
-	DebugEQf("[EQ::initialise] END heap used = %u\n", startheap - ESP.getFreeHeap() );
-
-	StartEQ();
+	}
 
 }
 
@@ -115,7 +217,7 @@ bool EQ::addJson(JsonObject & root)
 {
 
 	JsonObject& EQjson = root.createNestedObject("EQ");
-	EQjson["enablebeats"] = _enabled;
+	EQjson["eqmode"] = (uint8_t)_mode;
 	EQjson["resetpin"] = _resetPin;
 	EQjson["strobepin"] = _strobePin;
 	EQjson["peakfactor"] = _peakfactor;
@@ -123,6 +225,15 @@ bool EQ::addJson(JsonObject & root)
 
 	EQjson["samples"] = _samples;
 	EQjson["sampletime"] = _sampletime;
+
+	EQjson["eq_port"] = _port;
+	EQjson["eq_send_udp"] = _send_udp;
+
+	JsonArray & ip = EQjson.createNestedArray("eq_addr");
+	ip.add(_addr[0]);
+	ip.add(_addr[1]);
+	ip.add(_addr[2]);
+	ip.add(_addr[3]);
 
 
 
@@ -138,14 +249,19 @@ bool EQ::parseJson(JsonObject & root)
 
 	JsonObject& EQjson = root["EQ"];
 
-	if (EQjson.containsKey("enablebeats")) {
-		if (_enabled != EQjson["enablebeats"]) {
-			_enabled = EQjson["enablebeats"];
+	if (EQjson.containsKey("eqmode")) {
+
+
+		EQ_MODE temp = (EQ_MODE)EQjson["eqmode"].as<long>();
+		DebugEQf("[EQ::parseJson] mode received = %u\n", temp);
+
+		if (_mode != temp) {
+			_mode = temp;
 			changed = true;
 		}
 	}
 
-	if (_enabled) {
+	if (_mode == ON) {
 
 		if (EQjson.containsKey("resetpin")) {
 			if (_resetPin != EQjson["resetpin"]) {
@@ -177,7 +293,6 @@ bool EQ::parseJson(JsonObject & root)
 
 		if (EQjson.containsKey("samples") &&  EQjson.containsKey("sampletime")  ) {
 			if (_samples != EQjson["samples"] ||  _sampletime != EQjson["sampletime"]) {
-
 				_samples = EQjson["samples"];
 				_sampletime = EQjson["sampletime"];
 				//Initialise(_samples, _sampletime);
@@ -186,12 +301,67 @@ bool EQ::parseJson(JsonObject & root)
 		}
 
 	}
+	/*
 
-	if (changed && _enabled) {
-		Initialise(_samples, _sampletime);
-	} else {
-		_deinitialise();
+		IPAddress addr = IPAddress(224, 0, 0, 0);
+		WiFiUdp * udp = nullptr;
+		_port = EQjson["port"];
+		bool send_udp{false};   EQjson.containsKey("send_udp")
+
+		*/
+
+	if (EQjson.containsKey("eq_send_udp")) {
+		if (_send_udp != EQjson["eq_send_udp"]) {
+			_send_udp = EQjson["eq_send_udp"];
+			changed = true;
+		}
 	}
+
+	if (EQjson.containsKey("eq_port")) {
+		if (_port != EQjson["eq_port"]) {
+			_port = EQjson["eq_port"];
+			changed = true;
+		}
+	}
+
+	if (root.containsKey("eq_addr") ) {
+
+		if ( root["eq_addr"].is<JsonArray&>()) {
+			JsonArray & IP = root["eq_addr"];
+			IPAddress ret;
+			for (uint8_t i = 0; i < 4; i++) {
+				ret[i] = IP[i];
+			}
+
+			if (_addr != ret) {
+				_addr = ret;
+				changed = true;
+			}
+		} else {
+			const char * input = root["eq_addr"];
+			IPAddress temp;
+			if (temp.fromString(input)) {
+				if (temp != _addr) {
+					_addr = temp;
+					changed = true;
+				}
+			}
+		}
+	}
+
+
+
+	if (changed) {
+		if (_mode == OFF) {
+			_deinitialise();
+		} else if (_mode == ON) {
+			Initialise(_samples, _sampletime);
+		} else if (_mode == RECEIVEUDP) {
+			Initialise();
+		}
+	}
+
+
 
 #ifdef DebugEQ
 	DebugEQf("EQ Json\n");

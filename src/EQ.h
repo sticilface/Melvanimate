@@ -16,6 +16,11 @@ MSGEQ7 chip RESET pulse is 0.1us min, strobe pulse 0.018us min.  And it works fi
 #include "PropertyManager.h"
 #include <ArduinoJson.h>
 
+#include <ESP8266WiFi.h>
+#include <WiFiUdp.h>
+
+
+
 #define DebugEQ
 
 #ifdef DebugEQ
@@ -105,17 +110,21 @@ private:
 class EQ
 {
 public:
+
+	enum EQ_MODE { OFF = 0, ON, RECEIVEUDP}; 
+
 	EQ() {};
 	~EQ();
-
-	//void DetectBeats(bool value) { _detectbeats = value;}
+	void Initialise();
 	void Initialise(uint32_t samples, uint32_t totaltime);
-	void SetBeatCallback(EQCallback EQcallback) {EQcallbackFN = EQcallback;};
+	void SetBeatCallback(EQCallback EQcallback) {_EQcallbackFN = EQcallback;};
 
 	void loop();
 
-	void Start() { _enabled = true; }
-	void Stop() { _enabled = false; }
+	void setMode(EQ_MODE mode) { _mode = mode; }
+	
+	void Start() { _mode = ON; }
+	void Stop() { _mode = OFF; }
 	void End() { Stop(); _deinitialise(); }
 	
 	uint16_t data[7] = {0};
@@ -130,8 +139,9 @@ public:
 
 private:
 	void _deinitialise(); 
+	void _sendUDP(const EQParam& param);
 
-	bool _enabled {false}; 
+	EQ_MODE _mode {ON}; 
 
 	uint8_t _resetPin = 12;
 	uint8_t _strobePin = 13;
@@ -143,10 +153,17 @@ private:
 	uint32_t _samples = 0;
 	uint32_t _sampletime = 0; 
 	uint32_t _freq = 0;
-	EQCallback EQcallbackFN;
+	EQCallback _EQcallbackFN;
 
 	float _peakfactor{2.1};
 	uint8_t _beatskiptime{200};
+
+//  UDP stuff
+
+	IPAddress _addr = IPAddress(224, 0, 0, 0); 
+	uint16_t _port = 9988; 
+	WiFiUDP * _udp{nullptr}; 
+	bool _send_udp{false}; 
 
 };
 

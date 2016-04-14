@@ -36,7 +36,7 @@ bool BeatsTest::Start()
 
 	if (_EQ) {
 		_EQ->Initialise(1000, 3000);
-		_EQ->Start(); 
+
 		//_EQ->DetectBeats(true);
 		_EQ->SetBeatCallback( [](EQParam params) {
 			if (params.channel == 5) {
