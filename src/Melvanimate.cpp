@@ -673,76 +673,119 @@ void Melvanimate::_handleWebRequest()
 	//  this fires back an OK, but ignores the request if all the args are the same.  uses MD5.
 //	if (_check_duplicate_req()) { _HTTP.setContentLength(0); _HTTP.send(200); return; }
 
-	DebugMelvanimatef("\n");
+	DebugMelvanimatef("[Melvanimate::_handleWebRequest] \n");
 
 	for (uint8_t i = 0; i < _HTTP.args(); i++) {
-		DebugMelvanimatef("[ARG:%u] %s = %s\n", i, _HTTP.argName(i).c_str(), _HTTP.arg(i).c_str());
+		DebugMelvanimatef("\t [ARG:%u] %s = %s\n", i, _HTTP.argName(i).c_str(), _HTTP.arg(i).c_str());
 	}
 
-	DebugMelvanimatef("Heap = [%u]\n", ESP.getFreeHeap());
+	DebugMelvanimatef("[Melvanimate::_handleWebRequest] Heap = [%u]\n", ESP.getFreeHeap());
 
 
 	// puts all the args into json...
 	// might be better to send pallette by json instead..
 
 	DynamicJsonBuffer jsonBuffer;
-	JsonObject & root = jsonBuffer.createObject();
+	JsonObject * p_root; // = & jsonBuffer.createObject();
 
-	for (uint8_t i = 0; i < _HTTP.args(); i++) {
-		root[_HTTP.argName(i)] = _HTTP.arg(i);
+
+	//  This serialises all the request... except when it is a json... 
+	bool jsonparsed = false; 
+	if (_HTTP.args() == 1)
+	{
+		DebugMelvanimatef("[Melvanimate::_handleWebRequest] Parsing Json Request: %s\n", _HTTP.arg(0).c_str() );
+		p_root = & jsonBuffer.parseObject(_HTTP.arg(0));
+		if (p_root) {
+			JsonObject & root = *p_root;
+			if (root.success()) {
+				DebugMelvanimatef("[Melvanimate::_handleWebRequest] Parse success\n"); 
+				jsonparsed = true; 
+			} else {
+				DebugMelvanimatef("[Melvanimate::_handleWebRequest] Parse FAIL\n"); 
+			}
+		}
 	}
 
+	if (!jsonparsed) {
 
+		p_root = & jsonBuffer.createObject();
+		JsonObject & root = *p_root;
 
-	if (_HTTP.hasArg("nopixels") && _HTTP.arg("nopixels").length() != 0) {
-		setPixels(_HTTP.arg("nopixels").toInt());
-		page = "layout";
-
-
-		//  also submits mqtt data
-		/*
-		[ARG:0] nopixels = 50
-		[ARG:1] enablemqtt = off
-		[ARG:2] mqtt_ip = 1.2.3.4
-		[ARG:3] mqtt_port = 123
-
-		*/
+		for (uint8_t i = 0; i < _HTTP.args(); i++) {
+			root[_HTTP.argName(i)] = _HTTP.arg(i);
+		}
 	}
 
-	if (_HTTP.hasArg("enablemqtt")) {
+	// if (!_HTTP.hasArg("json")) {
 
-		JsonObject & settings = root.createNestedObject("globals");
-		JsonObject & mqttjson = settings.createNestedObject("MQTT");
+	// 	p_root = & jsonBuffer.createObject();
+	// 	JsonObject & root = *p_root;
+
+	// 	for (uint8_t i = 0; i < _HTTP.args(); i++) {
+	// 		root[_HTTP.argName(i)] = _HTTP.arg(i);
+	// 	}
+
+	// } else {
+	// 	p_root = & jsonBuffer.parseObject(_HTTP.arg("json"));
+	// }
+
+
+
+	if (p_root) {
+		JsonObject & root = *p_root;
+
+
+
+
+		if (_HTTP.hasArg("nopixels") && _HTTP.arg("nopixels").length() != 0) {
+			setPixels(_HTTP.arg("nopixels").toInt());
+			page = "layout";
+
+
+			//  also submits mqtt data
+			/*
+			[ARG:0] nopixels = 50
+			[ARG:1] enablemqtt = off
+			[ARG:2] mqtt_ip = 1.2.3.4
+			[ARG:3] mqtt_port = 123
+
+			*/
+		}
+
+		if (_HTTP.hasArg("enablemqtt")) {
+
+			JsonObject & settings = root.createNestedObject("globals");
+			JsonObject & mqttjson = settings.createNestedObject("MQTT");
 
 //		if ( _HTTP.arg("enablemqtt") == "on" ) {
 
-		DebugMelvanimatef("[_handleWebRequest] Enable MQTT..\n");
+			DebugMelvanimatef("[Melvanimate::_handleWebRequest] Enable MQTT..\n");
 
-		mqttjson["enabled"] = (_HTTP.arg("enablemqtt") == "on") ? true : false;
+			mqttjson["enabled"] = (_HTTP.arg("enablemqtt") == "on") ? true : false;
 
-		IPAddress ip;
+			IPAddress ip;
 
-		if (_HTTP.hasArg("mqtt_ip")) {
-			if (ip.fromString( _HTTP.arg("mqtt_ip"))) {
-				JsonArray & iparray = mqttjson.createNestedArray("ip");
-				iparray.add(ip[0]);
-				iparray.add(ip[1]);
-				iparray.add(ip[2]);
-				iparray.add(ip[3]);
+			if (_HTTP.hasArg("mqtt_ip")) {
+				if (ip.fromString( _HTTP.arg("mqtt_ip"))) {
+					JsonArray & iparray = mqttjson.createNestedArray("ip");
+					iparray.add(ip[0]);
+					iparray.add(ip[1]);
+					iparray.add(ip[2]);
+					iparray.add(ip[3]);
+				}
 			}
-		}
 
-		if (_HTTP.hasArg("mqtt_port")) {
-			mqttjson["port"] = _HTTP.arg("mqtt_port");
-		}
+			if (_HTTP.hasArg("mqtt_port")) {
+				mqttjson["port"] = _HTTP.arg("mqtt_port");
+			}
 
 #ifdef DebugMelvanimate
-		// Serial.println();
-		// mqttjson.prettyPrintTo(Serial);
-		// Serial.println();
+			// Serial.println();
+			// mqttjson.prettyPrintTo(Serial);
+			// Serial.println();
 #endif
 
-		_initMQTT(settings);
+			_initMQTT(settings);
 
 //		} else if (_HTTP.arg("enablemqtt") == "off" ) {
 //			DebugMelvanimatef("[_handleWebRequest] Disable mqtt..");
@@ -754,88 +797,88 @@ void Melvanimate::_handleWebRequest()
 //		}
 
 
-	}
-
-
-	if (_HTTP.hasArg("palette")) {
-		//palette().mode(_HTTP.arg("palette").c_str());
-		page = "palette"; //  this line might not be needed... palette details are now handled entirely by the effect for which they belong
-
-		/*
-		[ARG:0] palette = complementary
-		[ARG:1] palette-random = timebased
-		[ARG:2] palette-spread =
-		[ARG:3] palette-delay =
-
-		  palette["mode"] = (uint8_t)_mode;
-		  palette["total"] = _total;
-		  palette["available"] = _available;
-		  palette["randmode"] = (uint8_t)_random;
-		  palette["range"] = _range;
-		  palette["delay"] = _delay;
-		*/
-
-
-		//  this is a bit of a bodge...  Capital P for object with all parameters...
-		JsonObject & palettenode = root.createNestedObject("Palette");
-
-		palettenode["mode"] = (uint8_t)(_HTTP.arg("palette").toInt()) ;
-
-
-		if (_HTTP.hasArg("palette-random")) {
-			palettenode["randmode"] = (uint8_t)Palette::randommodeStringtoEnum(_HTTP.arg("palette-random").c_str());
 		}
 
-		if (_HTTP.hasArg("palette-spread")) {
-			palettenode["range"] = _HTTP.arg("palette-spread");
+
+		if (_HTTP.hasArg("palette")) {
+			//palette().mode(_HTTP.arg("palette").c_str());
+			page = "palette"; //  this line might not be needed... palette details are now handled entirely by the effect for which they belong
+
+			/*
+			[ARG:0] palette = complementary
+			[ARG:1] palette-random = timebased
+			[ARG:2] palette-spread =
+			[ARG:3] palette-delay =
+
+			  palette["mode"] = (uint8_t)_mode;
+			  palette["total"] = _total;
+			  palette["available"] = _available;
+			  palette["randmode"] = (uint8_t)_random;
+			  palette["range"] = _range;
+			  palette["delay"] = _delay;
+			*/
+
+
+			//  this is a bit of a bodge...  Capital P for object with all parameters...
+			JsonObject & palettenode = root.createNestedObject("Palette");
+
+			palettenode["mode"] = (uint8_t)(_HTTP.arg("palette").toInt()) ;
+
+
+			if (_HTTP.hasArg("palette-random")) {
+				palettenode["randmode"] = (uint8_t)Palette::randommodeStringtoEnum(_HTTP.arg("palette-random").c_str());
+			}
+
+			if (_HTTP.hasArg("palette-spread")) {
+				palettenode["range"] = _HTTP.arg("palette-spread");
+
+			}
+
+			if (_HTTP.hasArg("palette-delay")) {
+				palettenode["delay"] = _HTTP.arg("palette-delay");
+
+			}
+			// Serial.println("[handle_data] JSON dump");
+			// root.prettyPrintTo(Serial);
+			// Serial.println();
 
 		}
 
-		if (_HTTP.hasArg("palette-delay")) {
-			palettenode["delay"] = _HTTP.arg("palette-delay");
+
+		if (_HTTP.hasArg("eqmode") || _HTTP.hasArg("eq_send_udp")) {
+
+			DebugMelvanimatef("[Melvanimate::_handleWebRequest] has enableeq\n");
+
+			JsonObject& EQjson = root.createNestedObject("EQ");
+
+			if (_HTTP.hasArg("eqmode")) {
+				EQjson["eqmode"] = _HTTP.arg("eqmode").toInt();
+			}
+			//EQjson["resetpin"] = _resetPin;
+			//EQjson["strobepin"] = _strobePin;
+			if (_HTTP.hasArg("peakfactor")) {
+				EQjson["peakfactor"] =  _HTTP.arg("peakfactor").toFloat();
+			}
+			if (_HTTP.hasArg("beatskiptime")) {
+				EQjson["beatskiptime"] = _HTTP.arg("beatskiptime").toInt();
+			}
+			if (_HTTP.hasArg("samples")) {
+				EQjson["samples"] = _HTTP.arg("samples").toInt();
+			}
+			if (_HTTP.hasArg("sampletime")) {
+				EQjson["sampletime"] = _HTTP.arg("sampletime").toInt();
+			}
+			if (_HTTP.hasArg("eq_send_udp")) {
+				EQjson["eq_send_udp"] = (_HTTP.arg("eq_send_udp") == "on") ? true : false;
+			}
+			if (_HTTP.hasArg("eq_addr")) {
+				EQjson["eq_addr"] = _HTTP.arg("eq_addr");
+			}
+			if (_HTTP.hasArg("eq_port")) {
+				EQjson["eq_port"] = _HTTP.arg("eq_port").toInt();
+			}
 
 		}
-		// Serial.println("[handle_data] JSON dump");
-		// root.prettyPrintTo(Serial);
-		// Serial.println();
-
-	}
-
-
-	if (_HTTP.hasArg("eqmode") || _HTTP.hasArg("eq_send_udp")) {
-
-		DebugMelvanimatef("[_handleWebRequest] has enableeq\n");
-
-		JsonObject& EQjson = root.createNestedObject("EQ");
-
-		if (_HTTP.hasArg("eqmode")) {
-		EQjson["eqmode"] = _HTTP.arg("eqmode").toInt();
-		}
-		//EQjson["resetpin"] = _resetPin;
-		//EQjson["strobepin"] = _strobePin;
-		if (_HTTP.hasArg("peakfactor")) {
-		EQjson["peakfactor"] =  _HTTP.arg("peakfactor").toFloat();
-		}
-		if (_HTTP.hasArg("beatskiptime")) {
-		EQjson["beatskiptime"] = _HTTP.arg("beatskiptime").toInt();
-		}
-		if (_HTTP.hasArg("samples")) {
-		EQjson["samples"] = _HTTP.arg("samples").toInt();
-		}
-		if (_HTTP.hasArg("sampletime")) {
-		EQjson["sampletime"] = _HTTP.arg("sampletime").toInt();
-		}
-		if (_HTTP.hasArg("eq_send_udp")) {
-		EQjson["eq_send_udp"] = (_HTTP.arg("eq_send_udp") == "on") ? true : false;
-		}
-		if (_HTTP.hasArg("eq_addr")) {
-		EQjson["eq_addr"] = _HTTP.arg("eq_addr");
-		}
-		if (_HTTP.hasArg("eq_port")) {
-		EQjson["eq_port"] = _HTTP.arg("eq_port").toInt();
-		}
-
-	}
 
 
 // matrixmode stuff
@@ -863,143 +906,144 @@ void Melvanimate::_handleWebRequest()
 // #define NEO_TILE_ZIGZAG        0x80 // Tile order reverses between lines
 // #define NEO_TILE_SEQUENCE      0x80 // Bitmask for tile line order
 
-	if (_HTTP.hasArg("matrixmode")) {
+		if (_HTTP.hasArg("matrixmode")) {
 
-		page = "layout";
+			page = "layout";
 
-		JsonObject & matrixnode = root.createNestedObject("Matrix");
-
-
-		if (_HTTP.hasArg("grid_x") && _HTTP.hasArg("grid_y")) {
-
-			matrixnode["x"] = _HTTP.arg("grid_x").toInt();
-			matrixnode["y"] = _HTTP.arg("grid_y").toInt();
-
-			if (_HTTP.hasArg("matrixmode")) {
-				uint8_t matrixvar = 0;
+			JsonObject & matrixnode = root.createNestedObject("Matrix");
 
 
-				matrixnode["multiple"] = (_HTTP.arg("matrixmode") == "singlematrix") ? false : true;
+			if (_HTTP.hasArg("grid_x") && _HTTP.hasArg("grid_y")) {
 
-				if (_HTTP.arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
-				if (_HTTP.arg("firstpixel") == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
-				if (_HTTP.arg("firstpixel") == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
-				if (_HTTP.arg("firstpixel") == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
+				matrixnode["x"] = _HTTP.arg("grid_x").toInt();
+				matrixnode["y"] = _HTTP.arg("grid_y").toInt();
 
-				if (_HTTP.arg("axis") == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
-				if (_HTTP.arg("axis") == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
+				if (_HTTP.hasArg("matrixmode")) {
+					uint8_t matrixvar = 0;
 
-				if (_HTTP.arg("sequence") == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
-				if (_HTTP.arg("sequence") == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
 
-				if (_HTTP.arg("matrixmode") == "multiplematrix") {
-					if (_HTTP.arg("multimatrixtile") == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
-					if (_HTTP.arg("multimatrixtile") == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
-					if (_HTTP.arg("multimatrixtile") == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
-					if (_HTTP.arg("multimatrixtile") == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
-					if (_HTTP.arg("multimatrixaxis") == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
-					if (_HTTP.arg("multimatrixaxis") == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
-					if (_HTTP.arg("multimatrixseq") == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
-					if (_HTTP.arg("multimatrixseq") == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
+					matrixnode["multiple"] = (_HTTP.arg("matrixmode") == "singlematrix") ? false : true;
+
+					if (_HTTP.arg("firstpixel") == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
+					if (_HTTP.arg("firstpixel") == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
+					if (_HTTP.arg("firstpixel") == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
+					if (_HTTP.arg("firstpixel") == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
+
+					if (_HTTP.arg("axis") == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
+					if (_HTTP.arg("axis") == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
+
+					if (_HTTP.arg("sequence") == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
+					if (_HTTP.arg("sequence") == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
+
+					if (_HTTP.arg("matrixmode") == "multiplematrix") {
+						if (_HTTP.arg("multimatrixtile") == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
+						if (_HTTP.arg("multimatrixtile") == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
+						if (_HTTP.arg("multimatrixtile") == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
+						if (_HTTP.arg("multimatrixtile") == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
+						if (_HTTP.arg("multimatrixaxis") == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
+						if (_HTTP.arg("multimatrixaxis") == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
+						if (_HTTP.arg("multimatrixseq") == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
+						if (_HTTP.arg("multimatrixseq") == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
+					}
+
+					matrixnode["config"] = matrixvar;
+
+					//Serial.println("[Melvanimate::_handleWebRequest] matrixnode dump");
+					//matrixnode.prettyPrintTo(Serial);
+					//Serial.println();
 				}
-
-				matrixnode["config"] = matrixvar;
-
-				//Serial.println("[Melvanimate::_handleWebRequest] matrixnode dump");
-				//matrixnode.prettyPrintTo(Serial);
-				//Serial.println();
 			}
+
 		}
 
-	}
+
+		code = parse(root);
 
 
-	code = parse(root);
+		if (_HTTP.hasArg("flashfirst")) {
 
-
-	if (_HTTP.hasArg("flashfirst")) {
-
-		page = "layout";
-		Start("Off");
-		Stop();
-		strip->ClearTo(0);
-		strip->SetPixelColor(0, RgbColor(255, 0, 0));
-		// AnimUpdateCallback animUpdate = [] (float progress) {
-		// 	strip->SetPixelColor(0, Palette::wheel( (uint8_t)(progress * 255) ));
-		// 	if (progress == 1.0) { strip->SetPixelColor(0, 0); }
-		// };
+			page = "layout";
+			Start("Off");
+			Stop();
+			strip->ClearTo(0);
+			strip->SetPixelColor(0, RgbColor(255, 0, 0));
+			// AnimUpdateCallback animUpdate = [] (float progress) {
+			// 	strip->SetPixelColor(0, Palette::wheel( (uint8_t)(progress * 255) ));
+			// 	if (progress == 1.0) { strip->SetPixelColor(0, 0); }
+			// };
 
 //   StartAnimation(0, 5000 , animUpdate);
 
 
 
-	}
-
-	if (_HTTP.hasArg("revealorder")) {
-		page = "layout";
-		Start("Off");
-		Stop();
-		strip->ClearTo(0);
-
-
-		for (uint16_t pixel = 0; pixel < strip->PixelCount() ; pixel++) {
-
-			strip->SetPixelColor(pixel, RgbColor(255, 0, 0));
-
-			if (pixel) {
-				strip->SetPixelColor(pixel - 1, RgbColor(0, 0, 0));
-			}
-
-
 		}
 
-	}
+		if (_HTTP.hasArg("revealorder")) {
+			page = "layout";
+			Start("Off");
+			Stop();
+			strip->ClearTo(0);
 
 
-	if (_HTTP.hasArg("data")) {
-		_sendData(_HTTP.arg("data"), 0); // sends JSON data for whatever page is currently being viewed
-		return;
-	}
+			for (uint16_t pixel = 0; pixel < strip->PixelCount() ; pixel++) {
 
-	if (_HTTP.hasArg("enabletimer")) {
-		page = "timer";
-		if (_HTTP.arg("enabletimer") == "on") {
+				strip->SetPixelColor(pixel, RgbColor(255, 0, 0));
 
-			if (_HTTP.hasArg("timer") && _HTTP.hasArg("timercommand")) {
-
-				String effect =  (_HTTP.hasArg("timeroption")) ? _HTTP.arg("timeroption") : String();
-
-				if (setTimer(_HTTP.arg("timer").toInt(), _HTTP.arg("timercommand"), effect )) {
-					DebugMelvanimatef("[handle] Timer command accepted\n");
+				if (pixel) {
+					strip->SetPixelColor(pixel - 1, RgbColor(0, 0, 0));
 				}
+
+
 			}
-		} else if (_HTTP.arg("enabletimer") == "off") {
-			setTimer(0, "off");
+
 		}
 
-	}
 
-
-	if (_HTTP.hasArg("presetcommand")) {
-
-		//String in = _HTTP.arg("selectedeffect").toInt()
-		//uint8_t File = in.substring(0, in.indexOf(".")).toInt();
-		//uint8_t ID = in.substring(in.indexOf(".") + 1, in.length()).toInt();
-
-
-		if (_HTTP.arg("presetcommand") == "load") {
-			code = Load(_HTTP.arg("selectedeffect").toInt());
-		} else if (_HTTP.arg("presetcommand") == "new" ) {
-			code = Save(0, _HTTP.arg("presetsavename").c_str());
-		} else if (_HTTP.arg("presetcommand") == "overwrite" ) {
-			code = Save(_HTTP.arg("selectedeffect").toInt(), _HTTP.arg("presetsavename").c_str(), true);
-		} else if (_HTTP.arg("presetcommand") == "delete" ) {
-			code = removePreset(_HTTP.arg("selectedeffect").toInt());
-		} else if (_HTTP.arg("presetcommand") == "deleteall" ) {
-			removeAllpresets();
+		if (_HTTP.hasArg("data")) {
+			_sendData(_HTTP.arg("data"), 0); // sends JSON data for whatever page is currently being viewed
+			return;
 		}
 
-	}
+		if (_HTTP.hasArg("enabletimer")) {
+			page = "timer";
+			if (_HTTP.arg("enabletimer") == "on") {
+
+				if (_HTTP.hasArg("timer") && _HTTP.hasArg("timercommand")) {
+
+					String effect =  (_HTTP.hasArg("timeroption")) ? _HTTP.arg("timeroption") : String();
+
+					if (setTimer(_HTTP.arg("timer").toInt(), _HTTP.arg("timercommand"), effect )) {
+						DebugMelvanimatef("[handle] Timer command accepted\n");
+					}
+				}
+			} else if (_HTTP.arg("enabletimer") == "off") {
+				setTimer(0, "off");
+			}
+
+		}
+
+
+		if (_HTTP.hasArg("presetcommand")) {
+
+			//String in = _HTTP.arg("selectedeffect").toInt()
+			//uint8_t File = in.substring(0, in.indexOf(".")).toInt();
+			//uint8_t ID = in.substring(in.indexOf(".") + 1, in.length()).toInt();
+
+
+			if (_HTTP.arg("presetcommand") == "load") {
+				code = Load(_HTTP.arg("selectedeffect").toInt());
+			} else if (_HTTP.arg("presetcommand") == "new" ) {
+				code = Save(0, _HTTP.arg("presetsavename").c_str());
+			} else if (_HTTP.arg("presetcommand") == "overwrite" ) {
+				code = Save(_HTTP.arg("selectedeffect").toInt(), _HTTP.arg("presetsavename").c_str(), true);
+			} else if (_HTTP.arg("presetcommand") == "delete" ) {
+				code = removePreset(_HTTP.arg("selectedeffect").toInt());
+			} else if (_HTTP.arg("presetcommand") == "deleteall" ) {
+				removeAllpresets();
+			}
+
+		}
+	} // end of if(p_root)
 
 	_sendData(page, code);
 
