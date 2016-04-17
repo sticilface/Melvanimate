@@ -113,6 +113,6 @@ private:
 	mqtt_message * _firstmessage{nullptr};
 	uint32_t _asyncTimeout{0};
 	bool _onlychanged{nullptr};
-
+	uint16_t _reconnecttries{0}; 
 
 };

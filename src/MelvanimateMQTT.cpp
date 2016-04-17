@@ -229,7 +229,7 @@ void MelvanimateMQTT::_reconnect()
 
 	if (!_client.connected()) {
 
-		if (millis() - _reconnectTimer > 5000) {
+		if (millis() - _reconnectTimer > ( 5000 * _reconnecttries)) {
 			DebugMelvanimateMQTTf("[MelvanimateMQTT::_reconnect] [%s] MQTT Connect Attempted...", _melvanimate->deviceName() );
 
 //    boolean connect(const char* id, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage);
@@ -237,6 +237,7 @@ void MelvanimateMQTT::_reconnect()
 			if (_client.connect(_melvanimate->deviceName(), (String(_melvanimate->deviceName()) + "/status").c_str(), 1, false, "offline"  )    ) {
 				DebugMelvanimateMQTTf("connected\n");
 				// Once connected, publish an announcement...
+				_reconnecttries = 0; 
 				if (_melvanimate->deviceName()) {
 
 					_client.publish(  ( "esp/" + String(_melvanimate->deviceName() ) ).c_str() , WiFi.localIP().toString().c_str() , true);
@@ -254,6 +255,10 @@ void MelvanimateMQTT::_reconnect()
 			}
 			DebugMelvanimateMQTTf( "Failed\n");
 			_reconnectTimer = millis();
+			_reconnecttries++; 
+			if (_reconnecttries > 300) {
+				_reconnecttries = 300;
+			}
 		}
 	}
 
