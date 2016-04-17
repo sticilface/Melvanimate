@@ -7,7 +7,7 @@
 using namespace std::placeholders;
 
 
-class Blobs : public EffectHandler
+class Shapes : public EffectHandler
 {
 
 public:
@@ -16,7 +16,7 @@ public:
 	enum Shapetype {RANDOM = 0, FILLCIRCLE, DRAWCIRCLE, FILLSQUARE, DRAWSQUARE, FILLTRIANGLE, DRAWTRIANGLE };
 
 
-	Blobs() {};
+	Shapes() {};
 	bool InitVars();
 	bool Run() override;
 	bool Start() override;
@@ -26,7 +26,7 @@ public:
 		Start();
 	}
 
-	void setshape(Blobs::ShapeCallback Fn) { _shape = Fn; }
+	void setshape(Shapes::ShapeCallback Fn) { _shape = Fn; }
 	void setshape(Shapetype shape); 
 
 	void shape(EffectObjectHandler * Object);
@@ -54,14 +54,14 @@ private:
 
 
 
-	struct BlobsVars {
+	struct ShapesVars {
 		uint32_t position{0};
 		uint32_t lasttick{0};
 		EffectGroup* manager{nullptr};
 		EffectObjectHandler ** pGroup{nullptr};
 	};
 
-	BlobsVars * _vars{nullptr};
+	ShapesVars * _vars{nullptr};
 	ShapeCallback  _shape; // {nullptr};
 
 };

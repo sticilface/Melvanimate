@@ -1,4 +1,4 @@
-#include "Blobs.h"
+#include "Shapes.h"
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "mybus.h"
@@ -10,7 +10,7 @@ using namespace helperfunc;
 extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
-void Blobs::shape(EffectObjectHandler * obj)
+void Shapes::shape(EffectObjectHandler * obj)
 {
 	if (_shape) {
 		(_shape)(obj);
@@ -18,7 +18,7 @@ void Blobs::shape(EffectObjectHandler * obj)
 }
 
 
-bool Blobs::InitVars()
+bool Shapes::InitVars()
 {
 	addVar(new Variable<uint8_t>("brightness", 10));
 	addVar(new Variable<uint8_t>("speed", 10));
@@ -33,11 +33,11 @@ bool Blobs::InitVars()
 	if (_vars) {
 		delete _vars;
 	}
-	_vars = new BlobsVars;
+	_vars = new ShapesVars;
 }
 
 
-bool Blobs::Start()
+bool Shapes::Start()
 {
 	strip->ClearTo(0);
 
@@ -181,17 +181,16 @@ bool Blobs::Start()
 
 }
 
-bool Blobs::Run()
+bool Shapes::Run()
 {
 	if (_vars) {
 		if (_vars->manager) {
-
 			_vars->manager->Update();
 		}
 	}
 }
 
-bool Blobs::Stop()
+bool Shapes::Stop()
 {
 	if (animator) {
 		delete animator;
@@ -208,7 +207,7 @@ bool Blobs::Stop()
 	}
 }
 
-void Blobs::setshape(Shapetype shape)
+void Shapes::setshape(Shapetype shape)
 {
 	switch ( shape ) {
 
@@ -217,63 +216,63 @@ void Blobs::setshape(Shapetype shape)
 		break;
 	}
 	case FILLCIRCLE: {
-		setshape( std::bind(&Blobs::fillCircle, this, _1 ));
+		setshape( std::bind(&Shapes::fillCircle, this, _1 ));
 		break;
 	}
 	case DRAWCIRCLE: {
-		setshape( std::bind(&Blobs::drawCircle, this, _1 ));
+		setshape( std::bind(&Shapes::drawCircle, this, _1 ));
 		break;
 	}
 	case FILLSQUARE: {
-		setshape( std::bind(&Blobs::fillRect, this, _1 ));
+		setshape( std::bind(&Shapes::fillRect, this, _1 ));
 		break;
 	}
 	case DRAWSQUARE: {
-		setshape( std::bind(&Blobs::drawRect, this, _1 ));
+		setshape( std::bind(&Shapes::drawRect, this, _1 ));
 		break;
 	}
 	case FILLTRIANGLE: {
-		setshape( std::bind(&Blobs::fillTriangle, this, _1 ));
+		setshape( std::bind(&Shapes::fillTriangle, this, _1 ));
 		break;
 	}
 	case DRAWTRIANGLE: {
-		setshape( std::bind(&Blobs::drawTriangle, this, _1 ));
+		setshape( std::bind(&Shapes::drawTriangle, this, _1 ));
 		break;
 	}
 
 	}
 }
 
-void Blobs::fillCircle(EffectObjectHandler * Object)
+void Shapes::fillCircle(EffectObjectHandler * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->fillCircle(Object->x, Object->y, Object->size / 2, 0); //  fills shape with
 }
 
-void Blobs::drawCircle(EffectObjectHandler * Object)
+void Shapes::drawCircle(EffectObjectHandler * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->drawCircle(Object->x, Object->y, Object->size / 2, 0); //  fills shape with
 }
 
-void Blobs::drawRect(EffectObjectHandler * Object)
+void Shapes::drawRect(EffectObjectHandler * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->drawRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
 }
-void Blobs::fillRect(EffectObjectHandler * Object)
+void Shapes::fillRect(EffectObjectHandler * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->fillRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
 }
 
-void Blobs::fillTriangle(EffectObjectHandler * Object)
+void Shapes::fillTriangle(EffectObjectHandler * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->fillTriangle(Object->x, Object->y, Object->x + Object->size, Object->y, Object->x + (Object->size / 2), Object->y + Object->size , 0); //  fills shape with
 }
 
-void Blobs::drawTriangle(EffectObjectHandler * Object)
+void Shapes::drawTriangle(EffectObjectHandler * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->drawTriangle(Object->x, Object->y, Object->x + Object->size, Object->y, Object->x + (Object->size / 2), Object->y + Object->size , 0); //  fills shape with

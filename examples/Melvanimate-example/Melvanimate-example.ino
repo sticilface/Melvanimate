@@ -29,7 +29,7 @@
 #include "effects/AdalightEffect.h"
 #include "effects/UDPEffect.h"
 #include "effects/RainbowChase.h"
-#include "effects/Blobs.h"
+#include "effects/Shapes.h"
 
 
 const uint16_t defaultpixelcount =  20;
@@ -88,7 +88,7 @@ void setup()
   lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off...
   lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));       
   lights.Add("RainbowChase", new RainbowChase); 
-  lights.Add("Blobs", new Blobs); 
+  lights.Add("Shapes",       new Shapes); 
   lights.Add("Adalight",     new AdalightEffect(Serial, 115200));   //  default serial device and baud. 
   lights.Add("UDP",          new UDPEffect);                        
   lights.Add("DMX",          new DMXEffect );                       // need to test - requires custom libs included
