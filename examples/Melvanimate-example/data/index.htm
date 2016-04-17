@@ -88,6 +88,7 @@
             <a href="#palette" data-role="button" class="ui-btn" id="palettebutton">Palette</a>
             <a href="#timer" data-role="button" class="ui-btn">Timer</a>
             <a href="#matrixpage" data-role="button" class="ui-btn" id ="matrixbutton">Matrix</a>
+            <a href="#eqpage" data-role="button" class="ui-btn" id ="eqbutton">EQ</a>
             <a href="#configpage" data-role="button" class="ui-btn">Config</a>
             <a href="/espman/" rel="external" data-role="button" class="ui-btn">ESPmanager</a>
             <a href="#my-header" data-rel="close" class="ui-btn">Close</a>
@@ -408,6 +409,116 @@
 
 
 
+<!--EQ Page-->
+
+
+<div data-role="page" id="eqpage" data-close-btn="right" data-dialog="true">
+
+<div data-role="header">
+  <h1 class='myheader'> EQ </h1>
+  </div>
+          <div data-role="content">
+<!--//field-resetpin, field-strobepin-->
+          MSGEQ7: [Reset Pin: <var id="field-resetpin"></var>, Strobe Pin: <var id="field-strobepin"></var>]<br>
+          UDP: <var id="field-udpsend"> Disabled </var> ] <a href="#equdpsendpage">edit</a>  
+            <form id="eqform">
+              
+                <!--<div class="ui-field-contain">-->
+                <!--    <label for="flip-enable-EQ">On/Off:</label>-->
+                <!--    <select id="flip-enable-EQ" name="enablebeats" data-role="flipswitch" class="">-->
+                <!--        <option>off</option>-->
+                <!--        <option>on</option>-->
+                <!--    </select>-->
+                <!--</div>-->
+                    <div class="ui-field-contain ">
+                        <label for="flip-enable-EQ">Mode:</label>
+                        <select name="eqmode" id="flip-enable-EQ">
+                            <option value=0 selected="selected">Off</option>
+                            <option value=1 >On</option>
+                            <option value=2 >Recieve UDP</option>
+                        </select>
+                    </div>
+                    
+                <div id="eqvars">
+                                
+                <div class="ui-field-contain">
+                    <label for="text-input-peakfactor">Beat Factor:</label>
+                    <input type="text" name="peakfactor" id="text-input-peakfactor" value="" class="noEnterSubmit">
+                </div>                
+
+                <div class="ui-field-contain">
+                    <label for="text-input-beatskiptime">Beat Timeout (ms):</label>
+                    <input type="text" name="beatskiptime" id="text-input-beatskiptime" value="" class="noEnterSubmit">
+                </div>                   
+                
+                <div class="ui-field-contain">
+                    <label for="text-input-samples">Samples:</label>
+                    <input type="text" name="samples" id="text-input-samples" value="" class="noEnterSubmit">
+                </div>
+                <div class="ui-field-contain">
+                    <label for="text-input-sampletime">Sample Time (ms):</label>
+                    <input type="text" name="sampletime" id="text-input-sampletime" value="" class="noEnterSubmit">
+                </div>                
+                
+              </div>
+              
+              <div id="beatsipinputs">
+                
+              <!--  <div class="ui-field-contain">-->
+              <!--      <label for="text-input-eq_addr">IP:</label>-->
+              <!--      <input type="text" name="eq_addr" id="text-input-eq_addr" value="" class="noEnterSubmit">-->
+              <!--  </div>    -->
+                
+              <!--  <div class="ui-field-contain">-->
+              <!--      <label for="text-input-eq_port">Port:</label>-->
+              <!--      <input type="text" name="eq_port" id="text-input-eq_port" value="" class="noEnterSubmit">-->
+              <!--  </div>                 -->
+              </div>
+              
+              <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+                
+                
+                
+            </form>
+            
+            
+            </div>
+  </div>
+
+<div data-role="page" id="equdpsendpage" data-close-btn="right" data-dialog="true">
+
+<div data-role="header">
+  <h1 class='myheader'> EQ </h1>
+  </div>
+          <div data-role="content">
+            
+            <form id="equdpapge">
+            
+                
+                 <div class="ui-field-contain">
+                    <label for="flip-enable-eq_send_udp">On/Off:</label>
+                    <select id="flip-enable-eq_send_udp" name="eq_send_udp" data-role="flipswitch" class="">
+                        <option>off</option>
+                        <option>on</option>
+                    </select>
+                </div>
+
+                <div class="ui-field-contain">
+                    Multicast addr: 224.0.0.0
+                    <label for="text-input-eq_addr2">IP:</label>
+                    <input type="text" name="eq_addr" id="text-input-eq_addr2" value="" class="noEnterSubmit">
+                </div>                
+
+                <div class="ui-field-contain">
+                    <label for="text-input-eqport2">Port:</label>
+                    <input type="text" name="eq_port" id="text-input-eqport2" value="" class="noEnterSubmit">
+                </div>
+             <a data-rel="back" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
+               
+            </form>           
+            </div>
+</div>
+
 <!--Matrix Page-->
 
     <div data-role="page" id="matrixpage" data-close-btn="right" data-dialog="true">
@@ -567,7 +678,7 @@
 
                 <div class="ui-field-contain">
                     <label for="flip-enable-timer">Enable:</label>
-                    <select id="flip-enable-timer" name="enabletimer" data-role="flipswitch">
+                    <select id="flip-enable-timer" name="enabletimer" data-role="flipswitch" >
                         <option>off</option>
                         <option>on</option>
                     </select>
@@ -820,6 +931,26 @@
 
             });
 
+            //$(document).on("pagecreate", "#eqpage", function() {
+$("#eqpage").on("pagebeforeshow", function() {
+// $(this).children(':input[value=""]').attr("disabled", "disabled");
+
+                $("#flip-enable-EQ").on("change", function() {
+                  
+                  $('#eqvars').hide(); 
+                  $('#beatsipinputs').hide();
+  
+              if ($(this).val() == 1) {
+                  $('#eqvars').show();                
+    
+              } else if ($(this).val() == 2) {
+                
+                    $('#beatsipinputs').show(); 
+              }
+                    
+            
+                });
+              });
 
             //  
             $(document).on('touchstart click', '.myheader', function(e) {
@@ -1389,12 +1520,19 @@
                             $("#palettebutton").hide();
                           }
                           if (result.settings.hasOwnProperty("Matrix")) {
-                            if (result.settings.Matrix.enabled) {
+                            //if (result.settings.Matrix.enabled) {
                                 $("#matrixbutton").show();
                             } else {
                                 $("#matrixbutton").hide();
-                            }
+                            //}
                           }
+                          
+                        if (result.settings.hasOwnProperty('EQ')) {
+                                $("#eqbutton").show();
+                            } else {
+                                $("#eqbutton").hide();
+                        }
+                        
                           
                         $('#effectoptions').children('div').each(function(index) {
                           $(this).hide();
@@ -1456,11 +1594,11 @@
                       
                       if (result.hasOwnProperty('heap')) 
                       {
-                        $("#heap").empty().append(result.heap).css("color", "grey");;
+                        $("#heap").empty().append(result.heap).css("color", "grey");
                       }
                       if (result.hasOwnProperty('power')) 
                       {
-                        $("#power").empty().append(result.power).css("color", "orange");;
+                        $("#power").empty().append(result.power).css("color", "orange");
                       }
                       
                       
@@ -1505,22 +1643,8 @@
                         
                         var mqtt = result.MQTT; 
                             
-                        // if (mqtt.hasOwnProperty('enable')) {
-                          
-                        //     console.log("MQTT: " + mqtt.enable);
-                        //     $("#flip-enable-MQTT").val(mqtt.enable).slider("refresh");
-                            
-                            
-                        // } 
                         if (mqtt.hasOwnProperty('enabled')) {
-                          
                           $("#flip-enable-MQTT").val((mqtt.enabled) ? "on" : "off").flipswitch('refresh').trigger("change");
-                            // if (mqtt.enable == "true") { 
-                            //   $("#flip-enable-MQTT").off("change").val("on").flipswitch('refresh').trigger("change"); 
-                              
-                            // } else {
-                            //   $("#flip-enable-MQTT").off("change").val("off").flipswitch('refresh').trigger("change");
-                            // }
                         }
                             
                         if (mqtt.hasOwnProperty('ip')) {
@@ -1637,7 +1761,93 @@
                        }
                     
                     }
-                    
+//eqpage                    
+            if ($.mobile.activePage.attr('id') == 'eqpage') {
+              
+              if (result.hasOwnProperty('settings') && result.settings.hasOwnProperty('EQ')) {
+              
+              EQ = result.settings.EQ; 
+              
+                        if (EQ.hasOwnProperty('resetpin')) {
+                            $("#field-resetpin").empty().append(EQ.resetpin + " ").css("color", "red");
+                        }  
+                        
+                        if (EQ.hasOwnProperty('strobepin')) {
+                            $("#field-strobepin").empty().append(EQ.strobepin + " ").css("color", "red");
+                        }  
+                        
+                         if (EQ.hasOwnProperty('eqmode')) {
+                           //$("#flip-enable-EQ").val((EQ.enablebeats) ? "on" : "off").flipswitch('refresh').trigger("change");
+                           $("#flip-enable-EQ").val(EQ.eqmode).selectmenu("refresh").trigger("change");
+                         }
+
+                            
+                        if (EQ.hasOwnProperty('peakfactor')) {
+                            $("#text-input-peakfactor").val(EQ.peakfactor);
+                        }  
+                        
+                        if (EQ.hasOwnProperty('beatskiptime')) {
+                            $("#text-input-beatskiptime").val(EQ.beatskiptime); 
+                        }              
+              
+                        if (EQ.hasOwnProperty('samples')) {
+                            $("#text-input-samples").val(EQ.samples); 
+                        }               
+              
+                         if (EQ.hasOwnProperty('sampletime')) {
+                            $("#text-input-sampletime").val(EQ.sampletime); 
+                        }       
+                        
+                        textstring = ""; 
+                        
+                        if (EQ.hasOwnProperty("eqmode")) {
+                          
+                          if (EQ.eqmode == 2) {
+                            textstring = "RECEIVE "; 
+                          } else if (EQ.hasOwnProperty('eq_send_udp') && EQ.eq_send_udp){
+                            textstring = "SEND ";
+                          } else {
+                            textstring = "[Disabled"; 
+                          }
+                          
+                          
+                        }
+                        
+                        if (textstring != "[Disabled") {
+                            textstring += "[" + EQ.eq_addr[0] + "." + EQ.eq_addr[1] + "." +EQ.eq_addr[2] + "." + EQ.eq_addr[3] + ": " + EQ.eq_port; 
+             
+                         }
+                         
+                         $("#field-udpsend").empty().append(textstring);
+
+              }
+              
+              
+            }
+//  udp send page
+ 
+   
+
+
+            if ($.mobile.activePage.attr('id') == 'equdpsendpage') {
+              
+              if (result.hasOwnProperty('settings') && result.settings.hasOwnProperty('EQ')) {
+                
+                EQ = result.settings.EQ;
+                
+                        if (EQ.hasOwnProperty('eq_send_udp')) {
+                           $("#flip-enable-eq_send_udp").val((EQ.eq_send_udp) ? "on" : "off").flipswitch('refresh').trigger("change");
+                         }
+                         
+                        if (EQ.hasOwnProperty('eq_port')) {
+                            $("#text-input-eqport2").val(EQ.eq_port); 
+                        }               
+              
+                         if (EQ.hasOwnProperty('eq_addr')) {
+                            $("#text-input-eq_addr2").val(EQ.eq_addr[0] + "." + EQ.eq_addr[1] + "." +EQ.eq_addr[2] + "." + EQ.eq_addr[3]); 
+                        } 
+}
+}
     }
 
   var pagevar; 

@@ -37,14 +37,26 @@ void MelvanimateMQTT::sendPresets()
 		if (reply.containsKey("Presets")) {
 			JsonArray & presets = reply["Presets"];
 
-			size_t length = presets.measureLength();
-			char * data = new char[length + 2];
-			if (data) {
-				memset(data, '\0', length + 2);
-				presets.printTo(data, length + 1);
-				publish( "presets", data, length + 1 );
-				delete[] data;
+			for (JsonArray::iterator it = presets.begin(); it != presets.end(); ++it) {
+
+				JsonObject & current = *it;
+				uint8_t ID = current["ID"];
+				String topic = "preset/" + String(ID);
+				String msg = String(current["name"].asString()) + " [" + String(current["effect"].asString()) + "]";
+
+				publish(topic.c_str(), msg.c_str(), msg.length() );
+
+
 			}
+
+			// size_t length = presets.measureLength();
+			// char * data = new char[length + 2];
+			// if (data) {
+			// 	memset(data, '\0', length + 2);
+			// 	presets.printTo(data, length + 1);
+			// 	publish( "presets", data, length + 1 );
+			// 	delete[] data;
+			// }
 		}
 	}
 }
@@ -179,31 +191,35 @@ bool MelvanimateMQTT::publish(const char * topic, const char * payload, bool ret
 
 bool MelvanimateMQTT::publish(const char * topic, uint8_t * payload, size_t length, bool retained)
 {
+	//DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] %s : %s \n", topic, payload);
 
-	uint8_t count = 1;
-	if (!_firstmessage) {
+	if (topic && payload) {
 
-		//DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle assigned.\n");
-		_firstmessage = new mqtt_message(this, topic, payload, length, retained);
-		if (_firstmessage) {
-			DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] assigning %u\n", count);
-			return true;
-		}
-	} else {
-		//DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle already assigned.\n");
-		count++;
-		mqtt_message * handle = _firstmessage;
-		mqtt_message * current = _firstmessage;
-		while (current->next()) {
+		uint8_t count = 1;
+		if (!_firstmessage) {
+
+			//DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle assigned.\n");
+			_firstmessage = new mqtt_message(this, topic, payload, length, retained);
+			if (_firstmessage) {
+				DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] assigning %u\n", count);
+				return true;
+			}
+		} else {
+			//DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] _firsthandle already assigned.\n");
 			count++;
-			current = current->next();
+			mqtt_message * handle = _firstmessage;
+			mqtt_message * current = _firstmessage;
+			while (current->next()) {
+				count++;
+				current = current->next();
+			}
+
+			current->next( new mqtt_message(this, topic, payload, length, retained));
+
 		}
 
-		current->next( new mqtt_message(this, topic, payload, length, retained));
-
+		DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] assigning %u\n", count);
 	}
-
-	DebugMelvanimateMQTTf("[MelvanimateMQTT::publish] assigning %u\n", count);
 
 }
 
@@ -213,7 +229,7 @@ void MelvanimateMQTT::_reconnect()
 
 	if (!_client.connected()) {
 
-		if (millis() - _reconnectTimer > 5000) {
+		if (millis() - _reconnectTimer > ( 5000 * _reconnecttries)) {
 			DebugMelvanimateMQTTf("[MelvanimateMQTT::_reconnect] [%s] MQTT Connect Attempted...", _melvanimate->deviceName() );
 
 //    boolean connect(const char* id, const char* willTopic, uint8_t willQos, boolean willRetain, const char* willMessage);
@@ -221,6 +237,7 @@ void MelvanimateMQTT::_reconnect()
 			if (_client.connect(_melvanimate->deviceName(), (String(_melvanimate->deviceName()) + "/status").c_str(), 1, false, "offline"  )    ) {
 				DebugMelvanimateMQTTf("connected\n");
 				// Once connected, publish an announcement...
+				_reconnecttries = 0; 
 				if (_melvanimate->deviceName()) {
 
 					_client.publish(  ( "esp/" + String(_melvanimate->deviceName() ) ).c_str() , WiFi.localIP().toString().c_str() , true);
@@ -238,6 +255,10 @@ void MelvanimateMQTT::_reconnect()
 			}
 			DebugMelvanimateMQTTf( "Failed\n");
 			_reconnectTimer = millis();
+			_reconnecttries++; 
+			if (_reconnecttries > 300) {
+				_reconnecttries = 300;
+			}
 		}
 	}
 
