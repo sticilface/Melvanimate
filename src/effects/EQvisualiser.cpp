@@ -14,7 +14,7 @@ bool EQvisualiser::InitVars()
 
 bool EQvisualiser::Start()
 {
-	StartEQ();
+	//StartEQ();
 
 	for (uint8_t i = 0; i < 7; i++) {
 		_colours[i] = random(256);
@@ -46,7 +46,7 @@ bool EQvisualiser::Run()
 
 bool EQvisualiser::Stop()
 {
-	EndEQ();
+	//EndEQ();
 }
 
 
