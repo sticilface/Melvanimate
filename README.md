@@ -43,7 +43,7 @@ This is a complete rework of my previous project [WS2812-WiFi](https://github.co
 ## Included Effects
 + SimpleColour (Fades all pixels to one colour).
 + RainbowChase (Adafruit's rainbow chase). 
-+ Blobs (A complex effect, working with linear strips, or 2D matrix (with shapes), fading in and out, varies in number)
++ Shapes (A complex effect, working with linear strips, or 2D matrix (with shapes), fading in and out, varies in number, can draw shapes from Adafruit GFX lib.)
 + Adalight (Via serial up to 2,000,000 baud tested).
 + DMX (via [E131](https://github.com/forkineye/E131)) Not perfect yet. 
 + UDP (Stream RGB packets straight to ESP, works from [PixelController](http://pixelinvaders.ch/?page_id=160)).
