@@ -41,6 +41,9 @@ struct EQParam {
 
 typedef std::function<void(const EQParam& param)> EQCallback;
 
+enum EQ_MODE { EQ_OFF = 0, EQ_ON, EQ_RECEIVEUDP};
+
+
 struct EQData_s {
 	EQData_s(uint16_t size)
 	{
@@ -114,7 +117,6 @@ class EQ
 {
 public:
 
-	enum EQ_MODE { OFF = 0, ON, RECEIVEUDP};
 
 	EQ(uint32_t samples = 0, uint32_t totaltime = 0); 
 	~EQ();
@@ -125,10 +127,6 @@ public:
 	void loop();
 
 	void setMode(EQ_MODE mode) { _mode = mode; _initialise(); }
-
-	// void Start() { _mode = ON; }
-	// void Stop() { _mode = OFF; }
-	// void End() { Stop(); _deinitialise(); }
 
 	uint16_t data[7] = {0};
 
@@ -148,7 +146,7 @@ private:
 	void _startEQ();
 
 
-	EQ_MODE _mode {ON}; // default mode is on!
+	EQ_MODE _mode {EQ_ON}; // default mode is on!
 
 	uint8_t _resetPin = EQ_DEFAULT_RESET_PIN;
 	uint8_t _strobePin = EQ_DEFAULT_STROBE_PIN;

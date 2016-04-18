@@ -12,7 +12,7 @@ class Shapes : public EffectHandler
 
 public:
 
-	typedef std::function<void(EffectObjectHandler *)> ShapeCallback;
+	typedef std::function<void(SimpleEffectObject *)> ShapeCallback;
 	enum Shapetype {RANDOM = 0, FILLCIRCLE, DRAWCIRCLE, FILLSQUARE, DRAWSQUARE, FILLTRIANGLE, DRAWTRIANGLE };
 
 
@@ -29,7 +29,7 @@ public:
 	void setshape(Shapes::ShapeCallback Fn) { _shape = Fn; }
 	void setshape(Shapetype shape); 
 
-	void shape(EffectObjectHandler * Object);
+	void shape(SimpleEffectObject * Object);
 
 
 	inline uint8_t speed() { return getVar<uint8_t>("speed"); }
@@ -45,12 +45,12 @@ public:
 
 private:
 
-	void fillCircle(EffectObjectHandler * Object) ;
-	void drawCircle(EffectObjectHandler * Object) ;
-	void drawRect(EffectObjectHandler * Object) ;
-	void fillRect(EffectObjectHandler * Object) ;
-	void fillTriangle(EffectObjectHandler * Object);
-	void drawTriangle(EffectObjectHandler * Object); 
+	void fillCircle(SimpleEffectObject * Object) ;
+	void drawCircle(SimpleEffectObject * Object) ;
+	void drawRect(SimpleEffectObject * Object) ;
+	void fillRect(SimpleEffectObject * Object) ;
+	void fillTriangle(SimpleEffectObject * Object);
+	void drawTriangle(SimpleEffectObject * Object); 
 
 
 

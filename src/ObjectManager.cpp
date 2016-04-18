@@ -19,12 +19,12 @@ EffectGroup::~EffectGroup()
 
 }
 
-EffectObjectHandler * EffectGroup::Add(uint16_t id, uint32_t timeout , EffectObjectHandler* handle)
+EffectObjectHandler * EffectGroup::Add(uint16_t id , EffectObjectHandler* handle)
 {
 	if (!handle) { return 0; }
 
 	handle->id(id);
-	handle->Timeout(timeout);
+	//handle->Timeout(timeout);
 
 
 	if (!_lastHandle) {
@@ -77,14 +77,14 @@ void EffectGroup::Update()
 	}
 }
 
-void EffectGroup::Run()
-{
-	// EffectObjectHandler* handler;
-	// for (handler = _firstHandle; handler; handler = handler->next() ) {
-	// 	handler->StartAnimations();
-	// }
+// void EffectGroup::Run()
+// {
+// 	// EffectObjectHandler* handler;
+// 	// for (handler = _firstHandle; handler; handler = handler->next() ) {
+// 	// 	handler->StartAnimations();
+// 	// }
 
-}
+// }
 
 bool EffectGroup::Inuse(EffectObjectHandler* exclude,  uint16_t pixel)
 {
@@ -113,191 +113,192 @@ bool EffectGroup::Inuse(EffectObjectHandler* exclude,  uint16_t pixel)
 	return false;
 }
 
-bool SimpleEffectObject::UpdateObject()
-{
-	if (millis() - Lasttick() > Timeout() ) {
-		if (_ObjUpdate) {
-			if (_ObjUpdate()) {
-				Lasttick(millis());
-				return true;
-			}
-		}
-	}
-	return false;
-}
+
+// bool SimpleEffectObject<typename T>::UpdateObject()
+// {
+// 	if (millis() - Lasttick() > Timeout() ) {
+// 		if (_ObjUpdate) {
+// 			if (_ObjUpdate()) {
+// 				Lasttick(millis());
+// 				return true;
+// 			}
+// 		}
+// 	}
+// 	return false;
+// }
 
 
 
-//  maybe not in use...
-bool EffectObject::UpdateObject()
-{
-	if (_ObjUpdate) {
-		_ObjUpdate();
-	} else {
-		return false;
-	}
+// //  maybe not in use...
+// bool EffectObject::UpdateObject()
+// {
+// 	if (_ObjUpdate) {
+// 		_ObjUpdate();
+// 	} else {
+// 		return false;
+// 	}
 
-}
+// }
 
-void EffectObject::SetObjectUpdateCallback(ObjectUpdateCallback Fn)
-{
-	_ObjUpdate = Fn;
-}
+// void EffectObject::SetObjectUpdateCallback(ObjectUpdateCallback Fn)
+// {
+// 	_ObjUpdate = Fn;
+// }
 
-void EffectObject::SetPixelUpdateCallback(AnimationUpdateCallback Fn)
-{
-	_AniUpdate = Fn;
-}
+// void EffectObject::SetPixelUpdateCallback(AnimationUpdateCallback Fn)
+// {
+// 	_AniUpdate = Fn;
+// }
 
 
-bool AnimatedEffectObject::move(Direction dir)
-{
+// bool AnimatedEffectObject::move(Direction dir)
+// {
 
-	if (!_constrain) {
-		switch (dir) {
-		case N: {
-			if (y++ > _matrix->height()) {
-				y = 0;
-			}
-			return true;
-			break;
-		}
-		case NE: {
-			if (x++ > _matrix->width()) {
-				x = 0;
-			}
-			if (y++ > _matrix->height()) {
-				y = 0;
-			}
-			return true;
-			break;
-		}
-		case E: {
-			if (x++ > _matrix->width()) {
-				x = 0;
-			}
-			return true;
-			break;
-		}
-		case SE: {
-			if (x++ > _matrix->width()) {
-				x = 0;
-			}
-			if (y-- < 0 ) {
-				y = _matrix->height();
-			}
-			return true;
-			break;
-		}
-		case S: {
-			if (y-- < 0 ) {
-				y = _matrix->height();
-			}
-			return true;
-			break;
-		}
-		case SW: {
-			if (x-- < 0 ) {
-				x = _matrix->width();
-			}
-			if (y-- < 0 ) {
-				y = _matrix->height();
-			}
-			return true;
-			break;
-		}
-		case W: {
-			if (x-- < 0 ) {
-				x = _matrix->width();
-			}
-			return true;
-			break;
-		}
-		case NW: {
-			if (y++ > _matrix->height()) {
-				y = 0;
-			}
-			if (x-- > 0 ) {
-				x = _matrix->width();
-			}
-			return true;
-			break;
-		}
-		}
-	} else {
-		switch (dir) {
+// 	if (!_constrain) {
+// 		switch (dir) {
+// 		case N: {
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case NE: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case E: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case SE: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case S: {
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case SW: {
+// 			if (x-- < 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case W: {
+// 			if (x-- < 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case NW: {
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			if (x-- > 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		}
+// 	} else {
+// 		switch (dir) {
 			
-		case N: {
+// 		case N: {
 
-			if (y++ > _matrix->height()) {
-				y = 0;
-			}
-			return true;
-			break;
-		}
-		case NE: {
-			if (x++ > _matrix->width()) {
-				x = 0;
-			}
-			if (y++ > _matrix->height()) {
-				y = 0;
-			}
-			return true;
-			break;
-		}
-		case E: {
-			if (x++ > _matrix->width()) {
-				x = 0;
-			}
-			return true;
-			break;
-		}
-		case SE: {
-			if (x++ > _matrix->width()) {
-				x = 0;
-			}
-			if (y-- < 0 ) {
-				y = _matrix->height();
-			}
-			return true;
-			break;
-		}
-		case S: {
-			if (y-- < 0 ) {
-				y = _matrix->height();
-			}
-			return true;
-			break;
-		}
-		case SW: {
-			if (x-- < 0 ) {
-				x = _matrix->width();
-			}
-			if (y-- < 0 ) {
-				y = _matrix->height();
-			}
-			return true;
-			break;
-		}
-		case W: {
-			if (x-- < 0 ) {
-				x = _matrix->width();
-			}
-			return true;
-			break;
-		}
-		case NW: {
-			if (y++ > _matrix->height()) {
-				y = 0;
-			}
-			if (x-- > 0 ) {
-				x = _matrix->width();
-			}
-			return true;
-			break;
-		}
-		}		
-	}
-}
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case NE: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case E: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case SE: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case S: {
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case SW: {
+// 			if (x-- < 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case W: {
+// 			if (x-- < 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case NW: {
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			if (x-- > 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		}		
+// 	}
+// }
 
 

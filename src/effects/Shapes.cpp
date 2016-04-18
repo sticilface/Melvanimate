@@ -4,13 +4,14 @@
 #include "mybus.h"
 #include "helperfunc.h"
 #include "Palette.h"
+#include "EQ.h"
 
 using namespace helperfunc;
 
 extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
-void Shapes::shape(EffectObjectHandler * obj)
+void Shapes::shape(SimpleEffectObject * obj)
 {
 	if (_shape) {
 		(_shape)(obj);
@@ -29,6 +30,7 @@ bool Shapes::InitVars()
 	addVar(new Variable<uint8_t>("effectnumber", 1));
 	addVar(new Variable<uint8_t>("size", 3));
 	addVar(new Variable<uint8_t>("shapemode", 1));
+	addVar(new Variable<EQ*>(1000, 3000)); //  EQ(samples, sampletime) //  sets the defaults for EQ beat detection...  Start with no params for just graphic equaliser settings.
 
 	if (_vars) {
 		delete _vars;
@@ -63,7 +65,7 @@ bool Shapes::Start()
 	_vars->manager = new EffectGroup;
 
 	for (uint8_t i = 0; i < effectnumber(); i++) {
-		_vars->manager->Add(i, 100 , new SimpleEffectObject()); // if its 2d then no need to hold so many pixels
+		_vars->manager->Add(i, new SimpleEffectObject()); // if its 2d then no need to hold so many pixels
 	}
 
 	setshape( shapemode() );
@@ -99,8 +101,8 @@ bool Shapes::Start()
 					pixel_count++;
 				});
 
-				shape(current);
-				current->create(pixel_count);
+				shape(current); //  this calls function above to populate pixel_count.... 
+				current->create(pixel_count); //  create the memory for that number of pixels
 				pixel_count = 0;
 
 				matrix()->setShapeFn( [ current, &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
@@ -109,7 +111,7 @@ bool Shapes::Start()
 					}
 				});
 
-				shape(current);
+				shape(current); // calls the above function to draw it... 
 
 			} else {
 				//  linear points creation
@@ -243,36 +245,36 @@ void Shapes::setshape(Shapetype shape)
 	}
 }
 
-void Shapes::fillCircle(EffectObjectHandler * Object)
+void Shapes::fillCircle(SimpleEffectObject * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->fillCircle(Object->x, Object->y, Object->size / 2, 0); //  fills shape with
 }
 
-void Shapes::drawCircle(EffectObjectHandler * Object)
+void Shapes::drawCircle(SimpleEffectObject * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->drawCircle(Object->x, Object->y, Object->size / 2, 0); //  fills shape with
 }
 
-void Shapes::drawRect(EffectObjectHandler * Object)
+void Shapes::drawRect(SimpleEffectObject * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->drawRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
 }
-void Shapes::fillRect(EffectObjectHandler * Object)
+void Shapes::fillRect(SimpleEffectObject * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->fillRect(Object->x, Object->y,  Object->size, Object->size, 0); //  fills shape with
 }
 
-void Shapes::fillTriangle(EffectObjectHandler * Object)
+void Shapes::fillTriangle(SimpleEffectObject * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->fillTriangle(Object->x, Object->y, Object->x + Object->size, Object->y, Object->x + (Object->size / 2), Object->y + Object->size , 0); //  fills shape with
 }
 
-void Shapes::drawTriangle(EffectObjectHandler * Object)
+void Shapes::drawTriangle(SimpleEffectObject * Object)
 {
 	if (!Object || !matrix()) { return; }
 	matrix()->drawTriangle(Object->x, Object->y, Object->x + Object->size, Object->y, Object->x + (Object->size / 2), Object->y + Object->size , 0); //  fills shape with

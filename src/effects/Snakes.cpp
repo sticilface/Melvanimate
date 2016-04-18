@@ -1,177 +1,177 @@
-#include "Snakes.h"
-#include <NeoPixelBus.h>
-#include <NeoPixelAnimator.h>
-#include "mybus.h"
-#include "helperfunc.h"
-#include "Palette.h"
+// #include "Snakes.h"
+// #include <NeoPixelBus.h>
+// #include <NeoPixelAnimator.h>
+// #include "mybus.h"
+// #include "helperfunc.h"
+// #include "Palette.h"
 
-using namespace helperfunc;
+// using namespace helperfunc;
 
-extern MyPixelBus * strip;
-extern NeoPixelAnimator * animator;
-
-
-
-bool Snakes::InitVars()
-{
-	addVar(new Variable<uint8_t>("brightness", 10));
-	addVar(new Variable<uint8_t>("speed", 10));
-	addVar(new Variable<bool>("use_matrix", true));
-	addVar(new Variable<MelvtrixMan*>("Matrix"));  // must be called Matrix.  very importnat...
-	addVar(new Variable<Palette*>("Palette", WHEEL));
-	addVar(new Variable<uint8_t>("effectnumber", 1));
-	addVar(new Variable<uint8_t>("size", 3));
-	addVar(new Variable<uint8_t>("shapemode", 1));
-
-	if (_vars) {
-		delete _vars;
-	}
-	_vars = new SnakesVars;
-}
+// extern MyPixelBus * strip;
+// extern NeoPixelAnimator * animator;
 
 
-bool Snakes::Start()
-{
-	strip->ClearTo(0);
+
+// bool Snakes::InitVars()
+// {
+// 	addVar(new Variable<uint8_t>("brightness", 10));
+// 	addVar(new Variable<uint8_t>("speed", 10));
+// 	addVar(new Variable<bool>("use_matrix", true));
+// 	addVar(new Variable<MelvtrixMan*>("Matrix"));  // must be called Matrix.  very importnat...
+// 	addVar(new Variable<Palette*>("Palette", WHEEL));
+// 	addVar(new Variable<uint8_t>("effectnumber", 1));
+// 	addVar(new Variable<uint8_t>("size", 3));
+// 	addVar(new Variable<uint8_t>("shapemode", 1));
+
+// 	if (_vars) {
+// 		delete _vars;
+// 	}
+// 	_vars = new SnakesVars;
+// }
 
 
-	matrixMan()->enable();
+// bool Snakes::Start()
+// {
+// 	strip->ClearTo(0);
 
 
-	if (_vars->manager) {
-		delete _vars->manager;
-	}
-
-	_vars->manager = new EffectGroup;
-
-	for (uint8_t i = 0; i < effectnumber(); i++) {
-		_vars->manager->Add(i, 100 , new AnimatedEffectObject(matrix())); // if its 2d then no need to hold so many pixels
-	}
+// 	matrixMan()->enable();
 
 
-	for (uint8_t obj = 0; obj < effectnumber(); obj++) {
+// 	if (_vars->manager) {
+// 		delete _vars->manager;
+// 	}
 
-		AnimatedEffectObject * current =  static_cast<AnimatedEffectObject*>(_vars->manager->Get(obj));  // cast handler to the Blobs class...
+// 	_vars->manager = new EffectGroup;
 
-		if (!current) { break; }
-
-		current->x = random(0, matrix()->width() );
-		current->y = random(0, matrix()->height() );
-		current->size = size();
-
-
-		current->SetObjectUpdateCallback( [ current, this ]() {
-
-			uint16_t pixel_count = 0;
-
-			//  count the number of pixels... not sure of a better way to get this from adafruit lib...
+// 	for (uint8_t i = 0; i < effectnumber(); i++) {
+// 		_vars->manager->Add(i, 100 , new AnimatedEffectObject(matrix())); // if its 2d then no need to hold so many pixels
+// 	}
 
 
-//  use this
+// 	for (uint8_t obj = 0; obj < effectnumber(); obj++) {
 
-//			getPixel(x,y); 
+// 		AnimatedEffectObject * current =  static_cast<AnimatedEffectObject*>(_vars->manager->Get(obj));  // cast handler to the Blobs class...
+
+// 		if (!current) { break; }
+
+// 		current->x = random(0, matrix()->width() );
+// 		current->y = random(0, matrix()->height() );
+// 		current->size = size();
+
+
+// 		current->SetObjectUpdateCallback( [ current, this ]() {
+
+// 			uint16_t pixel_count = 0;
+
+// 			//  count the number of pixels... not sure of a better way to get this from adafruit lib...
+
+
+// //  use this
+
+// //			getPixel(x,y); 
 			
 
-			matrix()->setShapeFn( [ &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
-				pixel_count++;
-			});
+// 			matrix()->setShapeFn( [ &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
+// 				pixel_count++;
+// 			});
 
 
-			current->create(pixel_count);
-			pixel_count = 0;
+// 			current->create(pixel_count);
+// 			pixel_count = 0;
 
-			matrix()->setShapeFn( [ current, &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
-				if (current->pixels()) {
-					current->pixels()[pixel_count++] = pixel;
-				}
-			});
-
-
+// 			matrix()->setShapeFn( [ current, &pixel_count ] (uint16_t pixel, int16_t x, int16_t y) {
+// 				if (current->pixels()) {
+// 					current->pixels()[pixel_count++] = pixel;
+// 				}
+// 			});
 
 
-			// pixels chosen check not in use by another animator...
 
-			for (uint16_t i = 0; i < current->total(); i++) {
-				if (_vars->manager->Inuse(current,  current->pixels()[i] ) ) {
-					return false;
-				}
-			}
 
-			if (!current->pixels()) { return false ; } //  break if there are no pixels to draw.
+// 			// pixels chosen check not in use by another animator...
 
-			RgbColor targetColor = palette()->next();
+// 			for (uint16_t i = 0; i < current->total(); i++) {
+// 				if (_vars->manager->Inuse(current,  current->pixels()[i] ) ) {
+// 					return false;
+// 				}
+// 			}
 
-			AnimUpdateCallback animUpdate = [ targetColor, current, this ](const AnimationParam & param) {
-				// progress will start at 0.0 and end at 1.0
-				// we convert to the curve we want
-				float progress = param.progress;
+// 			if (!current->pixels()) { return false ; } //  break if there are no pixels to draw.
 
-				RgbColor updatedColor;
+// 			RgbColor targetColor = palette()->next();
 
-				if (progress < 0.5) {
-					updatedColor = RgbColor::LinearBlend(0, targetColor, progress * 2.0f);
-				} else {
-					updatedColor = RgbColor::LinearBlend(targetColor, 0, (progress - 0.5f) * 2.0f);
-				}
+// 			AnimUpdateCallback animUpdate = [ targetColor, current, this ](const AnimationParam & param) {
+// 				// progress will start at 0.0 and end at 1.0
+// 				// we convert to the curve we want
+// 				float progress = param.progress;
 
-				if (current->pixels()) {
-					for (uint16_t i = 0; i < current->total(); i++) {
-						strip->SetPixelColor( current->pixels()[i] , dim(updatedColor, brightness()));
-					}
-				}
-				///  maybe need to delete pixels() at end of the effect here...
-				//  to remove it from the in use....
+// 				RgbColor updatedColor;
 
-				//if (param.state == AnimationState_Completed) {
-				//	current->end();
-				//}
+// 				if (progress < 0.5) {
+// 					updatedColor = RgbColor::LinearBlend(0, targetColor, progress * 2.0f);
+// 				} else {
+// 					updatedColor = RgbColor::LinearBlend(targetColor, 0, (progress - 0.5f) * 2.0f);
+// 				}
 
-			};
+// 				if (current->pixels()) {
+// 					for (uint16_t i = 0; i < current->total(); i++) {
+// 						strip->SetPixelColor( current->pixels()[i] , dim(updatedColor, brightness()));
+// 					}
+// 				}
+// 				///  maybe need to delete pixels() at end of the effect here...
+// 				//  to remove it from the in use....
 
-			// now use the animation properties we just calculated and start the animation
-			// which will continue to run and call the update function until it completes
+// 				//if (param.state == AnimationState_Completed) {
+// 				//	current->end();
+// 				//}
 
-			uint32_t lower = map( speed(), 0, 255, 100, 10000 );
-			uint32_t upper = map( speed(), 0, 255, lower, lower + 10000 );
+// 			};
 
-			uint32_t timefor = random(lower, upper );
+// 			// now use the animation properties we just calculated and start the animation
+// 			// which will continue to run and call the update function until it completes
 
-			current->Timeout(timefor);
+// 			uint32_t lower = map( speed(), 0, 255, 100, 10000 );
+// 			uint32_t upper = map( speed(), 0, 255, lower, lower + 10000 );
 
-			animator->StartAnimation(current->id(), timefor - 50 , animUpdate);
-			return true;
+// 			uint32_t timefor = random(lower, upper );
 
-		});
+// 			current->Timeout(timefor);
 
-	}
+// 			animator->StartAnimation(current->id(), timefor - 50 , animUpdate);
+// 			return true;
 
-}
+// 		});
 
-bool Snakes::Run()
-{
-	if (_vars) {
-		if (_vars->manager) {
-			_vars->manager->Update();
-		}
-	}
-}
+// 	}
 
-bool Snakes::Stop()
-{
-	if (animator) {
-		delete animator;
-		animator = nullptr;
-	}
+// }
 
-	if (_vars->manager) {
-		delete _vars->manager;
-	}
+// bool Snakes::Run()
+// {
+// 	if (_vars) {
+// 		if (_vars->manager) {
+// 			_vars->manager->Update();
+// 		}
+// 	}
+// }
 
-	if (_vars) {
-		delete _vars;
-		_vars = nullptr;
-	}
-}
+// bool Snakes::Stop()
+// {
+// 	if (animator) {
+// 		delete animator;
+// 		animator = nullptr;
+// 	}
+
+// 	if (_vars->manager) {
+// 		delete _vars->manager;
+// 	}
+
+// 	if (_vars) {
+// 		delete _vars;
+// 		_vars = nullptr;
+// 	}
+// }
 
 
 

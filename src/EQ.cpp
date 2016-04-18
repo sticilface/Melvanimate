@@ -39,7 +39,7 @@ void EQ::_initialise()
 
 	switch (_mode) {
 
-	case ON: {
+	case EQ_ON: {
 
 
 		uint32_t startheap = ESP.getFreeHeap() ;
@@ -64,7 +64,7 @@ void EQ::_initialise()
 		_startEQ();
 	}
 	break;
-	case RECEIVEUDP: {
+	case EQ_RECEIVEUDP: {
 
 		if (!_udp) {
 			_udp = new WiFiUDP;
@@ -134,7 +134,7 @@ void EQ::_endEQ()
 void EQ::loop()
 {
 
-	if (_mode == ON && millis() - _tick > _freq) {
+	if (_mode == EQ_ON && millis() - _tick > _freq) {
 
 		//uint16_t data[7];
 		GetEQ(data);
@@ -169,7 +169,7 @@ void EQ::loop()
 		}
 		_tick = millis();
 
-	} else if (_mode == RECEIVEUDP) {
+	} else if (_mode == EQ_RECEIVEUDP) {
 		//  recieve UDP Packets if mode set
 		if (_udp) {
 			
@@ -240,7 +240,7 @@ bool EQ::addJson(JsonObject & root)
 	JsonObject& EQjson = root.createNestedObject("EQ");
 	EQjson["eqmode"] = (uint8_t)_mode;
 
-	if (_mode == ON) {
+	if (_mode == EQ_ON) {
 		EQjson["resetpin"] = _resetPin;
 		EQjson["strobepin"] = _strobePin;
 		EQjson["peakfactor"] = _peakfactor;
@@ -250,7 +250,7 @@ bool EQ::addJson(JsonObject & root)
 		EQjson["eq_send_udp"] = _send_udp; 
 	}
 
-	if (_mode == ON || _mode == RECEIVEUDP) {
+	if (_mode == EQ_ON || _mode == EQ_RECEIVEUDP) {
 		EQjson["eq_port"] = _port;
 		JsonArray & ip = EQjson.createNestedArray("eq_addr");
 		ip.add(_addr[0]);
