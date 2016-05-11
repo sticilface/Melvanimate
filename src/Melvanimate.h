@@ -1,126 +1,125 @@
+
+
+
 #pragma once
 
 #include "Arduino.h"
+#include <functional>
+#include "IPAddress.h"
+
+#include <ESP8266WiFi.h>
+
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+
+//#include "BufferedPrint.h"
+#include "helperfunc.h"
+#include "EQ.h"
+
+#include "MelvanimateMQTT.h"
+
 
 #include <NeoPixelBus.h>
+#include <NeoPixelAnimator.h>
+
 #include <FS.h>
-#include <ArduinoJson.h>
-#include <MD5Builder.h>
-#include <functional>
-
-
-#include "EffectManager.h"
-#include "ObjectManager.h"
-#include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function 
-#include "Palette.h"
-#include "e131/_E131.h"
-#include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
-
-
 
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
-#define maxLEDanimations 300
 #define EFFECT_WAIT_TIMEOUT 20000
 #define DEFAULT_WS2812_PIN 2
+#define MAX_NUMBER_OF_ANIMATIONS 300
+
+
+#include "mybus.h"
+#include "EffectManager.h"
+#include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function 
+#include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
+#include "ObjectManager.h"
+
+using namespace std::placeholders;
 
 
 #define DebugMelvanimate
 
 #ifdef DebugMelvanimate
-#define Debug(x)    Serial.print(x)
-#define Debugln(x)  Serial.println(x)
-#define Debugf(...) Serial.printf(__VA_ARGS__)
+#define DebugMelvanimatef(...) Serial.printf(__VA_ARGS__)
 #else
-#define Debug(x)    {}
-#define Debugln(x)  {}
-#define Debugf(...) {}
+#define DebugMelvanimatef(...) {}
 #endif
 
-class EffectManager;
-class Palette;
+using namespace helperfunc; 
 
-// globals for various things, including neopixels...
-extern const uint16_t TOTALPIXELS;
-extern NeoPixelBus * strip;
+
+// globals for neopixels.
+extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
-extern uint8_t* stripBuffer;
-extern WiFiUDP Udp;
-extern const IPAddress multicast_ip_addr; // Multicast broadcast address
-extern const uint16_t UDPlightPort;
-extern E131* e131;
-extern SimpleTimer timer;
 
 
-/*
- * uses effectmanager as base class to manage effects...
- * need to tidy..
- *
- * // ToDo
- *	1. Palletes...  including sending and choosing paletes
- *	2. Saving currnet mode / effect  ...  big ask..
- *	3. Create Entoopy variable...  Randomness selection...
- *  4. REMOVE VARS... colours, brightness etc... should be managed by effect itself...
- *
- *
- *
- */
+class MelvanimateMQTT;
 
 
 class Melvanimate : public EffectManager
 {
 public:
-	Melvanimate();
+	Melvanimate(AsyncWebServer & HTTP, uint16_t pixels, uint8_t pin);
 
-	static const RgbColor 	dim( RgbColor input, const uint8_t brightness);
+	bool begin();
+	void loop() override;
+	void deviceName(const char * name) { _deviceName = name; }
+	const char * deviceName() { return _deviceName; }
 
-	void  grid(const uint16_t x, const uint16_t y);
-	void  setmatrix(const uint8_t i);
 
-	const uint8_t getmatrix() { return _matrixconfig; }
-	Melvtrix *  matrix() { return _matrix; } //  returns pointer to the GFX melvtrix
+	// pixel count functions
+	void setPixels(const uint16_t pixels);
+	inline const uint16_t getPixels() const  { return _pixels; }
 
-	Palette & palette() { return *_palette; }
-
-	const uint16_t    getX() {  return _grid_x ; }
-	const uint16_t    getY() {  return _grid_y; }
-	const uint16_t    getPixels() { return _pixels; }
-
-	void        setPixels(const uint16_t pixels);
-	bool        save() { return save(false); }
-	bool 		save(bool);
-
-	bool        load();
-	bool        begin();
-	bool		animations() {return _animations; }
-
+	// autowait functions
 	void setWaiting(bool wait = true);
 	void autoWait();
 	bool returnWaiting();
 
+	// timer functions
 	bool setTimer(int timer, String command, String effect = String() );
-	bool isTimerRunning() { return (_timer > -1); }
-	int getTimer() { return _timer;  }
+	int getTimeLeft(); 
 
-	bool multiplematrix = false; //
-	int32_t timeoutvar;  //  parameters used by some effects...
+	uint32_t getPower(); 
+	bool createAnimator(uint16_t count); 
+	bool createAnimator(); 
+	void deleteAnimator(); 
+
+	void populateJson(JsonObject & root, bool onlychanged = false) ; 
+
+	bool parse(JsonObject & root);
 
 private:
+	bool _saveGeneral(bool override = false);
+	bool _loadGeneral();
 	void _init_LEDs();
-	void _init_matrix();
+	void _initMQTT(JsonObject & root);
+
+	void _sendData(String page, int8_t code,AsyncWebServerRequest *request); 
+	void _handleWebRequest(AsyncWebServerRequest *request);
+	//void _handleMQTTrequest(char* topic, byte* payload, unsigned int length);
+
+	template <class T> static void _sendJsontoHTTP( const T& root, AsyncWebServerRequest *request) ;
+
+	MelvanimateMQTT * _mqtt{nullptr};
+
+	const char * _deviceName{nullptr}; 
 	uint16_t  _pixels;
-	Melvtrix * _matrix;
-	uint8_t _matrixconfig;
-	uint16_t _grid_x, _grid_y;
+	uint8_t _pin;
 	bool _settings_changed;
-	bool _animations;
-	File _settings = File();
-	
-	uint8_t _waiting;
-	uint32_t _waiting_timeout = 0;
 
-	Palette * _palette;
-	int _timer = -1;
+	uint8_t _waiting{0};
+	uint32_t _waiting_timeout{0};
 
+	int _timerState{-1};
+	SimpleTimer _timer;
+
+	AsyncWebServer & _HTTP;
+
+	uint32_t _power{0}; 
+	uint32_t _powertick{0}; 
 
 };
 

@@ -10,11 +10,22 @@ Handler to add / create / run multiple Effect Objects at the same time...
 #pragma once
 #include <functional>
 #include "Arduino.h"
+#include <NeoPixelAnimator.h>
+#include "Melvtrix.h"
+#include "EQ.h"
+
+//#define DebugObjectman
+
+#ifdef DebugObjectman
+#define Debugobjf(...) Serial.printf(__VA_ARGS__)
+#else
+#define Debugobjf(...) {}
+#endif
 
 class EffectObjectHandler;
 
-typedef std::function<void()> ObjectUpdateCallback;
-typedef std::function<void(uint16_t, uint16_t)> AnimationUpdateCallback;
+typedef std::function<bool()> ObjectUpdateCallback;
+
 
 
 class EffectGroup
@@ -22,15 +33,10 @@ class EffectGroup
 public:
 	EffectGroup() : _firstHandle(nullptr), _currentHandle(nullptr), _lastHandle(nullptr) {};
 	~EffectGroup();
-	EffectObjectHandler* Add(uint16_t i, uint32_t timeout, EffectObjectHandler* Fn);
+	EffectObjectHandler* Add(uint16_t i, EffectObjectHandler* Fn);
 	void Update();
-	void Run();
-	bool Inuse(uint16_t pixel);
+	bool Inuse(EffectObjectHandler* exclude, uint16_t pixel);
 	EffectObjectHandler*  Get(uint16_t x);
-	EffectObjectHandler*  operator[] (uint16_t x)
-	{
-		return Get(x);
-	}
 
 private:
 
@@ -45,95 +51,255 @@ class EffectObjectHandler
 {
 public:
 	EffectObjectHandler() : _next(nullptr) {}
-	virtual ~EffectObjectHandler() {}; 
-
-	virtual void SetObjectUpdateCallback(ObjectUpdateCallback Fn) {}
-	virtual void SetPixelUpdateCallback(AnimationUpdateCallback Fn) {}
-	virtual void Addpixel(uint16_t n, uint16_t p) {}
-	virtual void Addpixel(uint16_t p) {}
-
-	virtual int16_t * getdata() { }
-	virtual bool StartAnimations() {}
-	virtual bool UpdateObject() {}
+	virtual ~EffectObjectHandler() {};
+	virtual uint16_t * pixels() { }
+	virtual bool UpdateObject() { return false; }
 	virtual uint16_t total() {};
-
-	void Timeout(uint32_t timeout) { _timeout = timeout; };
-	uint32_t Timeout() { return _timeout; }
-	void Lasttick(uint32_t lasttick) { _lasttick = lasttick; };
-	uint32_t Lasttick() { return _lasttick; }
 
 	EffectObjectHandler* next() { return _next; } //  ASK what is next
 	void next (EffectObjectHandler* next) { _next = next; } //  Set what is next
 	void id (uint16_t id) { _id = id; }
 	const uint16_t id() { return _id; };
-	bool virtual reset() {}
 
 private:
-	EffectObjectHandler* _next = nullptr;
+	EffectObjectHandler* _next{nullptr};
 	uint16_t _id;
-	uint32_t _timeout = 0;
-	uint32_t _lasttick = 0;
+	bool _running{false};
 protected:
 
 
 };
 
-
-class EffectObject : public EffectObjectHandler
+// much simpler and Actually in USE.
+class SimpleEffectObject : public EffectObjectHandler
 {
 private:
-	int16_t * _details;
-	ObjectUpdateCallback _ObjUpdate = nullptr; 
-	AnimationUpdateCallback _AniUpdate = nullptr; 
-	uint16_t _position = 0;
-	uint16_t _total;
+	ObjectUpdateCallback _ObjUpdate;
+	uint16_t * _pixels{nullptr};
+	uint16_t _total{0};
+	uint32_t _timeout{0};
+	uint32_t _lasttick{0};
+
 public:
-
-	enum Direction {UP = 0, DOWN, LEFT, RIGHT};
-
-	EffectObject(uint16_t size) : _total(size), _ObjUpdate(nullptr), _AniUpdate(nullptr)
+	SimpleEffectObject() : _ObjUpdate(nullptr)
 	{
-		_details = new int16_t[_total];
-		std::fill_n(_details, _total, -1);
 
-		Serial.printf("Created Object size %u \n", _total);
 	};
-	~EffectObject() override 
+	~SimpleEffectObject() override
 	{
-		Serial.println("[EffectObject] Deconstructor");
-		delete[] _details;
-	}
-
-	uint16_t total() override { return _total; } ;
-
-	void SetObjectUpdateCallback(ObjectUpdateCallback Fn) override;
-	void SetPixelUpdateCallback(AnimationUpdateCallback Fn) override;
-
-	inline void Addpixel(uint16_t p) override
-	{
-		uint16_t n = _position++;
-		if (_position > _total) return;
-		_details[n] = p;
-	}
-
-	inline void Addpixel(uint16_t n, uint16_t p) override
-	{
-		if (n > _total) return;
-		_details[n] = p;
-	}
-
-	int16_t * getdata() override { return _details;};
-
-	bool StartAnimations() override;
-	bool UpdateObject() override;
-	bool reset() override
-	{
-		_position = 0;
-		for (uint16_t i = 0; i < _total; i++) {
-			_details[i] = -1;
+		if (_pixels) {
+			delete[] _pixels;
 		}
 	}
+	void create(uint16_t size)
+	{
+		if (_pixels) {
+			delete[] _pixels;
+		}
+		_pixels = new uint16_t[size];
+		_total = size;
+	}
+	void end()
+	{
+		if (_pixels) {
+			delete[] _pixels;
+		}
+		_pixels = nullptr;
+	}
+	uint16_t total() override { return _total; }
 
+	void Timeout(uint32_t timeout) { _timeout = timeout; };
+
+	bool UpdateObject() override
+	{
+		if (millis() - _lasttick > _timeout ) {
+			if (_ObjUpdate) {
+				if (_ObjUpdate()) {
+					_lasttick = millis();
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	uint16_t * pixels() override { return _pixels; };
+
+
+	void SetObjectUpdateCallback(ObjectUpdateCallback Fn)
+	{
+		_ObjUpdate = Fn;
+	}
+
+	int16_t x{0};
+	int16_t y{0};
+	uint8_t size{0};
 
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// // trying not to use
+// class EffectObject : public EffectObjectHandler
+// {
+// private:
+// 	uint16_t * _details;
+// 	ObjectUpdateCallback _ObjUpdate = nullptr;
+// 	AnimationUpdateCallback _AniUpdate = nullptr;
+// 	uint16_t _position = 0;
+// 	uint16_t _total;
+// public:
+
+// 	enum Direction {UP = 0, DOWN, LEFT, RIGHT};
+
+// 	EffectObject(uint16_t size) : _total(size), _ObjUpdate(nullptr), _AniUpdate(nullptr)
+// 	{
+// 		_details = new uint16_t[_total];
+// 		std::fill_n(_details, _total, 0);  // change...
+
+// 		Debugobjf("Created Object size %u \n", _total);
+// 	};
+// 	~EffectObject() override
+// 	{
+// 		Debugobjf("[EffectObject] Deconstructor\n");
+// 		delete[] _details;
+// 	}
+
+// 	uint16_t total() override { return _total; } ;
+
+// 	void SetObjectUpdateCallback (ObjectUpdateCallback Fn) override;
+// 	void SetPixelUpdateCallback(AnimationUpdateCallback Fn) override;
+
+// 	inline void Addpixel(uint16_t p) override
+// 	{
+// 		uint16_t n = _position++;
+// 		if (_position > _total) { return; }
+// 		_details[n] = p;
+// 	}
+
+// 	inline void Addpixel(uint16_t n, uint16_t p) override
+// 	{
+// 		if (n > _total) { return; }
+// 		_details[n] = p;
+// 	}
+
+// 	uint16_t * pixels() override { return _details;};
+
+// //	bool StartAnimations() override;
+// 	bool UpdateObject() override;
+// 	bool reset() override
+// 	{
+// 		_position = 0;
+// 		for (uint16_t i = 0; i < _total; i++) {
+// 			_details[i] = -1;
+// 		}
+// 	}
+
+
+// };
+
+
+
+
+
+
+
+
+// //  need to move tick to class derivative not in object manager.. so that animations can be handled...
+// class AnimatedEffectObject : public EffectObjectHandler
+// {
+// private:
+// 	NeoPixelAnimator * animator{nullptr};
+// 	ObjectUpdateCallback _ObjUpdate = nullptr;
+// 	Melvtrix * _matrix{nullptr};
+// 	uint16_t * _pixels{nullptr};
+// 	uint16_t _total{0};
+// 	bool _constrain{false};
+
+// public:
+
+// 	enum Direction {N = 0, NE , E, SE, S, SW, W, NW} ; //
+
+// 	AnimatedEffectObject(Melvtrix * matrix) : _ObjUpdate(nullptr), _matrix(matrix)
+// 	{
+
+// 	};
+// 	~AnimatedEffectObject() override
+// 	{
+// 		if (_pixels) {
+// 			delete[] _pixels;
+// 		}
+// 		if (animator) {
+// 			delete animator;
+// 		}
+// 	}
+// 	void create(uint16_t size)
+// 	{
+// 		if (_pixels) {
+// 			delete[] _pixels;
+// 		}
+// 		_pixels = new uint16_t[size];
+// 		animator = new NeoPixelAnimator(size);
+// 		_total = size;
+// 	}
+
+// 	void SetObjectUpdateCallback(ObjectUpdateCallback Fn) override
+// 	{
+// 		_ObjUpdate = Fn;
+// 	}
+
+// 	uint16_t * pixels() override { return _pixels;};
+// 	uint16_t total() override { return _total; }
+
+// 	bool animating()
+// 	{
+// 		if (animator)
+// 		{
+// 			return animator->IsAnimating();
+// 		}
+// 		return false;
+// 	}
+
+// 	bool move(Direction dir);
+// 	void bounce(bool value) { _constrain = value; }
+
+// 	bool UpdateObject() override
+// 	{
+// 		bool updateflag = false;
+// 		if (millis() - Lasttick() > Timeout() ) {
+// 			if (_ObjUpdate) {
+// 				if (_ObjUpdate()) {
+// 					Timeout(millis());
+// 					updateflag = true;
+// 				} ;
+
+// 			}
+// 		}
+
+// 		if (animator && animator->IsAnimating() ) {
+// 			animator->UpdateAnimations();
+// 		}
+
+// 		return updateflag;
+// 	}
+
+
+// };
 

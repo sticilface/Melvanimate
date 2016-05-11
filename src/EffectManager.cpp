@@ -1,59 +1,53 @@
-
-//  need to add wait for init and end animations
-//
-
-#include "Arduino.h"
-#include "EffectManager.h"
-#include "FS.h"
-
-const char * PRESETS_FILE = "/presets.txt";
-
 /*---------------------------------------------
 
 				Effect Manager
 
 ---------------------------------------------*/
 
+
+#include "EffectManager.h"
+#include <FS.h>
+
+
+#define MAXLEDANIMATIONS 300 // number of pixels before animtor is not created
+#define MAX_PRESET_FILE_SIZE 1000 // max size of permitted settings files... 
+#define MAX_NUMBER_PRESET_FILES 10
+
+
+
+//#define jsonprettyprint //  uses prettyPrintTo to send to SPIFFS... uses a lot more chars to pad the json.. a lot more..
+
+//const char * PRESETS_FILE = "/presets_";
+
 EffectManager::EffectManager() : _count(0), _firstHandle(nullptr), _currentHandle(nullptr), _lastHandle(nullptr), _toggleHandle(nullptr),
-	_NextInLine(nullptr)
+	_NextInLine(nullptr), _defaulteffecthandle(nullptr)
 {};
 
-bool EffectManager::Add(const char * name, EffectHandler* handle)
+bool EffectManager::Add(const char * name, EffectHandler* handle, bool defaulteffect)
 {
 	_count++;
+
+	if (defaulteffect && !_defaulteffecthandle) {
+		_defaulteffecthandle = handle;
+	}
 
 	if (!_lastHandle) {
 		_firstHandle = handle; //  set the first handle
 		_firstHandle->name(name); // set its name in the handler... abstract it out so user doesn't have to
 		_lastHandle = handle;  // set this so we know first slot gone.
-
 	} else {
+		handle->previous(_lastHandle); //  sets the previous handle..
 		_lastHandle->next(handle); // give the last handler address of next
 		_lastHandle = handle;  // move on..
 		_lastHandle->name(name);  // give it name...
 	}
-	Serial.printf("ADDED EFFECT %u: %s\n", _count, _lastHandle->name());
+
+	DebugEffectManagerf("ADDED EFFECT %u: %s\n", _count, handle->name());
+
+	return true;
+
+
 }
-
-bool EffectManager::Start()
-{
-	if (_toggleHandle) {
-		return Start(_toggleHandle->name());
-	}
-	return false;
-}
-
-bool EffectManager::SetToggle(const char * name)
-{
-	EffectHandler* handler = _findhandle(name);
-
-	if (handler) {
-		_toggleHandle = handler;
-		return true;
-	}
-	return false;
-}
-
 
 
 
@@ -62,7 +56,7 @@ EffectHandler* EffectManager::_findhandle(const char * handle)
 	EffectHandler* handler;
 	bool found = false;
 	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( strcmp( handler->name(), handle) == 0) {
+		if ( stricmp( handler->name(), handle) == 0) {
 			found = true;
 			break;
 		}
@@ -75,888 +69,869 @@ EffectHandler* EffectManager::_findhandle(const char * handle)
 	}
 }
 
-bool EffectManager::Start(const char * name)
+bool EffectManager::Start(EffectHandler* handler)
 {
-	//  end current effect...
-	//  need to store address of next... and handle changeover in the loop...
-	// this function should signal to current to END & store
 
-	// actually.. maybe use return values to signal... with timeouts to prevent getting stuck..
-	// manager sends... stop()....  until that returns true.. it can't --- NOPE not going to work... Start and stop should only get called once...
-	if (_currentHandle) _currentHandle->Stop();
+#ifdef DebugEffectManager
+	DebugEffectManagerf("\n");
+	DebugEffectManagerf("[Start] called for %s\n", handler->name());
+	uint32_t heap;
+#endif
 
-	EffectHandler* handler = _findhandle(name);
-
-
-	if (handler) {
-		_NextInLine = handler;
-		getPresets(_NextInLine, _numberofpresets, _presets, _preset_names);
-
-		Serial.printf("[Start] %u presets found for %s\n", _numberofpresets, _NextInLine->name());
-
-		return true;
-	} else {
+	if (handler == _currentHandle) {
 		return false;
 	}
 
+	Stop();
+
+	if (handler) {
+		_NextInLine = handler;
+
+#ifdef DebugEffectManager
+		heap = ESP.getFreeHeap();
+#endif
+
+		_NextInLine->InitVars();
+
+		if (_NextInLine->preset() != 255) {
+			Load(_NextInLine->preset());
+		} else {
+			// try to load defaut...
+
+			// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+			if (_presetcountS && _presetS) {
+				for (uint8_t i = 0; i < _presetcountS; i++) {
+					Presets_s * preset = &_presetS[i];
+					if (preset->handle == _NextInLine) {
+
+						if (!strcmp(preset->name, "Default") || !strcmp( preset->name, "default")) {
+
+							if (Load(preset->file, preset->id  )) {
+								DebugEffectManagerf("[Start] Default Loaded %u\n", preset->id);
+								break;
+							} else {
+								DebugEffectManagerf("[Start] ERROR loading Default %u\n", preset->id);
+							}
+
+						}
+
+					}
+				}
+			}
+
+		}
+
+		//  This sets the toggle... as long as it is not the default handle... ie... Off....
+		if (_defaulteffecthandle) {
+			if (handler != _defaulteffecthandle) {
+				_toggleHandle = handler;
+			}
+		}
+#ifdef DebugEffectManager
+		int used = heap - ESP.getFreeHeap();
+		if (used < 0) { used = 0; }
+#endif
+
+		DebugEffectManagerf("[Start] Heap Used by %s (%u)\n", handler->name(), used);
+
+		return true;
+	} else {
+		//  if no handle.. try to start default....
+		if (_defaulteffecthandle) {
+			Start(_defaulteffecthandle->name());
+			return false;
+		}
+		// if that fails.. bail...
+		return false;
+	}
+}
+
+
+EffectHandler* EffectManager::Current()
+{
+	if (_NextInLine) {
+		return _NextInLine;
+	} else {
+		return _currentHandle;
+	}
 };
 
+
+// not sure about this implementation....
 bool EffectManager::Next()
 {
-	_currentHandle = _currentHandle->next();
+	Start(_currentHandle->next()->name());
 };
-
+bool EffectManager::Previous()
+{
+	Start(_currentHandle->previous()->name());
+};
 
 bool EffectManager::Stop()
 {
-	if (_currentHandle)  _currentHandle->Stop();
+
+	if (_currentHandle) {
+		DebugEffectManagerf("[EffectManager::Stop] called for %s\n", _currentHandle->name());
+		_currentHandle->EndVars();
+		return _currentHandle->Stop();
+	}
 };
 
 bool EffectManager::Pause()
 {
-	if (_currentHandle)  _currentHandle->Pause();
+	if (_currentHandle) { return _currentHandle->Pause(); }
 };
 
 void EffectManager::Refresh()
 {
-	if (_currentHandle) _currentHandle->Refresh();
+	if (_currentHandle) { _currentHandle->Refresh(); }
 
 }
 
-void EffectManager::Loop()
+void EffectManager::loop()
 {
 
+	_process();
+};
+
+
+void EffectManager::_process()
+{
 	bool waiting = false;
 
 	if (_waitFn)  {
 		waiting = _waitFn();
 	}
 
+
 	//  This flips over to next effect asyncstyle....
 	if (!waiting && _NextInLine) {
-		Serial.println("[Loop] Next effect STARTED");
+		DebugEffectManagerf("[EffectManager::_process] _currentHandle NOW = %s\n", _NextInLine->name());
 		_currentHandle = _NextInLine;
 		_NextInLine = nullptr;
 		_currentHandle->Start();
 		return;
 	}
 
-	if (!waiting && _currentHandle)  _currentHandle->Run();
-};
-
-void EffectManager::SetTimeout(uint32_t time)
-{
-	if (_currentHandle) _currentHandle->SetTimeout(time);
+	if (!waiting && _currentHandle) { _currentHandle->Run(); }
 }
-
-void EffectManager::SetTimeout(const char * name, uint32_t time)
-{
-
-	EffectHandler* handler;
-	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( strcmp( handler->name(), name) == 0)
-			break;
-	}
-
-	if (handler) handler->SetTimeout(time);
-
-}
-
 
 
 const char * EffectManager::getName(uint8_t i)
 {
-	if (i > _count) return "";
+	if (i > _count) { return ""; }
 
 	EffectHandler* handler;
 	uint8_t count = 0;
+
 	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( i == count ) break;
+		if ( i == count ) { break; }
 		count++;
 	}
-	return handler->name();
+
+	if (handler) {
+		return handler->name();
+	} else {
+		return "";
+	}
 }
 
 
 
-bool EffectManager::_parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, JsonObject *& root, const char * file_name)
+
+
+
+bool EffectManager::removePreset(uint8_t ID)
 {
-	uint32_t starttime = millis();
+	DebugEffectManagerf("[EffectManager::removePreset] id = %u\n ", ID);
 
-	File f = SPIFFS.open(file_name, "r");
 	bool success = false;
+	int FileID = -1;
 
-	if (!f) {
-		Serial.println("[_parsespiffs] No File Found");
-	}
-
-	if (f && f.size()) {
-
-		//Serial.println("[_parsespiffs] pre-malloc");
-
-		data = new char[f.size()];
-		// prevent nullptr exception if can't allocate
-		if (data) {
-			Serial.printf("[_parsespiffs] buffer size %u\n", f.size());
-
-			//  This method give a massive improvement in file reading speed for SPIFFS files..
-
-			int bytesleft = f.size();
-			int position = 0;
-			while ((f.available() > -1) && (bytesleft > 0)) {
-
-				// get available data size
-				int sizeAvailable = f.available();
-				if (sizeAvailable) {
-					int readBytes = sizeAvailable;
-
-					// read only the asked bytes
-					if (readBytes > bytesleft) {
-						readBytes = bytesleft ;
-					}
-
-					// get new position in buffer
-					char * buf = &data[position];
-					// read data
-					int bytesread = f.read((uint8_t*)buf, readBytes);
-					bytesleft -= bytesread;
-					position += bytesread;
-
-				}
-				// time for network streams
-				//delay(0); // can't call from inturrupt...
-
+	// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+	if (ID && _presetS) {
+		for (uint8_t i = 0; i < _presetcountS; i++) {
+			Presets_s * preset = &_presetS[i];
+			if (preset->id == ID) {
+				FileID = preset->file;
+				break;
 			}
-
-
-			root = &jsonBuffer.parseObject(data);
-
-			if (root->success()) {
-				success = true;
-			}
-		} else {
-			Serial.println("[_parsespiffs] malloc failed");
 		}
 	}
 
-	f.close();
+	if (FileID == -1) {
+		DebugEffectManagerf("[EffectManager::removePreset] FileID = -1\n ");
+		return false;
+	}
 
-	Serial.printf("[_parsespiffs] time: %u\n", millis() - starttime);
-	if (success) {
+	{
+		DynamicJsonBuffer jsonBuffer;
+		const char * cID = jsonBuffer.strdup(String(ID).c_str());
+		JsonArray * root = nullptr;
+		char * data = nullptr;
+
+		String filename = String(PRESETS_FILE) + String(FileID) + ".txt";
+
+
+		if (parsespiffs(data, jsonBuffer, root, filename.c_str() ) )  {
+
+			if (root) {
+
+
+				int index = 0;
+
+				for (JsonArray::iterator it = root->begin(); it != root->end(); ++it) {
+					// *it contains the JsonVariant which can be casted as usuals
+					//const char* value = *it;
+
+					JsonObject& preset = *it;
+
+					if (preset.containsKey("ID")) {
+
+						if ( preset["ID"] == ID) {
+							root->removeAt(index) ;
+							DebugEffectHandlerf("[EffectHandler::save] preset %u removed\n", ID);
+							break;
+						}
+
+					}
+
+					index++;
+					// this also works:
+					//value = it->as<const char*>();
+
+				}
+
+
+
+				File f = SPIFFS.open( filename.c_str() , "w");
+
+				if (f) {
+
+#ifdef jsonprettyprint
+					root->prettyPrintTo(f);
+#else
+					root->printTo(f);
+#endif
+					f.close();
+					success = true;
+					DebugEffectManagerf("[removePreset] [%s] Setting Removed\n", cID);
+				} else {
+					DebugEffectManagerf("[removePreset] FILE OPEN error:  NOT saved\n");
+				}
+
+
+			}
+
+
+		}
+
+		if (data) {
+			delete[] data;
+		}
+	}
+
+	if (success && Current()) {
+		fillPresetArray();
 		return true;
 	} else {
 		return false;
 	}
+
+
+
 }
 
-bool EffectManager::removePreset(uint8_t ID)
+
+void EffectManager::addAllpresets(JsonObject & root)
 {
+	DebugEffectManagerf("[EffectManager::addAllpresets] called\n");
 
-	DynamicJsonBuffer jsonBuffer;
-	const char * cID = jsonBuffer.strdup(String(ID).c_str());
-	JsonObject * root = nullptr;
-	char * data = nullptr;
-	bool success = false;
+	JsonArray & array = root.createNestedArray("Presets");
 
-	if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+	if (_presetS) {
 
-		if (root) {
+		for (uint8_t i = 0; i < _presetcountS; i++) {
 
-			if (root->containsKey(cID)) {
-				root->remove(cID) ;
-				File f = SPIFFS.open(PRESETS_FILE, "w");
-
-				if (f) {
-
-					root->prettyPrintTo(f);
-					f.close();
-					success = true;
-					Serial.printf("[removePreset] [%s] Setting Removed\n", cID);
-				} else {
-					Serial.println("[removePreset] FILE OPEN error:  NOT saved");
+			Presets_s * preset = &_presetS[i];
+			if (preset) {
+				JsonObject & presetjson = array.createNestedObject();
+				presetjson["ID"] = preset->id;
+				presetjson["name"] = preset->name;
+				if (preset->handle) {
+					presetjson["effect"] = preset->handle->name();
 				}
-
 			}
 
 		}
+	}
+	// Serial.println();
+	// root.prettyPrintTo(Serial);
+	// Serial.println();
+}
 
+bool EffectManager::addCurrentPresets(JsonObject & root)
+{
+	bool success = false;
+
+	if (_presetcountS) {
+
+		JsonArray & array = root.createNestedArray("currentpresets");
+
+		if (_presetS) {
+
+
+			for (uint8_t i = 0; i < _presetcountS; i++) {
+
+				Presets_s * preset = &_presetS[i];
+
+				if (preset) {
+
+					if (preset->handle == Current()) {
+						JsonObject & presetjson = array.createNestedObject();
+
+						presetjson["ID"] = preset->id;
+						presetjson["name"] = preset->name;
+						//presetjson["effect"] = preset->handle->name();
+						success = true;
+
+					}
+				}
+			}
+		}
+	}
+
+	return success;
+}
+
+
+
+bool EffectManager::Save(uint8_t ID, const char * name, bool overwrite)
+{
+	bool success = false;
+	char * data = nullptr;
+
+	EffectHandler* handle = Current();
+
+	DebugEffectManagerf("[EffectManager::Save] Called for %s\n", handle->name());
+
+	if (handle && strlen(name) > 0 ) {
+
+		int filePostfix = -1;
+
+		// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+		if (ID && _presetS) {
+			for (uint8_t i = 0; i < _presetcountS; i++) {
+				Presets_s * preset = &_presetS[i];
+				if (preset->id == ID) {
+					filePostfix = preset->file;
+					break;
+				}
+			}
+		}
+
+		// if no file is found use file 0 as default...
+		if (filePostfix == -1) {
+			filePostfix = 0;
+		}
+
+		String filename = PRESETS_FILE + String(filePostfix) + ".txt";
+
+
+		File f = SPIFFS.open(filename, "r");
+
+		if (f) {
+			DebugEffectManagerf("[EffectManager::Save] Exists File name: %s, size:%u\n", filename.c_str(), f.size());
+		} else {
+			DebugEffectManagerf("[EffectManager::Save] New File name: %s\n", filename.c_str());
+		}
+
+		if (f) {
+			if ( f.size() > MAX_PRESET_FILE_SIZE && !overwrite) {
+				DebugEffectManagerf("[EffectManager::Save] %s too big (%u)creating new file\n", filename.c_str(),  f.size());
+				f.close();
+				filePostfix = _nextFreeFile();
+				DebugEffectManagerf("[EffectManager::Save] _nextfreeFile = %s\n", String(filePostfix).c_str());
+				if (filePostfix != -1) {
+					filename = PRESETS_FILE + String(filePostfix) + ".txt";
+				} else {
+					DebugEffectManagerf("[EffectManager::Save] Unable to create new file\n");
+					return false;
+				}
+			}
+		}
+
+		DynamicJsonBuffer jsonBuffer;
+		//const char * cID = jsonBuffer.strdup(String(ID).c_str());
+		JsonArray * root = nullptr;
+
+		if (parsespiffs(data, jsonBuffer, root, filename.c_str() )) {
+			DebugEffectManagerf("[EffectManager::Save] Existing Settings Loaded\n");
+		} else {
+			// if no file exists, or parse fails create new json object...
+			DebugEffectManagerf("[EffectManager::Save] New jsonObject created\n");
+			root = &jsonBuffer.createArray();
+		}
+
+		//
+		if (ID == 0 && !overwrite) {
+			//ID = nextFreePreset(*root);
+			ID = nextFreePresetID();
+		}
+
+
+		//String sID = String(handle->saveFileID) + "." + String(ID);
+//		const char * cID = jsonBuffer.strdup(String(ID).c_str());
+
+		DebugEffectManagerf("[EffectManager::Save] ID chosen:%u\n", ID);
+
+		//
+
+		if (root) {
+
+			if (handle->save(*root, ID, name)) {
+
+				DebugEffectManagerf("[EffectManager::Save] New Settings Added to json\n");
+				File f = SPIFFS.open(filename, "w");
+
+				if (f) {
+
+#ifdef jsonprettyprint
+					root->prettyPrintTo(f);
+#else
+					root->printTo(f);
+#endif
+//				root->prettyPrintTo(Serial); Serial.println();
+
+					//DebugEffectManagerf("[EffectManager::Save] DONE Heap %u\n", ESP.getFreeHeap() );
+					f.close();
+					handle->preset(ID);
+					DebugEffectManagerf("[EffectManager::Save] %s SAVED\n", filename.c_str());
+					success = true;
+
+				} else {
+					DebugEffectManagerf("[EffectManager::Save]ERROR FILE not OPEN: NOT saved\n");
+				}
+
+			} else {
+				DebugEffectManagerf("[EffectManager::Save] save handler (addJson) returned false\n");
+			}
+		}
 	}
 
 	if (data) {
 		delete[] data;
 	}
 
-	if (success) {
+	if (success && handle) {
+		// puts the new saved effect into memory
+		//getPresets(handle, _numberofpresets, _presets, _preset_names); // goes here.. to go outofscope of the previous data[] and jsonbuffer... needs lot of heap...
+		fillPresetArray();
 		return true;
 	} else {
 		return false;
 	}
 
-
-
 }
 
-bool EffectManager::getPresets(EffectHandler * handle, uint8_t& numberofpresets, uint8_t *& presets, char **& preset_names)
+// bool EffectManager::Load(String decimalin)
+// {
+// 	uint8_t File = decimalin.substring(   0 , decimalin.lastIndexOf(".")  ).toInt();
+// 	uint8_t ID = decimalin.substring(   decimalin.lastIndexOf(".") + 1, decimalin.length() ).toInt();
+
+// 	DebugEffectManagerf("[EffectManager::Load] String converted to File (%u) ID (%u)\n", File, ID);
+
+// 	if ( File == 0 || ID == 0) {
+// 		return false;
+// 	}
+
+// 	return Load(File, ID);
+// }
+bool EffectManager::Load(const char * name)
 {
-	char * data = nullptr;
+	// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+	DebugEffectManagerf("[EffectManager::Load char*] Called File: %s\n", name);
 
-	// delete any existing preset information.
+	if (name && _presetS) {
 
-	for (uint8_t i = 0; i < numberofpresets; i++) {
-		char * p = preset_names[i];
-		if (p) { free(p); }
+		for (uint8_t i = 0; i < _presetcountS; i++) {
+			Presets_s * preset = &_presetS[i];
+			if (!stricmp(preset->name, name) ) {
+				return Load(preset->file, preset->id);
+			}
+		}
 	}
 
-	if (presets) {
-		delete[] presets;
-		presets = nullptr;
+	return false;
+}
+
+bool EffectManager::Load(uint8_t ID)
+{
+	// find the file for specified preset, unless it is new preset.. ie  ID = 0;
+	if (ID && _presetS) {
+		for (uint8_t i = 0; i < _presetcountS; i++) {
+			Presets_s * preset = &_presetS[i];
+			if (preset->id == ID) {
+				return Load(preset->file, ID);
+			}
+		}
 	}
 
-	if (preset_names) {
-		delete[] preset_names;
-		preset_names = nullptr;
-	}
+	return false;
+}
 
-	numberofpresets = 0;
+bool EffectManager::Load(uint8_t File, uint8_t ID)
+{
+	bool success = false;
+	bool modechange = false;
+	EffectHandler* handle = Current();
+
+	DebugEffectManagerf("[EffectManager::Load] Called File: %u ID: %u\n", File, ID);
 
 	if (handle) {
-		DynamicJsonBuffer jsonBuffer;
-		JsonObject * root = nullptr;
-		uint8_t count = 0;
 
-		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+		DynamicJsonBuffer jsonBuffer(2000);
 
-			//delay(0);
+		//const char * cID = jsonBuffer.strdup( String(ID).c_str());
 
-			if (root) { // avoid nullptr errors...
+		JsonArray * root = nullptr;
+		char * data = nullptr;
 
-				for (JsonObject::iterator it = root->begin(); it != root->end(); ++it) {
-					// get id of preset
-					const char * key = it->key;
-					// extract the json object for each effect
-					JsonObject& current = it->value.asObject();
+		String filename = PRESETS_FILE + String(File) + ".txt";
 
-					// compare to the name of current effect
-					//	Serial.printf("[getPresets] Identified presets for %s (%s)\n", handle->name(), key);
-					if (current.containsKey("effect")) {
-						if ( strcmp( current["effect"], handle->name() ) == 0) {
-							// if matched then this preset is a valid effect for the current one.
-							// Serial.printf("[getPresets] found preset for %s (%s)\n", handle->name(), key);
-							count++;
-						}
-					}
-				}
 
-				// once number of presets identified, create array and fill it..
-				numberofpresets = count;
+		if (parsespiffs(data, jsonBuffer, root, filename.c_str() )) {
 
-				if (numberofpresets) {
+			if (root) {
 
-					presets = new uint8_t[numberofpresets];
-					preset_names = new char*[numberofpresets];
+				for (JsonArray::iterator it = root->begin(); it != root->end(); ++it) {
 
-					count = 0; // reset the counter...
+					JsonObject& preset = *it;
 
-					if (presets && preset_names) {
+					if (preset.containsKey("ID")) {
 
-						memset(presets, 0, numberofpresets);
-						memset(preset_names, 0, numberofpresets);
+						if ( preset["ID"] == ID) {
 
-						for (JsonObject::iterator it = root->begin(); it != root->end(); ++it) {
-							// get id of preset
-							const char * key = it->key;
-							// extract the json object for each effect
-							JsonObject& current = it->value;
-							// compare to the name of current effect
-							if ( strcmp(current["effect"], handle->name()) == 0) {
-								// if matched then this preset is a valid effect for the current one.
-								presets[count] = String(key).toInt();
+							uint8_t tempID = preset["ID"];
+							const char * name = preset["name"];
 
-								if (current.containsKey("name")) {
-									preset_names[count] = strdup(current["name"]);
-								} else {
-									preset_names[count] = nullptr;
+							DebugEffectManagerf("[EffectManager::Load] Checking %u (%s)\n", tempID , name );
+
+							if (handle && preset.containsKey("effect")) {
+
+								if (strcmp(handle->name(), preset["effect"]) != 0) {
+									modechange = true;
+									handle = _findhandle(preset["effect"].asString());
+									_NextInLine = handle;
+									handle->InitVars();
+
+									if (_defaulteffecthandle) {
+										if (handle != _defaulteffecthandle) {
+											_toggleHandle = handle;
+										}
+									}
+
+									//handle = Start(preset["effect"].asString());
+									DebugEffectManagerf("[EffectManager::Load]  Effect changed to %s\n", handle->name());
 								}
 
-								count++;
+
+
+								// now can load the effect using json
+								if (handle) {
+									if (handle->parseJson(preset, true)) {
+										DebugEffectManagerf("[EffectManager::Load] Preset %u loaded for %s\n", ID, handle->name());
+										handle->preset(ID);
+										success = true;
+										break;
+									} else {
+										DebugEffectManagerf("[EffectManager::Load] ERROR Preset %u for %s, parseJson returned false\n", ID, handle->name());
+										//preset.prettyPrintTo(Serial);
+										//Serial.println();
+									}
+								}
+							}
+
+						}
+
+					}
+
+				}
+
+			} else {
+				DebugEffectManagerf("[EffectManager::Load] Root is nullptr\n");
+			}
+		} else {
+			DebugEffectManagerf("[EffectManager::Load] Parsespiffs Failed\n");
+		}
+
+		if (data) { delete[] data; }
+	}
+
+	if (success) {
+		// if (modechange && handle) {
+		// 	getPresets(handle, _numberofpresets, _presets, _preset_names); // goes here.. to go outofscope of the previous data[] and jsonbuffer... needs lot of heap...
+		// }
+		return true;
+	} else {
+		return false;
+	}
+}
+
+
+
+
+bool EffectManager::fillPresetArray()
+{
+#ifdef DebugEffectManagerf
+	uint32_t starttime = millis();
+#endif
+
+
+	uint8_t numberofpresets = 0;
+
+	if (_presetS) {
+		delete[] _presetS;
+		_presetS = nullptr;
+	}
+
+
+	//  iterate through all files and count the presets
+	{
+		Dir dir = SPIFFS.openDir("/");
+		while (dir.next()) {
+			String fileName = dir.fileName();
+
+			if (fileName.startsWith(PRESETS_FILE) && fileName.endsWith(".txt") && !fileName.endsWith(".corrupt.txt")) {
+
+				uint8_t FileID = fileName.substring(   strlen(PRESETS_FILE) , fileName.lastIndexOf(".txt")  ).toInt();
+				//	DebugEffectManagerf("[EffectManager::fillPresetArray] Adding presets from %s, FileID %u\n", fileName.c_str(), FileID);
+
+				DynamicJsonBuffer jsonBuffer2(2000);
+				JsonArray * root2 = nullptr;
+				char * data = nullptr;
+
+				if (parsespiffs(data, jsonBuffer2, root2, fileName.c_str() )) {
+
+					for (JsonArray::iterator it = root2->begin(); it != root2->end(); ++it) {
+						// get id of preset
+						JsonObject & preset = *it;
+
+						// compare to the name of current effect
+						if (preset.containsKey("effect") && preset.containsKey("name")) {
+
+							numberofpresets++;
+
+						}
+					}
+
+				} else {
+					String newFileName = fileName.substring(0, fileName.length() - 3) + "corrupt.txt";
+					SPIFFS.rename(fileName, newFileName);
+					DebugEffectManagerf("[EffectManager::fillPresetArray] %s parse failed. File renamed to %s\n", fileName.c_str(), newFileName.c_str());
+					continue;
+				}
+
+				if (data) { delete[] data; }
+			}
+		}
+	}
+
+	//  now create the presetS structure the correct size
+
+	if (numberofpresets) {
+		_presetS = new Presets_s[numberofpresets];
+		_presetcountS = numberofpresets;
+	}
+
+	uint8_t arrayposition = 0;
+
+	// now iterate through again.. and assign variables to presetS
+
+	if (_presetS)
+
+	{
+
+		Dir dir = SPIFFS.openDir("/");
+		while (dir.next()) {
+			String fileName = dir.fileName();
+
+			if (fileName.startsWith(PRESETS_FILE) && fileName.endsWith(".txt") && !fileName.endsWith(".corrupt.txt")) {
+
+				uint8_t FileID = fileName.substring(   strlen(PRESETS_FILE) , fileName.lastIndexOf(".txt")  ).toInt();
+				//DebugEffectManagerf("[EffectManager::addAllpresets] Adding presets from %s, FileID %u\n", fileName.c_str(), FileID);
+
+				DynamicJsonBuffer jsonBuffer2(2000);
+				JsonArray * root2 = nullptr;
+				char * data = nullptr;
+
+				if (parsespiffs(data, jsonBuffer2, root2, fileName.c_str() )) {
+
+					for (JsonArray::iterator it = root2->begin(); it != root2->end(); ++it) {
+						// get id of preset
+						// extract the json object for each effect
+
+						JsonObject& presetJSON = *it;
+
+						// compare to the name of current effect
+						if (presetJSON.containsKey("effect") && presetJSON.containsKey("name")) {
+
+							Presets_s * preset = &_presetS[arrayposition++];
+
+							if (preset) {
+								preset->file = FileID;
+								preset->id = presetJSON["ID"];
+								preset->handle = _findhandle(presetJSON["effect"].asString());
+								preset->setname(presetJSON["name"]);
 							}
 
 						}
 					}
 
 				}
+
+				if (data) { delete[] data; }
 			}
-
 		}
-
 	}
 
-	if (data) { delete[] data; }
-
-	if (numberofpresets) {
-		return true;
-	} else {
-		return false;
-	}
-
-
+#ifdef DebugEffectManager
+	DebugEffectManagerf("[EffectManager::fillPresetArray] presets found: %u, timetaken: %u\n", _presetcountS, millis() - starttime);
+	dumpPresetArray();
+	DebugEffectManagerf("[EffectManager::fillPresetArray] Next Free: %u\n", nextFreePresetID() );
+#endif
 
 
 }
 
-bool EffectManager::newSave(uint8_t ID)
+void EffectManager::removeAllpresets()
+
 {
-	bool success = false;
-	char * data = nullptr;
+	Dir dir = SPIFFS.openDir("/");
+	while (dir.next()) {
+		String fileName = dir.fileName();
 
-	Serial.println("[newSave] Called");
-
-	if (_currentHandle) {
-
-		DynamicJsonBuffer jsonBuffer;
-		const char * cID = jsonBuffer.strdup(String(ID).c_str());
-		JsonObject * root = nullptr;
-
-		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
-			Serial.println("[newSave] Existing Settings Loaded");
-		} else {
-			// if no file exists, or parse fails create new json object...
-			root = &jsonBuffer.createObject();
-		}
-
-		if (root && _currentHandle->save(*root, cID)) {
-
-			Serial.println("[newSave] New Settings Added");
-			File f = SPIFFS.open(PRESETS_FILE, "w");
-
-			if (f) {
-
-				root->prettyPrintTo(f);
-//				root->prettyPrintTo(Serial);
-
-				Serial.printf("[newSave] DONE Heap %u\n", ESP.getFreeHeap() );
-				f.close();
-				success = true;
-			} else {
-				Serial.println("FILE OPEN error:  NOT saved");
-			}
-
+		if (fileName.startsWith(PRESETS_FILE) && fileName.endsWith(".txt") && !fileName.endsWith(".corrupt.txt")) {
+			SPIFFS.remove(fileName);
 		}
 
 	}
 
-	if (data) {
-		delete[] data;
-	}
-
-	if (success) {
-		return true;
-	} else {
-		return false;
-	}
+	fillPresetArray();
 
 }
 
-
-bool EffectManager::newLoad(uint8_t ID)
+#ifdef DebugEffectManager
+void EffectManager::dumpPresetArray()
 {
-	bool success = false;
-	if (_currentHandle) {
-		DynamicJsonBuffer jsonBuffer;
-		const char * cID = jsonBuffer.strdup(String(ID).c_str());
-		JsonObject * root = nullptr;
-		char * data = nullptr;
-		bool success = false;
+	DebugEffectManagerf("[dumpPresetArray] %u presets found \n", _presetcountS);
 
-		if (_parsespiffs(data, jsonBuffer, root, PRESETS_FILE )) {
+	for (uint8_t i = 0; i < _presetcountS; i++) {
+		Presets_s * preset = &_presetS[i];
+		if (preset && preset->handle) {
+			DebugEffectManagerf("  [%3u] File: %3u, ID: %3u, effect: %30s, name: %30s\n", i, preset->file, preset->id, preset->handle->name(), preset->name);
+		}
+	}
+}
+#endif
 
-			if (root && _currentHandle->load(*root, cID)) {
-				Refresh();
-				success = true;
+uint8_t EffectManager::nextFreePresetID()
+{
+	DebugEffectManagerf("[EffectManager::nextFreePresetID] called\n");
+	uint8_t i = 0;
 
-			} else if (root) {
-				if (root->containsKey(cID)) {
-					JsonObject& preset = (*root)[cID];
-					if (Start(preset["effect"].asString())) {
-						Serial.println("[EffectManager::newLoad] New effect started");
-						if (_NextInLine->load(*root, cID)) {
-							Serial.println("[EffectManager::newLoad] _NextInLine presets loaded");
-							success = true;
-						} else if (_currentHandle->load(*root, cID)) {
-							Serial.println("[EffectManager::newLoad] _currentHandle presets loaded");							
-							success = true;
-						}
-					}
+	if (_presetS) {
+
+		bool * array = new bool[255];
+		//memset(array, 0, 255);
+		if (array) {
+
+			for (uint8_t j = 0; j < 255; j++) {
+				array[j] = false;
+			}
+
+			for (uint8_t j = 0; j < _presetcountS; j++) {
+				Presets_s * preset = &_presetS[j];
+				array[preset->id] = true;
+			}
+
+			for (i = 1; i < 255; i++) {
+				if (array[i] == false) {
+					break;
 				}
-
 			}
+
+			delete[] array;
+
+		} else {
+			DebugEffectManagerf("[EffectManager::nextFreePresetArray] new array failed\n");
 		}
 
-		if (data) { delete[] data; }
-	}
-	return success;
-}
-
-
-bool EffectHandler::save(JsonObject& root, const char *& ID)
-{
-	Serial.printf("[save] ID = %s\n", ID);
-
-	if (root.containsKey(ID)) {
-		Serial.printf("[save] [%s]previous setting identified\n", ID);
-		root.remove(ID) ;
-	}
-
-	JsonObject& current = root.createNestedObject(ID);
-
-	if (addJson(current)) {
-		return true;
+		if (i == 254) {
+			i = 0;
+		}
+		DebugEffectManagerf("[EffectManager::nextFreePresetArray] nextFree = %u \n", i);
 	} else {
-		return false;
+		//  if there are no presets return 1 as the first.
+		i = 1;
 	}
-};
-
-
-
-/*---------------------------------------------
-
-				Generic Class
-
----------------------------------------------*/
-
-
-
-// Moved objec stuff to newer class..
-
-
-
-// bool EffectObject::StartBasicAnimations(uint16_t time) {
-
-// 	Serial.println("Start Andimations");
-
-// 	if (!_bus || !_animator) return false;
-
-// 	for (uint16_t i = 0; i < _total; i++) {
-
-// 		Details_s * current = &_details[i];
-
-// 		current->original = _bus->GetPixelColor(current->pixel);
-
-// 		Serial.printf(" I=> %u->%u original(%u,%u,%u) target(%u,%u,%u)\n", i, current->pixel,
-// 		              current->original.R, current->original.G, current->original.B,
-// 		              current->target.R, current->target.G, current->target.B );
-
-// 		AnimUpdateCallback  animUpdate = [this, i, &current](float progress)
-// 		{
-// 			RgbColor updatedColor = RgbColor::LinearBlend(current->original, current->target, progress );
-// 			_bus->SetPixelColor(current->pixel, updatedColor);
-// 		};
-
-// 		_animator->StartAnimation(current->pixel, time, animUpdate);
-// 	}
-// 	return true;
-// }
-
-
-
-/* ------------------------------------------------------------------------
-				My own animator class
---------------------------------------------------------------------------*/
-
-
-// NeoPixelObject::NeoPixelObject(NeoPixelBus* bus, uint16_t count) :
-//     _bus(bus),
-//     _animationLastTick(0),
-//     _activeAnimations(0),
-//     _isRunning(true)
-// {
-//     _animations = new AnimationContext[count];
-// }
-
-// NeoPixelObject::~NeoPixelObject()
-// {
-//     _bus = NULL;
-//     if (_animations)
-//     {
-//         delete[] _animations;
-//         _animations = NULL;
-//     }
-// }
-
-// void NeoPixelObject::StartAnimation(uint16_t n, uint16_t time, ObjUpdateCallback animUpdate)
-// {
-//     if (n >= _bus->PixelCount())
-//     {
-//         return;
-//     }
-
-//     if (_activeAnimations == 0)
-//     {
-//         _animationLastTick = millis();
-//     }
-
-//     StopAnimation(n);
-
-//     if (time == 0)
-//     {
-//         time = 1;
-//     }
-
-//     _animations[n].time = time;
-//     _animations[n].remaining = time;
-//     _animations[n].fnUpdate = animUpdate;
-
-//     _activeAnimations++;
-// }
-
-// void NeoPixelObject::StopAnimation(uint16_t n)
-// {
-//     if (IsAnimating(n))
-//     {
-//         _activeAnimations--;
-//         _animations[n].time = 0;
-//         _animations[n].remaining = 0;
-//         _animations[n].fnUpdate = NULL;
-//     }
-// }
-
-// void NeoPixelObject::FadeTo(uint16_t time, RgbColor color)
-// {
-//     for (uint16_t n = 0; n < _bus->PixelCount(); n++)
-//     {
-//         RgbColor original = _bus->GetPixelColor(n);
-//         ObjUpdateCallback animUpdate = [=](float progress)
-//         {
-//             RgbColor updatedColor = RgbColor::LinearBlend(original, color, progress);
-//             _bus->SetPixelColor(n, updatedColor);
-//         };
-//         StartAnimation(n, time, animUpdate);
-//     }
-// }
-
-// void NeoPixelObject::UpdateAnimations(uint32_t maxDeltaMs)
-// {
-//     if (_isRunning)
-//     {
-//         uint32_t currentTick = millis();
-//         uint32_t delta = currentTick - _animationLastTick;
-
-//         if (delta > maxDeltaMs)
-//         {
-//             delta = maxDeltaMs;
-//         }
-
-//         if (delta > 0)
-//         {
-//             uint16_t countAnimations = _activeAnimations;
-
-//             AnimationContext* pAnim;
-
-//             for (uint16_t iAnim = 0; iAnim < _bus->PixelCount() && countAnimations > 0; iAnim++)
-//             {
-//                 pAnim = &_animations[iAnim];
-
-//                 if (pAnim->remaining > delta)
-//                 {
-//                     pAnim->remaining -= delta;
-
-//                     float progress = (float)(pAnim->time - pAnim->remaining) / (float)pAnim->time;
-
-//                     pAnim->fnUpdate(progress);
-//                     countAnimations--;
-//                 }
-//                 else if (pAnim->remaining > 0)
-//                 {
-//                     pAnim->fnUpdate(1.0f);
-//                     StopAnimation(iAnim);
-//                     countAnimations--;
-//                 }
-//             }
-
-//             _animationLastTick = currentTick;
-//         }
-//     }
-// }
-
-
-/*
-
-		General Effect... TEST for SAVING presets...
-
-*/
-
-
-
-// GeneralEffect::GeneralEffect() {
-
-
-// }
-
-
-
-
-bool GeneralEffect::load(JsonObject & root, const char *& ID)
-{
-	if (!root.containsKey(ID)) {
-		return false;
-	}
-
-	JsonObject& current = root[ID];
-	const char * effect = current["effect"];
-
-	if (effect) {
-		if ( strcmp( effect , name() ) != 0) { return false; }
-	}
-
-	_brightness = current["brightness"];
-	JsonObject& jscolor1 = current["color1"];
-
-	_color.R = jscolor1["R"];
-	_color.G = jscolor1["G"];
-	_color.B = jscolor1["B"];
-
-	Serial.printf("RGB (%u,%u,%u)\n", _color.R, _color.G, _color.B);
-
-	_preset = String(ID).toInt();
-	Serial.printf("[GeneralEffect::load] _preset = %u\n", _preset);
-	//current["name"] = "TO BE IMPLEMENTED";
-	return true;
-
+	return i;
 }
 
 
-
-bool GeneralEffect::addJson(JsonObject & settings)
+int EffectManager::_nextFreeFile()
 {
+	struct presetfile_s {
+		bool isfile{false};
+		uint32_t size{0};
+	};
 
-	settings["effect"] = name();
-	settings["brightness"] = _brightness ;
-	JsonObject& jscolor1 = settings.createNestedObject("color1");
-	jscolor1["R"] = _color.R;
-	jscolor1["G"] = _color.G;
-	jscolor1["B"] = _color.B;
+	DebugEffectManagerf("[_nextFreeFile] called\n");
 
-	//include return true to override the default no handler...
-	return true;
-}
+	presetfile_s * presetfile = new presetfile_s[MAX_NUMBER_PRESET_FILES];
 
+	if (!presetfile) {
+		return 0;
+	}
 
-// bool GeneralEffect::args(ESP8266WebServer& HTTP)
-// {
+	Dir dir = SPIFFS.openDir("/");
+	while (dir.next()) {
 
-// 	bool found = false;
+		String fileName = dir.fileName();
 
-// 	// need to add color... but change the JS to send normal POST not JSON...
+		if (fileName.startsWith(PRESETS_FILE)) {
 
-// 	if (HTTP.hasArg("brightness")) {
-// 		setBrightness(HTTP.arg("brightness").toInt());
-// 		found = true;
-// 	}
-
-// 	return found;
-
-// }
-
-bool GeneralEffect::args(JsonObject & root)
-{
-	bool found = false;
-
-	if (root.containsKey("color")) {
-		JsonObject& color = root["color"];
-		RgbColor input;
-		input.R = color["R"];
-		input.G = color["G"];
-		input.B = color["B"];
-		setColor(input);
-		found = true;
+			uint8_t FileID = fileName.substring( strlen(PRESETS_FILE) , fileName.lastIndexOf(".txt") ).toInt();
+			presetfile_s * current = &presetfile[FileID];
+			current->isfile = true;
+			File f = SPIFFS.open(fileName, "r");
+			current->size = f.size();
+			f.close();
+		}
 
 	}
 
-	if (root.containsKey("brightness")) {
-		setBrightness( root["brightness"] );
-		found = true;
+#ifdef DebugEffectManager
+
+	DebugEffectManagerf("[_nextFreeFile] Listing all:\n");
+
+	for (uint8_t i = 0; i < MAX_NUMBER_PRESET_FILES; i++) {
+		presetfile_s * current = &presetfile[i];
+		DebugEffectManagerf("  [%u] %s (%u)\n", i, (current->isfile) ? "true" : "false", current->size );
 	}
 
-	if (found) { _preset = 255; }
-	return found;
-}
+#endif
 
-/*
-
-
-	Marquee effect
-	const char * _marqueeText;
-	uint32_t _speed;
-	uint8_t _brightness;
-	Palette* _palette;
-	uint8_t _rotation;
-	RgbColor _color;
-*/
-
-
-bool MarqueeEffect::load(JsonObject& root, const char *& ID)
-{
-	if (!root.containsKey(ID)) {
-		return false;
+	for (uint8_t i = 0; i < MAX_NUMBER_PRESET_FILES; i++) {
+		presetfile_s * current = &presetfile[i];
+		if (current->isfile == false || current->size < MAX_PRESET_FILE_SIZE) {
+			return i;
+		}
 	}
 
-	JsonObject& current = root[ID];
-	const char * effect = current["effect"];
-
-	if (effect) {
-		if ( strcmp( effect , name() ) != 0) { return false; }
-	}
-
-	_brightness = current["brightness"];
-	_speed = current["speed"];
-
-	const char * palette_temp = current["palette"];
-
-	JsonObject& jscolor1 = current["color1"];
-	_color.R = jscolor1["R"];
-	_color.G = jscolor1["G"];
-	_color.B = jscolor1["B"];
-
-	if (current.containsKey("rotation")) {
-		_rotation = current["rotation"];
-	}
-	if (_marqueeText) {
-		free (_marqueeText);
-		_marqueeText = nullptr;
-	}
-	if (current.containsKey("marqueetext")) {
-		const char * temp_text = current["marqueetext"];
-		_marqueeText = strdup(temp_text);
-	}
-
-	_preset = String(ID).toInt();
-	return true;
+	return -1;
 
 }
-
-bool MarqueeEffect::addJson(JsonObject& settings)
-{
-	settings["effect"] = name();
-	settings["brightness"] = _brightness ;
-	settings["speed"] = _speed;
-	settings["palette"] = String(Palette::enumToString(_palette));
-
-	JsonObject& jscolor1 = settings.createNestedObject("color1");
-	jscolor1["R"] = _color.R;
-	jscolor1["G"] = _color.G;
-	jscolor1["B"] = _color.B;
-
-	settings["rotation"] = _rotation;
-	settings["marqueetext"] = _marqueeText;
-
-	//include return true to override the default no handler...
-	return true;
-} ;
-
-bool MarqueeEffect::args(JsonObject& root)
-{
-	bool found = false;
-
-	// need to add color... but change the JS to send normal POST not JSON...
-
-	if (root.containsKey("color")) {
-		JsonObject& color = root["color"];
-		RgbColor input;
-		input.R = color["R"];
-		input.G = color["G"];
-		input.B = color["B"];
-		setColor(input);
-		found = true;
-
-	}
-
-	if (root.containsKey("brightness")) {
-		setBrightness(root["brightness"]);
-		found = true;
-	}
-
-	if (root.containsKey("speed")) {
-		setSpeed(root["speed"]);
-		found = true;
-	}
-
-	if (root.containsKey("rotation")) {
-		uint8_t rotation = root["rotation"];
-		if (rotation > 3) rotation = 0;
-		setRotation( rotation );
-		Refresh();
-		found = true;
-	}
-
-	if (root.containsKey("marqueetext")) {
-		setText(root["marqueetext"]) ;
-		Refresh();
-		found = true;
-	}
-
-	if (found) { _preset = 255; }
-
-	return found;
-}
-
-
-
-
-/*
-
-	Adalight class
-
-
-*/
-
-AdalightEffect::AdalightEffect(EffectHandlerFunction Fn) : SwitchEffect(Fn), _serialspeed(115200) {};
-
-//  These functions just need to add and retrieve preset values from the json.
-bool AdalightEffect::load(JsonObject& root, const char *& ID)
-{
-	if (!root.containsKey(ID)) {
-		return false;
-	}
-
-	JsonObject& current = root[ID];
-	const char * effect = current["effect"];
-
-	if (effect) {
-		if ( strcmp( effect , name() ) != 0) { return false; }
-	}
-
-	_serialspeed = current["serialspeed"];
-	_preset = String(ID).toInt();
-
-	return true;
-}
-
-bool AdalightEffect::addJson(JsonObject& settings)
-{
-	settings["effect"] = name();
-	settings["serialspeed"] = _serialspeed;
-	return true;
-}
-
-bool AdalightEffect::args(JsonObject& root)
-{
-	bool found = false;
-
-	if (root.containsKey("serialspeed")) {
-		setSerialspeed(root["serialspeed"]);
-		found = true;
-	}
-
-	if (found) { _preset = 255; }
-	return found;
-}
-
-
-
-
-
-
-
 
 
 

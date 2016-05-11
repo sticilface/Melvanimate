@@ -6,25 +6,25 @@ EffectGroup::~EffectGroup()
 {
 	//  iterate through all objects and delete them properly...
 	EffectObjectHandler * holding = _firstHandle, *todelete;
-	uint16_t count = 0; 
+	uint16_t count = 0;
 	do {
 		todelete = holding;
 		holding = holding->next();
-		if (todelete) { 
+		if (todelete) {
 			delete todelete;
 			count++;
 		}
 	} while (holding);
-	Serial.printf("[~EffectGroup] %u effects deleted\n", count); 
+	Debugobjf("[~EffectGroup] %u effects deleted\n", count);
 
 }
 
-EffectObjectHandler * EffectGroup::Add(uint16_t id, uint32_t timeout , EffectObjectHandler* handle)
+EffectObjectHandler * EffectGroup::Add(uint16_t id , EffectObjectHandler* handle)
 {
 	if (!handle) { return 0; }
 
 	handle->id(id);
-	handle->Timeout(timeout);
+	//handle->Timeout(timeout);
 
 
 	if (!_lastHandle) {
@@ -37,7 +37,7 @@ EffectObjectHandler * EffectGroup::Add(uint16_t id, uint32_t timeout , EffectObj
 	}
 
 	return handle;
-	//Serial.printf("EFFECT Object ID:%u \n", _lastHandle->id());
+	//Debugobjf("EFFECT Object ID:%u \n", _lastHandle->id());
 }
 
 EffectObjectHandler* EffectGroup::Get(uint16_t x)
@@ -46,8 +46,9 @@ EffectObjectHandler* EffectGroup::Get(uint16_t x)
 	EffectObjectHandler* handler; ;
 
 	for (handler = _firstHandle; handler; handler = handler->next() ) {
-		if ( handler->id() == x)
+		if ( handler->id() == x) {
 			break;
+		}
 	}
 	return handler;
 }
@@ -62,38 +63,49 @@ void EffectGroup::Update()
 
 	for (handler = _firstHandle; handler; handler = handler->next() ) {
 
-		uint32_t lasttick = handler->Lasttick();
-		uint32_t timeout = handler->Timeout();
-		if (millis() - lasttick > timeout || lasttick == 0) {
+		// uint32_t lasttick = handler->Lasttick();
+		// uint32_t timeout = handler->Timeout();
 
-			handler->UpdateObject(); 
-			handler->StartAnimations(); 
-			handler->Lasttick(millis());
-		
-		}
+		// if (millis() - lasttick > timeout || lasttick == 0) {
+
+		handler->UpdateObject();
+		// 	handler->StartAnimations();
+		// 	handler->Lasttick(millis());
+
+		// }
 
 	}
 }
 
-void EffectGroup::Run()
-{
-	// EffectObjectHandler* handler;
-	// for (handler = _firstHandle; handler; handler = handler->next() ) {
-	// 	handler->StartAnimations();
-	// }
+// void EffectGroup::Run()
+// {
+// 	// EffectObjectHandler* handler;
+// 	// for (handler = _firstHandle; handler; handler = handler->next() ) {
+// 	// 	handler->StartAnimations();
+// 	// }
 
-}
+// }
 
-bool EffectGroup::Inuse(uint16_t pixel)
+bool EffectGroup::Inuse(EffectObjectHandler* exclude,  uint16_t pixel)
 {
 
 	EffectObjectHandler* handler;
+
 	for (handler = _firstHandle; handler; handler = handler->next() ) {
 
-		int16_t * data = handler->getdata();
+		uint16_t * data = handler->pixels();
 
-		for (uint16_t i = 0; i < handler->total(); i++) {
-			if (data[i] == pixel) return true;
+		if (data && handler != exclude) {
+
+			for (uint16_t i = 0; i < handler->total(); i++) {
+
+				if (data[i] == pixel) {
+					//Serial.printf("%u = %u\n", data[i] , pixel);
+					return true;
+
+				}
+
+			}
 		}
 
 	}
@@ -101,34 +113,192 @@ bool EffectGroup::Inuse(uint16_t pixel)
 	return false;
 }
 
-bool EffectObject::UpdateObject()
-{
-	if (!_ObjUpdate) return false;
-	_ObjUpdate();
-}
 
-bool EffectObject::StartAnimations()
-{
+// bool SimpleEffectObject<typename T>::UpdateObject()
+// {
+// 	if (millis() - Lasttick() > Timeout() ) {
+// 		if (_ObjUpdate) {
+// 			if (_ObjUpdate()) {
+// 				Lasttick(millis());
+// 				return true;
+// 			}
+// 		}
+// 	}
+// 	return false;
+// }
 
-	if (!_AniUpdate) return false;
 
-	for (uint16_t i = 0; i < _total; i++) {
 
-		int16_t  current = _details[i];
-		if (current == -1) break;
-		_AniUpdate(i, current);
-	}
+// //  maybe not in use...
+// bool EffectObject::UpdateObject()
+// {
+// 	if (_ObjUpdate) {
+// 		_ObjUpdate();
+// 	} else {
+// 		return false;
+// 	}
 
-	return true;
-}
+// }
 
-void EffectObject::SetObjectUpdateCallback(ObjectUpdateCallback Fn)
-{
-	_ObjUpdate = Fn;
-}
+// void EffectObject::SetObjectUpdateCallback(ObjectUpdateCallback Fn)
+// {
+// 	_ObjUpdate = Fn;
+// }
 
-void EffectObject::SetPixelUpdateCallback(AnimationUpdateCallback Fn)
-{
-	_AniUpdate = Fn;
-}
+// void EffectObject::SetPixelUpdateCallback(AnimationUpdateCallback Fn)
+// {
+// 	_AniUpdate = Fn;
+// }
+
+
+// bool AnimatedEffectObject::move(Direction dir)
+// {
+
+// 	if (!_constrain) {
+// 		switch (dir) {
+// 		case N: {
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case NE: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case E: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case SE: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case S: {
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case SW: {
+// 			if (x-- < 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case W: {
+// 			if (x-- < 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case NW: {
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			if (x-- > 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		}
+// 	} else {
+// 		switch (dir) {
+			
+// 		case N: {
+
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case NE: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case E: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case SE: {
+// 			if (x++ > _matrix->width()) {
+// 				x = 0;
+// 			}
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case S: {
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case SW: {
+// 			if (x-- < 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			if (y-- < 0 ) {
+// 				y = _matrix->height();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case W: {
+// 			if (x-- < 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		case NW: {
+// 			if (y++ > _matrix->height()) {
+// 				y = 0;
+// 			}
+// 			if (x-- > 0 ) {
+// 				x = _matrix->width();
+// 			}
+// 			return true;
+// 			break;
+// 		}
+// 		}		
+// 	}
+// }
+
 
