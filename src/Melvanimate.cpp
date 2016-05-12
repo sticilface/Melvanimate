@@ -26,7 +26,9 @@ bool Melvanimate::begin()
 
 	_HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
 	_HTTP.serveStatic("/", SPIFFS, "/index.htm", "max-age=86400");
-	_HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
+	//_HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
+  	_HTTP.serveStatic("/images/ajax-loader.gif", SPIFFS, "/ajax-loader.gif", "max-age=86400"); // not needed but loads the ajax spinner
+
 
 	_loadGeneral();
 	_init_LEDs();
@@ -961,7 +963,7 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
 		}
 
-		root.prettyPrintTo(Serial); 
+		//root.prettyPrintTo(Serial); 
 
 		code = parse(root);
 
