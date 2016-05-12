@@ -79,8 +79,9 @@ void setup()
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
-  ArduinoOTA.begin();
   ArduinoOTA.setHostname(devicename);
+
+  ArduinoOTA.begin();
 
 //  Add effects to the manager.
   lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off...
