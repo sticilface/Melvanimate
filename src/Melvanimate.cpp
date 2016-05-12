@@ -28,6 +28,8 @@ bool Melvanimate::begin()
 	_HTTP.serveStatic("/", SPIFFS, "/index.htm", "max-age=86400");
 	//_HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
   	_HTTP.serveStatic("/images/ajax-loader.gif", SPIFFS, "/ajax-loader.gif", "max-age=86400"); // not needed but loads the ajax spinner
+	_HTTP.serveStatic("/allscripts.js", SPIFFS, "/allscripts.js", "max-age=86400");
+	_HTTP.serveStatic("/jqm1.4.5.css", SPIFFS, "/jqm1.4.5.css", "max-age=86400");
 
 
 	_loadGeneral();

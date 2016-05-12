@@ -61,7 +61,7 @@ class MelvanimateMQTT;
 class Melvanimate : public EffectManager
 {
 public:
-	Melvanimate(AsyncWebServer & HTTP, uint16_t pixels, uint8_t pin);
+	Melvanimate(AsyncWebServer & HTTP, uint16_t pixels, uint8_t pin = 2);
 
 	bool begin();
 	void loop() override;

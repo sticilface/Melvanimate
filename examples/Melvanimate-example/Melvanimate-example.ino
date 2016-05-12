@@ -11,28 +11,20 @@
 
 #include <FS.h>
 #include <ESP8266WiFi.h>
-
-
-
-
-#include <ArduinoJson.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
+#include <ArduinoOTA.h>
 #include <NeoPixelBus.h>
+#include <ArduinoJson.h>
+#include "AsyncJson.h"
 #define MQTT_MAX_PACKET_SIZE 256 //  this overrides the default packet size for pubsubclient packet.. otherwise it is 128 bytes, too small.  
 #include <PubSubClient.h>
 #include <Adafruit_GFX.h>
-
 #include <Melvanimate.h>
-#include "SimpleTimer/_SimpleTimer.h"
-#include "AsyncJson.h"
-#include <ESPAsyncTCP.h>
-#include <ESPAsyncWebServer.h>
-
 
 AsyncWebServer HTTP(80);
 
-
-
-//  these are default effect... comment them out here and in setup to remove.  Thats it. 
+//  these are default effects... comment them out here and in setup to remove.  Thats it. 
 #include "effects/SwitchEffect.h"
 #include "effects/SimpleEffect.h"
 #include "effects/DMXEffect.h"
@@ -47,9 +39,7 @@ const char* devicename = "MyWS2812";
 const char* ssid     = "ssid";
 const char* password = "password";
 
-
-
-Melvanimate lights(HTTP, defaultpixelcount , 2);  //  pin is ignored, should use DMA (RXD) or UART (GPIO2) methods.
+Melvanimate lights(HTTP, defaultpixelcount);  //  METHOD defaults to use RX pin, GPIO3, using DMA method... to change see mybus.h within Melvanimate
 
 using namespace helperfunc; // used for things like dim. 
 
@@ -58,8 +48,6 @@ void setup()
 {
 
   Serial.begin(115200);
-
-
   Serial.println("");
 
   SPIFFS.begin(); 
@@ -91,6 +79,8 @@ void setup()
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
+  ArduinoOTA.begin();
+  ArduinoOTA.setHostname(devicename);
 
 //  Add effects to the manager.
   lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off...
@@ -103,9 +93,7 @@ void setup()
 
   
   lights.begin();
-
   lights.deviceName(devicename);  
-
   lights.Start("Off");
 
   HTTP.begin();
@@ -113,14 +101,14 @@ void setup()
   Serial.print(F("Free Heap: "));
   Serial.println(ESP.getFreeHeap());
   Serial.println("Ready"); 
-
-
 }
 
 void loop()
 {
 
   lights.loop();
+  ArduinoOTA.handle();
+
 
 }
 
