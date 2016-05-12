@@ -20,26 +20,13 @@ Melvanimate::Melvanimate(AsyncWebServer & HTTP, uint16_t pixels, uint8_t pin): _
 bool Melvanimate::begin()
 {
 
-
-
 	DebugMelvanimatef("Begin Melvana called\n");
 
 	_HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
-	// _HTTP.serveStatic("/", SPIFFS, "/index.htm", "max-age=86400");
-
 	_HTTP.serveStatic("/jquery/", SPIFFS, "/jquery/", "max-age=86400");
-  	// _HTTP.serveStatic("jquery/images/ajax-loader.gif", SPIFFS, "/jquery/ajax-loader.gif", "max-age=86400"); 
-	
-	// _HTTP.serveStatic("/allscripts.js", SPIFFS, "/allscripts.js", "max-age=86400");
-	
-	// _HTTP.serveStatic("/jqm1.4.5.css", SPIFFS, "/jqm1.4.5.css", "max-age=86400");
-	// _HTTP.serveStatic("/jq1.11.1.js", SPIFFS, "/jq1.11.1.js", "max-age=86400");
-	// _HTTP.serveStatic("/jqm1.4.5.js", SPIFFS, "/jqm1.4.5.js", "max-age=86400");
-
 
 	_loadGeneral();
 	_init_LEDs();
-
 	fillPresetArray();
 }
 
