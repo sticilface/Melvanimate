@@ -25,11 +25,16 @@ bool Melvanimate::begin()
 	DebugMelvanimatef("Begin Melvana called\n");
 
 	_HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
-	_HTTP.serveStatic("/", SPIFFS, "/index.htm", "max-age=86400");
-	//_HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js", "max-age=86400");
-  	_HTTP.serveStatic("/images/ajax-loader.gif", SPIFFS, "/ajax-loader.gif", "max-age=86400"); // not needed but loads the ajax spinner
-	_HTTP.serveStatic("/allscripts.js", SPIFFS, "/allscripts.js", "max-age=86400");
-	_HTTP.serveStatic("/jqm1.4.5.css", SPIFFS, "/jqm1.4.5.css", "max-age=86400");
+	// _HTTP.serveStatic("/", SPIFFS, "/index.htm", "max-age=86400");
+
+	_HTTP.serveStatic("/jquery/", SPIFFS, "/jquery/", "max-age=86400");
+  	// _HTTP.serveStatic("jquery/images/ajax-loader.gif", SPIFFS, "/jquery/ajax-loader.gif", "max-age=86400"); 
+	
+	// _HTTP.serveStatic("/allscripts.js", SPIFFS, "/allscripts.js", "max-age=86400");
+	
+	// _HTTP.serveStatic("/jqm1.4.5.css", SPIFFS, "/jqm1.4.5.css", "max-age=86400");
+	// _HTTP.serveStatic("/jq1.11.1.js", SPIFFS, "/jq1.11.1.js", "max-age=86400");
+	// _HTTP.serveStatic("/jqm1.4.5.js", SPIFFS, "/jqm1.4.5.js", "max-age=86400");
 
 
 	_loadGeneral();
@@ -686,6 +691,7 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 		Serial.printf("PARAM[%s]: %s\n", h->name().c_str(), h->value().c_str());
 	}
 #endif
+
 	DebugMelvanimatef("[Melvanimate::_handleWebRequest] Heap = [%u]\n", ESP.getFreeHeap());
 
 
