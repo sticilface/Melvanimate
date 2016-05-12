@@ -39,7 +39,7 @@
 using namespace std::placeholders;
 
 
-//#define DebugMelvanimate
+#define DebugMelvanimate
 
 #ifdef DebugMelvanimate
 #define DebugMelvanimatef(...) Serial.printf(__VA_ARGS__)
@@ -70,7 +70,7 @@ public:
 
 
 	// pixel count functions
-	void setPixels(const uint16_t pixels);
+	void setPixels(const int pixels);
 	inline const uint16_t getPixels() const  { return _pixels; }
 
 	// autowait functions
@@ -120,6 +120,7 @@ private:
 
 	uint32_t _power{0}; 
 	uint32_t _powertick{0}; 
+	bool _reInitPixelsAsync{false}; 
 
 };
 

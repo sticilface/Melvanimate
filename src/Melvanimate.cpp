@@ -23,6 +23,7 @@ bool Melvanimate::begin()
 	DebugMelvanimatef("Begin Melvana called\n");
 
 	_HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
+	_HTTP.serveStatic("/", SPIFFS, "/index.htm", "max-age=86400");
 	_HTTP.serveStatic("/jquery/", SPIFFS, "/jquery/", "max-age=86400");
 
 	_loadGeneral();
@@ -54,6 +55,12 @@ void Melvanimate::loop()
 		}
 		tick = millis();
 
+	}
+
+	if (_reInitPixelsAsync) {
+		strip->ClearTo(0);
+		_init_LEDs();
+		_reInitPixelsAsync = false;
 	}
 
 }
@@ -120,7 +127,7 @@ void Melvanimate::_init_LEDs()
 // 	_init_matrix();
 // }
 
-void        Melvanimate::setPixels(const uint16_t pixels)
+void        Melvanimate::setPixels(const int pixels)
 {
 	if (pixels == _pixels) { return; }
 	DebugMelvanimatef("NEW Pixels: %u\n", _pixels);
@@ -675,7 +682,7 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 	int i;
 	for (i = 0; i < params; i++) {
 		AsyncWebParameter* h = request->getParam(i);
-		Serial.printf("PARAM[%s]: %s\n", h->name().c_str(), h->value().c_str());
+		Serial.printf("[Melvanimate::_handleWebRequest] [%s]: %s\n", h->name().c_str(), h->value().c_str());
 	}
 #endif
 
@@ -691,6 +698,7 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
 	//  This serialises all the request... except when it is a json...
 	bool jsonparsed = false;
+
 	if (request->params() == 1) {
 
 		DebugMelvanimatef("[Melvanimate::_handleWebRequest] Parsing Json Request: %s\n", request->getParam(0)->value().c_str() );
@@ -733,28 +741,33 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
 
 
+	if (request->hasParam("nopixels", true) && (request->getParam("nopixels", true)->value()).length() != 0) {
+
+		int num = (request->getParam("nopixels", true )->value()).toInt();
+
+		//setTimeout(long d, timer_callback f);
+		_timer.setTimeout(30, [num, this]() {
+			setPixels(num);
+		});
+
+		page = "layout";
+
+
+		//  also submits mqtt data
+		/*
+		[ARG:0] nopixels = 50
+		[ARG:1] enablemqtt = off
+		[ARG:2] mqtt_ip = 1.2.3.4
+		[ARG:3] mqtt_port = 123
+
+		*/
+	}
+
+
 	if (p_root) {
 		JsonObject & root = *p_root;
 
-
-
-
-		if (request->hasParam("nopixels") && request->getParam("nopixels")->value().length() != 0) {
-			setPixels(  request->getParam("nopixels")->value().toInt()   );
-			page = "layout";
-
-
-			//  also submits mqtt data
-			/*
-			[ARG:0] nopixels = 50
-			[ARG:1] enablemqtt = off
-			[ARG:2] mqtt_ip = 1.2.3.4
-			[ARG:3] mqtt_port = 123
-
-			*/
-		}
-
-		if (request->hasParam("enablemqtt")) {
+		if (request->hasParam("enablemqtt", true)) {
 
 			JsonObject & settings = root.createNestedObject("globals");
 			JsonObject & mqttjson = settings.createNestedObject("MQTT");
@@ -763,12 +776,12 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
 			DebugMelvanimatef("[Melvanimate::_handleWebRequest] Enable MQTT..\n");
 
-			mqttjson["enabled"] = (  request->getParam("enablemqtt")->value() == "on") ? true : false;
+			mqttjson["enabled"] = (  request->getParam("enablemqtt", true )->value() == "on") ? true : false;
 
 			IPAddress ip;
 
-			if (request->hasParam("mqtt_ip")) {
-				if (ip.fromString( request->getParam("mqtt_ip")->value())) {
+			if (request->hasParam("mqtt_ip", true )) {
+				if (ip.fromString( request->getParam("mqtt_ip", true )->value())) {
 					JsonArray & iparray = mqttjson.createNestedArray("ip");
 					iparray.add(ip[0]);
 					iparray.add(ip[1]);
@@ -777,8 +790,8 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 				}
 			}
 
-			if (request->hasParam("mqtt_port")) {
-				mqttjson["port"] = request->getParam("mqtt_port")->value();
+			if (request->hasParam("mqtt_port", true)) {
+				mqttjson["port"] = request->getParam("mqtt_port", true)->value();
 			}
 
 #ifdef DebugMelvanimate
@@ -802,7 +815,7 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 		}
 
 
-		if (request->hasParam("palette")) {
+		if (request->hasParam("palette", true)) {
 			//palette().mode(request->getParam("palette").c_str());
 			page = "palette"; //  this line might not be needed... palette details are now handled entirely by the effect for which they belong
 
@@ -824,20 +837,20 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 			//  this is a bit of a bodge...  Capital P for object with all parameters...
 			JsonObject & palettenode = root.createNestedObject("Palette");
 
-			palettenode["mode"] = (uint8_t)(request->getParam("palette")->value().toInt()) ;
+			palettenode["mode"] = (uint8_t)(request->getParam("palette", true)->value().toInt()) ;
 
 
-			if (request->hasParam("palette-random")) {
-				palettenode["randmode"] = (uint8_t)Palette::randommodeStringtoEnum(request->getParam("palette-random")->value().c_str());
+			if (request->hasParam("palette-random", true)) {
+				palettenode["randmode"] = (uint8_t)Palette::randommodeStringtoEnum(request->getParam("palette-random", true)->value().c_str());
 			}
 
-			if (request->hasParam("palette-spread")) {
-				palettenode["range"] = request->getParam("palette-spread")->value();
+			if (request->hasParam("palette-spread", true)) {
+				palettenode["range"] = request->getParam("palette-spread", true)->value();
 
 			}
 
-			if (request->hasParam("palette-delay")) {
-				palettenode["delay"] = request->getParam("palette-delay")->value();
+			if (request->hasParam("palette-delay", true )) {
+				palettenode["delay"] = request->getParam("palette-delay", true)->value();
 
 			}
 			// Serial.println("[handle_data] JSON dump");
@@ -847,37 +860,37 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 		}
 
 
-		if (request->hasParam("eqmode") || request->hasParam("eq_send_udp")) {
+		if (request->hasParam("eqmode", true) || request->hasParam("eq_send_udp", true)) {
 
 			DebugMelvanimatef("[Melvanimate::_handleWebRequest] has enableeq\n");
 
 			JsonObject& EQjson = root.createNestedObject("EQ");
 
-			if (request->hasParam("eqmode")) {
+			if (request->hasParam("eqmode", true)) {
 				EQjson["eqmode"] = request->getParam("eqmode")->value().toInt();
 			}
 			//EQjson["resetpin"] = _resetPin;
 			//EQjson["strobepin"] = _strobePin;
-			if (request->hasParam("peakfactor")) {
-				EQjson["peakfactor"] =  request->getParam("peakfactor")->value().toFloat();
+			if (request->hasParam("peakfactor", true)) {
+				EQjson["peakfactor"] =  request->getParam("peakfactor", true)->value().toFloat();
 			}
-			if (request->hasParam("beatskiptime")) {
-				EQjson["beatskiptime"] = request->getParam("beatskiptime")->value().toInt();
+			if (request->hasParam("beatskiptime", true)) {
+				EQjson["beatskiptime"] = request->getParam("beatskiptime", true)->value().toInt();
 			}
-			if (request->hasParam("samples")) {
-				EQjson["samples"] = request->getParam("samples")->value().toInt();
+			if (request->hasParam("samples", true)) {
+				EQjson["samples"] = request->getParam("samples", true)->value().toInt();
 			}
-			if (request->hasParam("sampletime")) {
-				EQjson["sampletime"] = request->getParam("sampletime")->value().toInt();
+			if (request->hasParam("sampletime", true)) {
+				EQjson["sampletime"] = request->getParam("sampletime", true)->value().toInt();
 			}
-			if (request->hasParam("eq_send_udp")) {
-				EQjson["eq_send_udp"] = (request->getParam("eq_send_udp")->value() == "on") ? true : false;
+			if (request->hasParam("eq_send_udp", true)) {
+				EQjson["eq_send_udp"] = (request->getParam("eq_send_udp", true)->value() == "on") ? true : false;
 			}
-			if (request->hasParam("eq_addr")) {
-				EQjson["eq_addr"] = request->getParam("eq_addr")->value();
+			if (request->hasParam("eq_addr", true)) {
+				EQjson["eq_addr"] = request->getParam("eq_addr", true)->value();
 			}
-			if (request->hasParam("eq_port")) {
-				EQjson["eq_port"] = request->getParam("eq_port")->value().toInt();
+			if (request->hasParam("eq_port", true)) {
+				EQjson["eq_port"] = request->getParam("eq_port", true)->value().toInt();
 			}
 
 		}
@@ -908,44 +921,44 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 // #define NEO_TILE_ZIGZAG        0x80 // Tile order reverses between lines
 // #define NEO_TILE_SEQUENCE      0x80 // Bitmask for tile line order
 
-		if (request->hasParam("matrixmode")) {
+		if (request->hasParam("matrixmode", true)) {
 
 			page = "layout";
 
 			JsonObject & matrixnode = root.createNestedObject("Matrix");
 
 
-			if (request->hasParam("grid_x") && request->hasParam("grid_y")) {
+			if (request->hasParam("grid_x", true) && request->hasParam("grid_y", true)) {
 
-				matrixnode["x"] = request->getParam("grid_x")->value().toInt();
-				matrixnode["y"] = request->getParam("grid_y")->value().toInt();
+				matrixnode["x"] = request->getParam("grid_x", true)->value().toInt();
+				matrixnode["y"] = request->getParam("grid_y", true)->value().toInt();
 
-				if (request->hasParam("matrixmode")) {
+				if (request->hasParam("matrixmode", true)) {
 					uint8_t matrixvar = 0;
 
 
-					matrixnode["multiple"] = (request->getParam("matrixmode")->value() == "singlematrix") ? false : true;
+					matrixnode["multiple"] = (request->getParam("matrixmode", true)->value() == "singlematrix") ? false : true;
 
-					if (request->getParam("firstpixel")->value() == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
-					if (request->getParam("firstpixel")->value() == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
-					if (request->getParam("firstpixel")->value() == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
-					if (request->getParam("firstpixel")->value() == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
+					if (request->getParam("firstpixel", true)->value() == "topleft") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_LEFT; }
+					if (request->getParam("firstpixel", true)->value() == "topright") { matrixvar += NEO_MATRIX_TOP + NEO_MATRIX_RIGHT; }
+					if (request->getParam("firstpixel", true)->value() == "bottomleft") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT; }
+					if (request->getParam("firstpixel", true)->value() == "bottomright") { matrixvar += NEO_MATRIX_BOTTOM + NEO_MATRIX_RIGHT; }
 
-					if (request->getParam("axis")->value() == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
-					if (request->getParam("axis")->value() == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
+					if (request->getParam("axis", true)->value() == "rowmajor") { matrixvar += NEO_MATRIX_ROWS; }
+					if (request->getParam("axis", true)->value() == "columnmajor") { matrixvar += NEO_MATRIX_COLUMNS ; }
 
-					if (request->getParam("sequence")->value() == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
-					if (request->getParam("sequence")->value() == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
+					if (request->getParam("sequence", true)->value() == "progressive") { matrixvar += NEO_MATRIX_PROGRESSIVE ; }
+					if (request->getParam("sequence", true)->value() == "zigzag") { matrixvar += NEO_MATRIX_ZIGZAG ; }
 
-					if (request->getParam("matrixmode")->value() == "multiplematrix") {
-						if (request->getParam("multimatrixtile")->value() == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
-						if (request->getParam("multimatrixtile")->value() == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
-						if (request->getParam("multimatrixtile")->value() == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
-						if (request->getParam("multimatrixtile")->value() == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
-						if (request->getParam("multimatrixaxis")->value() == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
-						if (request->getParam("multimatrixaxis")->value() == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
-						if (request->getParam("multimatrixseq")->value() == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
-						if (request->getParam("multimatrixseq")->value() == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
+					if (request->getParam("matrixmode", true)->value() == "multiplematrix") {
+						if (request->getParam("multimatrixtile", true)->value() == "topleft") { matrixvar += NEO_TILE_TOP + NEO_TILE_LEFT; }
+						if (request->getParam("multimatrixtile", true)->value() == "topright") { matrixvar += NEO_TILE_TOP + NEO_TILE_RIGHT; }
+						if (request->getParam("multimatrixtile", true)->value() == "bottomleft") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_LEFT; }
+						if (request->getParam("multimatrixtile", true)->value() == "bottomright") { matrixvar += NEO_TILE_BOTTOM + NEO_TILE_RIGHT; }
+						if (request->getParam("multimatrixaxis", true)->value() == "rowmajor") { matrixvar += NEO_TILE_ROWS ; }
+						if (request->getParam("multimatrixaxis", true)->value() == "columnmajor") { matrixvar += NEO_TILE_COLUMNS ; }
+						if (request->getParam("multimatrixseq", true)->value() == "progressive") { matrixvar += NEO_TILE_PROGRESSIVE ; }
+						if (request->getParam("multimatrixseq", true)->value() == "zigzag") { matrixvar += NEO_TILE_ZIGZAG ; }
 					}
 
 					matrixnode["config"] = matrixvar;
@@ -958,18 +971,23 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
 		}
 
-		//root.prettyPrintTo(Serial); 
+		//root.prettyPrintTo(Serial);
 
 		code = parse(root);
 
 
-		if (request->hasParam("flashfirst")) {
+		if (request->hasParam("flashfirst", true)) {
+
+			_timer.setTimeout(30, [this]() {
+				Start("Off");
+				Stop();
+				strip->ClearTo(0);
+				strip->SetPixelColor(0, RgbColor(255, 0, 0));
+
+			});
 
 			page = "layout";
-			Start("Off");
-			Stop();
-			strip->ClearTo(0);
-			strip->SetPixelColor(0, RgbColor(255, 0, 0));
+
 			// AnimUpdateCallback animUpdate = [] (float progress) {
 			// 	strip->SetPixelColor(0, Palette::wheel( (uint8_t)(progress * 255) ));
 			// 	if (progress == 1.0) { strip->SetPixelColor(0, 0); }
@@ -981,67 +999,70 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
 		}
 
-		if (request->hasParam("revealorder")) {
-			page = "layout";
-			Start("Off");
-			Stop();
-			strip->ClearTo(0);
+		if (request->hasParam("revealorder", true)) {
+
+			_timer.setTimeout(30, [this]() {
+				Start("Off");
+				Stop();
+				strip->ClearTo(0);
 
 
-			for (uint16_t pixel = 0; pixel < strip->PixelCount() ; pixel++) {
+				for (uint16_t pixel = 0; pixel < strip->PixelCount() ; pixel++) {
 
-				strip->SetPixelColor(pixel, RgbColor(255, 0, 0));
+					strip->SetPixelColor(pixel, RgbColor(255, 0, 0));
 
-				if (pixel) {
-					strip->SetPixelColor(pixel - 1, RgbColor(0, 0, 0));
+					if (pixel) {
+						strip->SetPixelColor(pixel - 1, RgbColor(0, 0, 0));
+					}
 				}
 
+			});
+			page = "layout";
 
-			}
 
 		}
 
 
-		if (request->hasParam("data")) {
-			_sendData(request->getParam("data")->value(), 0, request); // sends JSON data for whatever page is currently being viewed
+		if (request->hasParam("data", true)) {
+			_sendData(request->getParam("data", true)->value(), 0, request); // sends JSON data for whatever page is currently being viewed
 			return;
 		}
 
-		if (request->hasParam("enabletimer")) {
+		if (request->hasParam("enabletimer", true)) {
 			page = "timer";
-			if (request->getParam("enabletimer")->value() == "on") {
+			if (request->getParam("enabletimer", true)->value() == "on") {
 
-				if (request->hasParam("timer") && request->hasParam("timercommand")) {
+				if (request->hasParam("timer", true) && request->hasParam("timercommand", true)) {
 
-					String effect =  (request->hasParam("timeroption")) ? request->getParam("timeroption")->value() : String();
+					String effect =  (request->hasParam("timeroption", true)) ? request->getParam("timeroption", true)->value() : String();
 
-					if (setTimer(request->getParam("timer")->value().toInt(), request->getParam("timercommand")->value(), effect )) {
+					if (setTimer(request->getParam("timer", true)->value().toInt(), request->getParam("timercommand", true)->value(), effect )) {
 						DebugMelvanimatef("[handle] Timer command accepted\n");
 					}
 				}
-			} else if (request->getParam("enabletimer")->value() == "off") {
+			} else if (request->getParam("enabletimer", true)->value() == "off") {
 				setTimer(0, "off");
 			}
 
 		}
 
 
-		if (request->hasParam("presetcommand")) {
+		if (request->hasParam("presetcommand", true)) {
 
 			//String in = request->getParam("selectedeffect").toInt()
 			//uint8_t File = in.substring(0, in.indexOf(".")).toInt();
 			//uint8_t ID = in.substring(in.indexOf(".") + 1, in.length()).toInt();
 
 
-			if (request->getParam("presetcommand")->value() == "load") {
-				code = Load(request->getParam("selectedeffect")->value().toInt());
-			} else if (request->getParam("presetcommand")->value() == "new" ) {
-				code = Save(0, request->getParam("presetsavename")->value().c_str());
-			} else if (request->getParam("presetcommand")->value() == "overwrite" ) {
-				code = Save(request->getParam("selectedeffect")->value().toInt(), request->getParam("presetsavename")->value().c_str(), true);
-			} else if (request->getParam("presetcommand")->value() == "delete" ) {
-				code = removePreset(request->getParam("selectedeffect")->value().toInt());
-			} else if (request->getParam("presetcommand")->value() == "deleteall" ) {
+			if (request->getParam("presetcommand", true)->value() == "load") {
+				code = Load(request->getParam("selectedeffect", true)->value().toInt());
+			} else if (request->getParam("presetcommand", true)->value() == "new" ) {
+				code = Save(0, request->getParam("presetsavename", true)->value().c_str());
+			} else if (request->getParam("presetcommand", true)->value() == "overwrite" ) {
+				code = Save(request->getParam("selectedeffect", true)->value().toInt(), request->getParam("presetsavename", true)->value().c_str(), true);
+			} else if (request->getParam("presetcommand", true)->value() == "delete" ) {
+				code = removePreset(request->getParam("selectedeffect", true)->value().toInt());
+			} else if (request->getParam("presetcommand", true)->value() == "deleteall" ) {
 				removeAllpresets();
 			}
 
