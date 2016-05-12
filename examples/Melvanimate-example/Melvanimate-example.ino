@@ -12,7 +12,7 @@
 #include <FS.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-
+#include <ArduinoOTA.h>
 
 #include <ArduinoJson.h>
 #include <NeoPixelBus.h>
@@ -49,11 +49,8 @@ void setup()
 
   Serial.begin(115200);
   Serial.println("");
-  
-  SPIFFS.begin();
-  
-  Serial.println();
-  Serial.println();
+
+  SPIFFS.begin(); 
 
   Serial.println("SPIFFS FILES:");
   {
@@ -65,7 +62,6 @@ void setup()
     }
     Serial.printf("\n");
   }
-
 
 
   Serial.print("Connecting to ");
@@ -83,6 +79,8 @@ void setup()
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
+  ArduinoOTA.begin();
+  ArduinoOTA.setHostname(devicename);
 
 //  Add effects to the manager.
   lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off...
@@ -95,7 +93,6 @@ void setup()
 
   
   lights.begin();
-
   lights.deviceName(devicename);  
   lights.Start("Off");
 
@@ -104,14 +101,17 @@ void setup()
   Serial.print(F("Free Heap: "));
   Serial.println(ESP.getFreeHeap());
   Serial.println("Ready"); 
-
 }
 
 void loop()
 {
   HTTP.handleClient();
   lights.loop();
+  ArduinoOTA.handle();
+
+
 }
+
 
 
 /*-----------------------------------------------
@@ -248,7 +248,6 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
     }
   }
 }
-
 
 
 
