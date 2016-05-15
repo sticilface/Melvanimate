@@ -16,8 +16,8 @@ Handler to add / create / run multiple Effect Objects at the same time...
 
 //#define DebugObjectman
 
-#ifdef DebugObjectman
-#define Debugobjf(...) Serial.printf(__VA_ARGS__)
+#ifdef DEBUG_ESP_PORT && DebugObjectman
+#define Debugobjf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define Debugobjf(...) {}
 #endif

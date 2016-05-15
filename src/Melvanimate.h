@@ -41,8 +41,9 @@ using namespace std::placeholders;
 
 #define DebugMelvanimate
 
-#ifdef DebugMelvanimate
-#define DebugMelvanimatef(...) Serial.printf(__VA_ARGS__)
+
+#ifdef DEBUG_ESP_PORT && DebugMelvanimate
+#define DebugMelvanimatef(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define DebugMelvanimatef(...) {}
 #endif

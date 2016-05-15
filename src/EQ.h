@@ -25,8 +25,8 @@ MSGEQ7 chip RESET pulse is 0.1us min, strobe pulse 0.018us min.  And it works fi
 //#define DebugEQ
 
 
-#ifdef DebugEQ
-	#define DebugEQf(...) Serial.printf(__VA_ARGS__)
+#ifdef DEBUG_ESP_PORT && DebugEQ
+	#define DebugEQf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 	#define DebugEQf(...) {}
 #endif

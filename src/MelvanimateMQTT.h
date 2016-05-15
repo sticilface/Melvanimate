@@ -10,8 +10,8 @@
 
 //#define DebugMelvanimateMQTT
 
-#ifdef DebugMelvanimateMQTT
-#define DebugMelvanimateMQTTf(...) Serial.printf(__VA_ARGS__)
+#ifdef DEBUG_ESP_PORT && DebugMelvanimateMQTT
+#define DebugMelvanimateMQTTf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define DebugMelvanimateMQTTf(...) {}
 #endif

@@ -10,8 +10,8 @@
 
 //#define DebugPropertyManager
 
-#ifdef DebugPropertyManager
-#define PropertyManagerf(...) Serial.printf(__VA_ARGS__)
+#ifdef DEBUG_ESP_PORT && DebugPropertyManager
+#define PropertyManagerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define PropertyManagerf(...) {}
 #endif

@@ -18,8 +18,8 @@ extern NeoPixelAnimator * animator;
 
 #define PRESETS_FILE "/presets_"
 
-#ifdef DebugEffectManager
-#define DebugEffectManagerf(...) Serial.printf(__VA_ARGS__)
+#ifdef DEBUG_ESP_PORT && DebugEffectManager
+#define DebugEffectManagerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define DebugEffectManagerf(...) {}
 #endif

@@ -9,8 +9,8 @@
 
 //#define DebugEffectHandler
 
-#ifdef DebugEffectHandler
-#define DebugEffectHandlerf(...) Serial.printf(__VA_ARGS__)
+#ifdef DEBUG_ESP_PORT && DebugEffectHandler
+#define DebugEffectHandlerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define DebugEffectHandlerf(...) {}
 #endif
