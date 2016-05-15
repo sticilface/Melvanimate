@@ -676,6 +676,8 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
 	DebugMelvanimatef("[Melvanimate::_handleWebRequest] \n");
 
+
+
 #ifdef DebugMelvanimate
 //List all collected headers
 	int params = request->params();
@@ -687,6 +689,14 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 #endif
 
 	DebugMelvanimatef("[Melvanimate::_handleWebRequest] Heap = [%u]\n", ESP.getFreeHeap());
+
+	//   set the page to the requested page
+	if (request->hasParam("data", true) ) {
+			DebugMelvanimatef("[Melvanimate::_handleWebRequest] Page Requested = %s\n", page.c_str());
+			page = request->getParam("data",true)->value(); 
+	}
+
+
 
 
 	// puts all the args into json...
