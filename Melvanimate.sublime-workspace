@@ -1,0 +1,1306 @@
+{
+	"auto_complete":
+	{
+		"selected_items":
+		[
+			[
+				"uin",
+				"uint8_t"
+			],
+			[
+				"_",
+				"_backbutton"
+			],
+			[
+				"_has",
+				"_hasChanged"
+			],
+			[
+				"_h",
+				"_hasChanged"
+			],
+			[
+				"_c",
+				"_currentpage"
+			],
+			[
+				"page",
+				"pagemanager"
+			],
+			[
+				"sel",
+				"_selecteditem"
+			],
+			[
+				"uint",
+				"uint32_t"
+			],
+			[
+				"han",
+				"handled"
+			],
+			[
+				"_a",
+				"_active"
+			],
+			[
+				"ha",
+				"handleinput"
+			],
+			[
+				"_s",
+				"_selecteditem"
+			],
+			[
+				"pr",
+				"previous"
+			],
+			[
+				"_f",
+				"_firstitem"
+			],
+			[
+				"_fun",
+				"_changefunc"
+			],
+			[
+				"flas",
+				"_flashstate"
+			],
+			[
+				"las",
+				"_lastupdate"
+			],
+			[
+				"S",
+				"SHORT_PRESS"
+			],
+			[
+				"se",
+				"setCursor"
+			],
+			[
+				"_y",
+				"_y2"
+			],
+			[
+				"vir",
+				"virtual_item"
+			],
+			[
+				"st",
+				"static_cast"
+			],
+			[
+				"int",
+				"int32_t"
+			],
+			[
+				"in",
+				"int16_t"
+			],
+			[
+				"IN",
+				"INT8_T"
+			],
+			[
+				"u",
+				"uint8_t_value"
+			],
+			[
+				"UIN",
+				"UINT8_T"
+			],
+			[
+				"INT",
+				"INT32_T"
+			],
+			[
+				"UN",
+				"UINT16_T"
+			],
+			[
+				"typ",
+				"type_t"
+			],
+			[
+				"ne",
+				"network_ID"
+			],
+			[
+				"send",
+				"senderid"
+			],
+			[
+				"de",
+				"destination"
+			],
+			[
+				"DIG",
+				"DIGITALWRITE"
+			],
+			[
+				"P",
+				"PJONPacket"
+			],
+			[
+				"Pj",
+				"PJONPacket"
+			],
+			[
+				"v",
+				"uint8_t_value"
+			],
+			[
+				"json",
+				"jsonBuffer"
+			],
+			[
+				"U",
+				"UINT8_T"
+			],
+			[
+				"boo",
+				"bool_value"
+			],
+			[
+				"sen",
+				"senderid"
+			],
+			[
+				"PJON",
+				"PJONPacket"
+			],
+			[
+				"pin",
+				"pintxt"
+			],
+			[
+				"re",
+				"returnroot"
+			],
+			[
+				"byte",
+				"byte_value"
+			],
+			[
+				"pa",
+				"parseJson"
+			],
+			[
+				"_d",
+				"_deinitialise"
+			],
+			[
+				"EQ",
+				"EQjson"
+			],
+			[
+				"ena",
+				"enableeq"
+			],
+			[
+				"D",
+				"DebugMelvanimatef"
+			],
+			[
+				"_sam",
+				"_samples"
+			],
+			[
+				"samp",
+				"sampletime"
+			],
+			[
+				"_sa",
+				"_sampletime"
+			],
+			[
+				"peak",
+				"_peakfactor"
+			],
+			[
+				"In",
+				"Initialise"
+			],
+			[
+				"_p",
+				"_peakfactor"
+			],
+			[
+				"R",
+				"RgbColor"
+			],
+			[
+				"fade",
+				"fadepc"
+			],
+			[
+				"up",
+				"updatedColor"
+			],
+			[
+				"fad",
+				"fadepc"
+			],
+			[
+				"time",
+				"timefor"
+			],
+			[
+				"as",
+				"asString"
+			],
+			[
+				"is",
+				"isnumber"
+			],
+			[
+				"buf",
+				"buff"
+			],
+			[
+				"H",
+				"HTTPClient"
+			],
+			[
+				"http",
+				"httpclient"
+			],
+			[
+				"si",
+				"size_t"
+			],
+			[
+				"ch",
+				"changeinputflag"
+			],
+			[
+				"_r",
+				"_random"
+			],
+			[
+				"Pa",
+				"Palette"
+			],
+			[
+				"mq",
+				"mqtt_port"
+			],
+			[
+				"mqtt",
+				"mqtt_ip"
+			],
+			[
+				"has",
+				"hasArg"
+			],
+			[
+				"ip",
+				"ip"
+			],
+			[
+				"Json",
+				"JsonObject"
+			],
+			[
+				"_ha",
+				"_handleWebRequest"
+			],
+			[
+				"enable",
+				"enablemqtt"
+			],
+			[
+				"en",
+				"enabled"
+			],
+			[
+				"only",
+				"onlychanged"
+			],
+			[
+				"_m",
+				"_msg"
+			],
+			[
+				"cl",
+				"_client"
+			],
+			[
+				"p",
+				"plength"
+			],
+			[
+				"pri",
+				"private"
+			],
+			[
+				"_se",
+				"_sendChangedJson"
+			],
+			[
+				"cre",
+				"createNestedObject"
+			],
+			[
+				"m",
+				"mqttjson"
+			],
+			[
+				"Js",
+				"JsonObject"
+			],
+			[
+				"M",
+				"Melvanimate"
+			],
+			[
+				"end",
+				"endsWith"
+			],
+			[
+				"n",
+				"nullptr"
+			],
+			[
+				"del",
+				"delete"
+			],
+			[
+				"MQ",
+				"MQTTjson"
+			],
+			[
+				"con",
+				"containsKey"
+			],
+			[
+				"shape",
+				"shape"
+			],
+			[
+				"sh",
+				"shapemode"
+			],
+			[
+				"fill",
+				"fillRect"
+			],
+			[
+				"dra",
+				"drawCircle"
+			],
+			[
+				"draw",
+				"drawCircle"
+			],
+			[
+				"the",
+				"thefunction"
+			],
+			[
+				"r",
+				"running"
+			],
+			[
+				"Up",
+				"UpdateObject"
+			],
+			[
+				"E",
+				"EffectObjectHandler"
+			],
+			[
+				"pix",
+				"pixel"
+			],
+			[
+				"_gr",
+				"_grid_y"
+			],
+			[
+				"_grid",
+				"_grid_y"
+			],
+			[
+				"ma",
+				"matrixvar"
+			],
+			[
+				"matri",
+				"matrixnode"
+			],
+			[
+				"mat",
+				"matrixjson"
+			],
+			[
+				"y",
+				"y"
+			],
+			[
+				"ESPMAN",
+				"ESPMan_Debugf"
+			],
+			[
+				"_pas",
+				"_pass_hardcoded"
+			],
+			[
+				"_ss",
+				"_ssid_hardcoded"
+			],
+			[
+				"Mel",
+				"MelvtrixMan"
+			],
+			[
+				"_g",
+				"_grid_y"
+			],
+			[
+				"Pix",
+				"PixelCount"
+			],
+			[
+				"create",
+				"createAnimator"
+			],
+			[
+				"_power",
+				"_powertick"
+			],
+			[
+				"_po",
+				"_power"
+			],
+			[
+				"return",
+				"returnval"
+			],
+			[
+				"Pi",
+				"PixelCount"
+			],
+			[
+				"neo",
+				"NeoPixelAnimator"
+			],
+			[
+				"get",
+				"GetPixelColor"
+			],
+			[
+				"rainbo",
+				"rainbowCycle"
+			],
+			[
+				"wh",
+				"wholerainbow"
+			],
+			[
+				"Neo",
+				"NeoPixelAnimator"
+			],
+			[
+				"new",
+				"newColor"
+			],
+			[
+				"POS",
+				"POST_EFFECT"
+			],
+			[
+				"pixe",
+				"PixelCount"
+			]
+		]
+	},
+	"buffers":
+	[
+		{
+			"file": "src/Melvanimate.h",
+			"settings":
+			{
+				"buffer_size": 2735,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/effects/Shapes.h",
+			"settings":
+			{
+				"buffer_size": 1871,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "src/Melvanimate.cpp",
+			"settings":
+			{
+				"buffer_size": 31000,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/ESPAsyncWebServer.h",
+			"settings":
+			{
+				"buffer_size": 10818,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/WebRequest.cpp",
+			"settings":
+			{
+				"buffer_size": 23836,
+				"line_ending": "Unix"
+			}
+		},
+		{
+			"file": "examples/Melvanimate-example/Melvanimate-example.ino",
+			"settings":
+			{
+				"buffer_size": 6340,
+				"line_ending": "Unix"
+			}
+		}
+	],
+	"build_system": "",
+	"build_system_choices":
+	[
+		[
+			[
+				[
+					"PlatformIO",
+					""
+				],
+				[
+					"PlatformIO",
+					"Clean"
+				],
+				[
+					"PlatformIO",
+					"Upload"
+				]
+			],
+			[
+				"PlatformIO",
+				"Upload"
+			]
+		],
+		[
+			[
+				[
+					"PlatformIO",
+					""
+				],
+				[
+					"PlatformIO",
+					"Clean"
+				],
+				[
+					"PlatformIO",
+					"Upload"
+				],
+				[
+					"PlatformIO",
+					"SPIFFS"
+				]
+			],
+			[
+				"PlatformIO",
+				""
+			]
+		],
+		[
+			[
+				[
+					"PlatformIO",
+					""
+				],
+				[
+					"PlatformIO",
+					"Clean"
+				],
+				[
+					"PlatformIO",
+					"Upload"
+				],
+				[
+					"PlatformIO",
+					"Upload SPIFFS"
+				]
+			],
+			[
+				"PlatformIO",
+				"Upload"
+			]
+		]
+	],
+	"build_varint": "",
+	"command_palette":
+	{
+		"height": 367.0,
+		"last_filter": "Package Control: ",
+		"selected_items":
+		[
+			[
+				"Package Control: ",
+				"Package Control: Disable Package"
+			],
+			[
+				"pace",
+				"Package Control: Upgrade Package"
+			],
+			[
+				"pack",
+				"Package Control: Install Package"
+			]
+		],
+		"width": 449.0
+	},
+	"console":
+	{
+		"height": 0.0,
+		"history":
+		[
+		]
+	},
+	"distraction_free":
+	{
+		"menu_visible": true,
+		"show_minimap": false,
+		"show_open_files": false,
+		"show_tabs": false,
+		"side_bar_visible": false,
+		"status_bar_visible": false
+	},
+	"expanded_folders":
+	[
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects"
+	],
+	"file_history":
+	[
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/CamperOS/src/camperOS.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/CamperOS/src/PJONPacket.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/CamperOS/src/camperOS.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/CamperOS/src/item.h",
+		"/Users/amelvin/Arduino/esp8266/libraries/ESP8266WiFi/src/WiFiUdp.h",
+		"/Users/amelvin/Arduino/esp8266/libraries/ESP8266WiFi/src/WiFiUdp.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/UDPEffect.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/Snakes.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/RainbowChase.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/EQvisualiser.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/DMXEffect.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/helperfunc.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/MelvanimateMQTT.cpp",
+		"/Users/amelvin/platformio/melvanimate/platformio.sublime-project",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/Melvanimate.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/AdalightEffect.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/EffectManager.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/ESPmanager/ESPmanager.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/EffectManager.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Melvtrix.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/EQ.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/EQ.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/PropertyManager.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/ObjectManager.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/mybus.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/BeatsTest.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/Blobs.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/BeatsTest.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/EffectHandler.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/EQ.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/EQ.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/EQvisualiser.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Palette.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Melvanimate.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/EQ.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/EQ.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Melvanimate.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/MelvanimateMQTT.h",
+		"/Users/amelvin/platformio/melvanimate/src/Melvanimate-example.ino",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/EffectManager.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/SimpleEffect.h",
+		"/Users/amelvin/platformio/melvanimate/lib/ESPmanager/ESPmanager.h",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/ESPmanager/ESPmanager.h",
+		"/Users/amelvin/platformio/melvanimate/lib/ESPmanager/examples/ESPmanager-example/ESPmanager-example.ino",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/RainbowChase.h",
+		"/Users/amelvin/platformio/melvanimate/lib/ESPmanager/README.md",
+		"/Users/amelvin/platformio/melvanimate/data/index.htm",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/README.md",
+		"/Users/amelvin/platformio/melvanimate/src/EffectCallbacks.ino",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Palette.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/helperfunc.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/Blobs.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/PropertyManager.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/EffectHandler.cpp",
+		"/Users/amelvin/platformio/melvanimate/platformio.ini",
+		"/Users/amelvin/Arduino/ESP31B/tools/gen_appbin.py",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/MelvanimateMQTT.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/Snakes.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/MelvanimateMQTT.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/ObjectManager.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Melvtrix.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/Blobs.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/Blobs.cpp",
+		"/Users/amelvin/platformio/melvanimate/src/data/index.htm",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/Effect2.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/AdalightEffect.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/DMXEffect.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/RainbowChase.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/UDPEffect.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/helperfunc.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/helperfunc.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/data/helperfunc.h",
+		"/Users/amelvin/platformio/melvanimate/src/test_effects.ino",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/SwitchEffect.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/TemplateHandler.h",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/Melvanimate.cpp",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/EffectManager.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/BufferedPrint.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/BufferedPrint.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/SimpleTimer/README",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/SimpleTimer/_SimpleTimer.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/FSBrowser/FSBrowser.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/FSBrowser/FSBrowser.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/e131/_E131.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/e131/_E131.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/UDPEffect.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/DMXEffect.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/UDPEffect.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/test.h",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/PropertyManager.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/AbstractPropertyHandlerTemplates.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/AbstractPropertyHandlerTemplates.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/AbstractPropertyHandler.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/Adalight.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/Effect2.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/EffectHandler.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/EffectHandler.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/effects/Off.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/effects/Off.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/SimpleEffect.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/DMXEffect.h",
+		"/Users/amelvin/platformio/melvanimate/src/effects/SwitchEffect.cpp",
+		"/Users/amelvin/platformio/melvanimate/src/effects/SwitchEffect.h",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/Palette.cpp",
+		"/Users/amelvin/Library/Application Support/Sublime Text 3/Packages/SublimeAStyleFormatter/SublimeAStyleFormatter.sublime-settings",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/palette.h",
+		"/Users/amelvin/platformio/melvanimate/src/misc.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/ESPmanager/ESPasyncJson.h",
+		"/Users/amelvin/platformio/melvanimate/src/effects.ino",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/FrameworkArduino/MD5Builder.cpp",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/firmware.elf",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/misc.ino",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/ObjectManager.h",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/SimpleTimer/_SimpleTimer.h",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/SimpleTimer_ID419/SimpleTimer.h",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/ESPmanager/ESPmanager.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/test_effects.ino",
+		"/Users/amelvin/platformio/melvanimate/lib/ESPmanager/examples/ESPmanager-example/data/config.htm",
+		"/Users/amelvin/Library/Application Support/Sublime Text 3/Packages/User/Deviot/Preferences.Deviot-settings",
+		"/Users/amelvin/platformio/melvanimate/lib/ESPmanager/examples/ESPmanager-example/data/configjava.js",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/effectobject.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Melvana.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Melvana.h",
+		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/firmware.bin",
+		"/Users/amelvin/platformio/melvanimate/lib/Adafruit-GFX/Adafruit_GFX.cpp",
+		"/Users/amelvin/platformio/melvanimate/lib/Adafruit-GFX/Adafruit_GFX.h",
+		"/Users/amelvin/platformio/espmanager/src/data/config.htm",
+		"/Users/amelvin/platformio/espmanager/.pioenvs/nodemcu/ESPmanager/ESPmanager.cpp"
+	],
+	"find":
+	{
+		"height": 22.0
+	},
+	"find_in_files":
+	{
+		"height": 93.0,
+		"where_history":
+		[
+			"/Users/amelvin/platformio/melvanimate",
+			"/Users/amelvin/platformio/melvanimate/lib/ESPmanager",
+			"/Users/amelvin/platformio/melvanimate/lib/melvanimate",
+			""
+		]
+	},
+	"find_state":
+	{
+		"case_sensitive": true,
+		"find_history":
+		[
+			"_HTTP.arg",
+			"_HTTP.hasArg",
+			"fontCapHeight",
+			"pinModeFast",
+			"ICACHE_RAM_ATTR",
+			"_parse",
+			"parse(",
+			"Serial.",
+			"serial.",
+			"cache",
+			"ESP.get",
+			"HTTPClient",
+			"ifdef",
+			"_position =",
+			"TIME_BASED_RANDOM",
+			"_input",
+			"palette()->input",
+			"input",
+			"_input",
+			"_pdeviceid",
+			"\"deviceid\"",
+			"StringtoIP",
+			"IPtoString",
+			"Settings:",
+			"[Variable::addJsonProperty] _changed",
+			"setChanged",
+			"while",
+			"do",
+			"placeholders",
+			"using",
+			"_loadGeneral",
+			"resart",
+			"&",
+			"_FilesCheck",
+			"_APssid",
+			"remove",
+			"_pass_hardcoded",
+			"dump",
+			"_prepare",
+			"numberofpresets",
+			"strip",
+			"[EffectManager::addAllpresets]",
+			"[EffectManager::nextFreePresetArray]",
+			"_presetcountS",
+			"parsespiffs(",
+			"par",
+			"preset->file;",
+			"FileID = preset->file;",
+			".prettyPrintTo(Serial)",
+			"root.prettyPrintTo(Serial)",
+			"lastIndexOf",
+			"c_",
+			"code = (bool)",
+			"jsonBuffer",
+			"[save] ID",
+			"SPIFFS",
+			"Save(",
+			"Start(",
+			"Load(",
+			"Load",
+			"Serial.write",
+			"Debugf",
+			"lights.",
+			"HTTP.",
+			"DynamicJsonBuffer",
+			"get",
+			"parse",
+			"Load(",
+			"[handle]",
+			"timer",
+			"Serial",
+			"save_flag",
+			"modechange",
+			"iterator",
+			"_preset_names",
+			"SendFailhere",
+			"pixellatchtime",
+			"ada_sent",
+			"prefixcount",
+			"effect_timeout",
+			"state",
+			"effectbuf_position",
+			"stripBuffer",
+			"strip_b",
+			"Serial",
+			"EffectHandler::",
+			"SwitchEffect::",
+			"SwitchEffect",
+			"toggle",
+			"SetToggle",
+			"purge",
+			"_parsespiffs",
+			"_par",
+			"os",
+			"pretty",
+			"proxy",
+			"data = new char[f.size()];",
+			"yield(",
+			"delay(",
+			"delay",
+			"yield",
+			"server.",
+			"REQUeST",
+			"HTTP.",
+			"_preset",
+			"getPreset",
+			"_preset",
+			"get",
+			"_parse",
+			"autowait",
+			"_parsespiffs",
+			"Next effect",
+			"getdata()",
+			"handler->getdata()",
+			"Details_s",
+			"FadeToAndBack",
+			"SNakesFn",
+			"armstrap_eagle_512.ld\narmstrap_eagle_1024.ld\narmstrap_eagle_2048.ld\nesp8266.flash.1m64.ld\nesp8266.flash.1m128.ld\nesp8266.flash.1m256.ld\nesp8266.flash.1m512.ld\nesp8266.flash.2m.ld\nesp8266.flash.4m.ld\nesp8266.flash.4m1m.ld\nesp8266.flash.8m.ld\nesp8266.flash.16m.ld\nesp8266.flash.512k0.ld\nesp8266.flash.512k64.ld\nesp8266.flash.common.ld\nlm4fcpp_blizzard.ld\nlm4fcpp_snowflake.ld\nmk20dx128.ld\nmk20dx256.ld\nmkl26z64.ld\nREADME.md\nrfduino.ld\nsam3x8e.ld\nstm32f30xx.ld\nstm32f405x6.ld\nanimations()",
+			"HTTP_C",
+			"wifi",
+			"_FilesCheck",
+			"Files",
+			"_currentHandler",
+			"next",
+			"return_total_y",
+			"ChangeNeoPixels",
+			"Settingsmanager::",
+			"PID_Vars.Output"
+		],
+		"highlight": true,
+		"in_selection": false,
+		"preserve_case": false,
+		"regex": false,
+		"replace_history":
+		[
+			"request->getHeader",
+			"request->hasHeader",
+			"",
+			"_pdeviceid",
+			"DebugMelvanimatef",
+			"",
+			"_HTTP.",
+			"_vars->pixellatchtime",
+			"_vars->ada_sent",
+			"_vars->prefixcount",
+			"_vars->effect_timeout",
+			"_vars->state",
+			"_vars->effectbuf_position",
+			"_Serial",
+			"parsespiffs",
+			"HTTP.",
+			"request",
+			"request->",
+			"ESPmanager::",
+			"\"]",
+			"[\"",
+			"[F(",
+			"\")]",
+			"[PSTR(\"",
+			"//yield();",
+			"WS2812_Settings.Timer",
+			"effectPosition",
+			"//strip->LinearFadePixelColor",
+			"animations.IsAnimating()",
+			"buf",
+			"",
+			"strip->",
+			"strip->\n",
+			"strip->Show();\n"
+		],
+		"reverse": false,
+		"show_context": true,
+		"use_buffer2": true,
+		"whole_word": false,
+		"wrap": true
+	},
+	"groups":
+	[
+		{
+			"selected": 1,
+			"sheets":
+			[
+				{
+					"buffer": 0,
+					"file": "src/Melvanimate.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 2735,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 1,
+					"type": "text"
+				},
+				{
+					"buffer": 1,
+					"file": "src/effects/Shapes.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 1871,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 0,
+					"type": "text"
+				},
+				{
+					"buffer": 2,
+					"file": "src/Melvanimate.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 31000,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 4,
+					"type": "text"
+				},
+				{
+					"buffer": 3,
+					"file": "/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/ESPAsyncWebServer.h",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 10818,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								2915,
+								2915
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 4,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 1159.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 3,
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/WebRequest.cpp",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 23836,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								22762,
+								22762
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 9902.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 2,
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "examples/Melvanimate-example/Melvanimate-example.ino",
+					"semi_transient": false,
+					"settings":
+					{
+						"buffer_size": 6340,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								0,
+								0
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/C++/C++.sublime-syntax",
+							"tab_size": 2,
+							"translate_tabs_to_spaces": true
+						},
+						"translation.x": 0.0,
+						"translation.y": 96.0,
+						"zoom_level": 1.0
+					},
+					"stack_index": 5,
+					"type": "text"
+				}
+			]
+		}
+	],
+	"incremental_find":
+	{
+		"height": 21.0
+	},
+	"input":
+	{
+		"height": 31.0
+	},
+	"layout":
+	{
+		"cells":
+		[
+			[
+				0,
+				0,
+				1,
+				1
+			]
+		],
+		"cols":
+		[
+			0.0,
+			1.0
+		],
+		"rows":
+		[
+			0.0,
+			1.0
+		]
+	},
+	"menu_visible": true,
+	"output.Deviot|Build1452168205.916934":
+	{
+		"height": 94.0
+	},
+	"output.Deviot|Build1452168922.23685":
+	{
+		"height": 94.0
+	},
+	"output.Deviot|Build1452169008.47005":
+	{
+		"height": 94.0
+	},
+	"output.astyle_error_message":
+	{
+		"height": 0.0
+	},
+	"output.exec":
+	{
+		"height": 199.0
+	},
+	"output.find_results":
+	{
+		"height": 0.0
+	},
+	"output.hex_viewer_inspector":
+	{
+		"height": 94.0
+	},
+	"pinned_build_system": "PlatformIO",
+	"project": "Melvanimate.sublime-project",
+	"replace":
+	{
+		"height": 64.0
+	},
+	"save_all_on_build": true,
+	"select_file":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_project":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"select_symbol":
+	{
+		"height": 0.0,
+		"last_filter": "",
+		"selected_items":
+		[
+		],
+		"width": 0.0
+	},
+	"selected_group": 0,
+	"settings":
+	{
+	},
+	"show_minimap": true,
+	"show_open_files": false,
+	"show_tabs": true,
+	"side_bar_visible": true,
+	"side_bar_width": 258.0,
+	"status_bar_visible": true,
+	"template_settings":
+	{
+	}
+}
