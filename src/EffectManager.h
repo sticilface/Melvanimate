@@ -18,7 +18,7 @@ extern NeoPixelAnimator * animator;
 
 #define PRESETS_FILE "/presets_"
 
-#ifdef DEBUG_ESP_PORT && DebugEffectManager
+#if defined(DEBUG_ESP_PORT) && defined(DebugEffectManager)
 #define DebugEffectManagerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define DebugEffectManagerf(...) {}

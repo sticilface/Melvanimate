@@ -42,7 +42,7 @@ using namespace std::placeholders;
 #define DebugMelvanimate
 
 
-#ifdef DEBUG_ESP_PORT && DebugMelvanimate
+#if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimate)
 #define DebugMelvanimatef(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define DebugMelvanimatef(...) {}

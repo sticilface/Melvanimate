@@ -9,7 +9,7 @@
 
 //#define DebugEffectHandler
 
-#ifdef DEBUG_ESP_PORT && DebugEffectHandler
+#if defined(DEBUG_ESP_PORT) && defined(DebugEffectHandler)
 #define DebugEffectHandlerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define DebugEffectHandlerf(...) {}

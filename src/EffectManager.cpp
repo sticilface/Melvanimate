@@ -130,9 +130,9 @@ bool EffectManager::Start(EffectHandler* handler)
 #ifdef DebugEffectManager
 		int used = heap - ESP.getFreeHeap();
 		if (used < 0) { used = 0; }
-#endif
 
 		DebugEffectManagerf("[Start] Heap Used by %s (%u)\n", handler->name(), used);
+#endif
 
 		return true;
 	} else {

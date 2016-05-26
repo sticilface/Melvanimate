@@ -10,7 +10,7 @@
 
 //#define DebugMelvanimateMQTT
 
-#ifdef DEBUG_ESP_PORT && DebugMelvanimateMQTT
+#if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimateMQTT)
 #define DebugMelvanimateMQTTf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define DebugMelvanimateMQTTf(...) {}
