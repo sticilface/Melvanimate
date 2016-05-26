@@ -10,7 +10,7 @@
 
 //#define DebugPropertyManager
 
-#ifdef DEBUG_ESP_PORT && DebugPropertyManager
+#if defined(DEBUG_ESP_PORT) && defined(DebugPropertyManager)
 #define PropertyManagerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define PropertyManagerf(...) {}
@@ -168,7 +168,7 @@ public:
 	{
 		_name = name;
 	};
-	Variable(const char * name, palette_type  value)
+	Variable(const char * name, Palette::palette_type  value)
 	{
 		_name = name;
 		//set(value);

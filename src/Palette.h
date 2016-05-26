@@ -19,7 +19,7 @@
 
 //#define DebugPalette
 
-#ifdef DEBUG_ESP_PORT && DebugPalette
+#if defined(DEBUG_ESP_PORT) && defined(DebugPalette)
 #define PaletteDebugf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
 #else
 #define PaletteDebugf(...) {}
@@ -31,7 +31,7 @@ union storedColor {
 	HsbColor hsb;
 };
 
-enum palette_type { OFF = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
+//enum palette_type { OFF = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
 enum random_mode { NOT_RANDOM = 0 , TOTAL_RANDOM, TIME_BASED_RANDOM, RANDOM_AFTER_LOOP};
 
 #define NUMBER_OF_RANDOM_MODES 4
@@ -44,6 +44,8 @@ class Palette
 {
 
 public:
+	enum palette_type { OFF = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
+
 	Palette(const char * name = "Palette");
 	Palette(palette_type mode, uint16_t total, const char * name = "Palette" );
 	~Palette();
@@ -75,7 +77,7 @@ public:
 
 	void mode(palette_type mode);
 	void mode(const char *);
-	palette_type mode() {return _mode;};
+	Palette::palette_type mode() {return _mode;};
 	const char * getModeString();
 
 	static inline const char * enumToString(palette_type mode) { return palettes_strings[mode] ;  }
@@ -138,6 +140,6 @@ private:
 	RgbColor _input;
 	float _range = 0.2f; // spread of palettes...
 	uint32_t _delay{10};
-	uint32_t _randtimertick{0}; 
+	uint32_t _randtimertick{0};
 	const char * _name;
 };

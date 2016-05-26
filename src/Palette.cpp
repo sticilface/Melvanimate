@@ -73,7 +73,7 @@ void Palette::mode(const char * in)
 	}
 }
 
-palette_type Palette::stringToEnum(const char * in)
+Palette::palette_type Palette::stringToEnum(const char * in)
 {
 
 	for (uint8_t i = 0; i < 9; i++ ) {

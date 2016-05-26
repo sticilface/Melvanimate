@@ -26,7 +26,7 @@ bool Shapes::InitVars()
 	addVar(new Variable<RgbColor>("color1", RgbColor(0)));
 	addVar(new Variable<bool>("use_matrix", true));
 	addVar(new Variable<MelvtrixMan*>("Matrix"));  // must be called Matrix.  very importnat...
-	addVar(new Variable<Palette*>("Palette", WHEEL));
+	addVar(new Variable<Palette*>("Palette", Palette::WHEEL));
 	addVar(new Variable<uint8_t>("effectnumber", 1));
 	addVar(new Variable<uint8_t>("size", 3));
 	addVar(new Variable<uint8_t>("shapemode", 1));
