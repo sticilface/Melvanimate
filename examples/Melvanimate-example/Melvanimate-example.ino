@@ -126,18 +126,14 @@ void offFn(effectState &state, EffectHandler* ptr)
 
   if (ptr) {
 
-    //  cast pointer to the class defined in the Add... allows you to access any functions within it..  
+    //  cast pointer to the class defined in the Add... allows you to access any functions within it..
     SwitchEffect& effect = *static_cast<SwitchEffect*>(ptr);
 
     switch (state) {
 
     case PRE_EFFECT: {
 
-      if (animator) {
-        delete animator;
-      }
-
-      // have to be careful of number of pixels.. < 300 generally OK. 
+      // have to be careful of number of pixels.. < 300 generally OK.
       lights.createAnimator();
       effect.SetTimeout(1000); //  set speed through the effect
       lights.autoWait(); //  halts progress through states untill animator has finished..
