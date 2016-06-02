@@ -21,7 +21,8 @@ public:
 
 
 	inline uint8_t brightness() { return getVar<uint8_t>("brightness"); }
-	//inline EQ* EQ() { return getVar<EQ*>("EQ"); }
+
+	inline Palette* palette() { return getVar<Palette*>("Palette"); }
 
 
 	// inline uint8_t filter() { return getVar<uint8_t>("filter"); }
@@ -32,8 +33,10 @@ public:
 
 private:
 	//uint16_t _spectrumValue[7] = {0};  
-    //uint16_t _filter = 80; 
+    uint16_t _pixels = 1; 
     uint32_t _tick = 0; 
     //uint8_t _colours[7] = {0}; 
     EQ * _EQ{nullptr}; 
+    //float _pixelfudgefactor{1}; 
+
 };
