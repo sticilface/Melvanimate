@@ -83,7 +83,8 @@ void MelvanimateMQTT::sendJson(bool onlychanged)
 			for (JsonObject::iterator it = settings.begin(); it != settings.end(); ++it) {
 
 				if (it->value.is<const char *>()) {
-					publish( it->key, it->value.asString() );
+
+					publish( it->key, it->value.asString(), false );
 
 				} else {
 
@@ -93,7 +94,7 @@ void MelvanimateMQTT::sendJson(bool onlychanged)
 					if (data2) {
 						memset(data2, '\0', length + 2);
 						it->value.printTo(data2, length + 1);
-						publish( it->key, data2, length + 1 );
+						publish( it->key, (uint8_t*)data2, length + 1, false );
 						delete[] data2;
 					}
 				}
@@ -285,6 +286,7 @@ bool MelvanimateMQTT::addJson(JsonObject & root)
 bool MelvanimateMQTT::mqtt_message::publish()
 {
 	if (_host) {
+		DebugMelvanimateMQTTf("[MelvanimateMQTT::mqtt_message::publish] [%s] (%s) _retained = %s\n", String(_topic).c_str(), _msg , (_retained)? "true" : "false"); 
 		return 	_host->mqttclient()->publish( (String(_host->pmelvanimate()->deviceName()) + "/" + String(_topic)).c_str() , _msg, _plength, _retained);
 	}
 	return false;
