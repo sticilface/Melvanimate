@@ -879,7 +879,7 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 			JsonObject& EQjson = root.createNestedObject("EQ");
 
 			if (request->hasParam("eqmode", true)) {
-				EQjson["eqmode"] = request->getParam("eqmode")->value().toInt();
+				EQjson["eqmode"] = request->getParam("eqmode", true)->value().toInt();
 			}
 			//EQjson["resetpin"] = _resetPin;
 			//EQjson["strobepin"] = _strobePin;
@@ -1186,6 +1186,10 @@ bool Melvanimate::createAnimator(uint16_t count)
 {
 
 	if (animator) {
+
+		if (animator->IsAnimating()) {
+			Serial.printf("[Melvanimate::createAnimator] animator->IsAnimating() = true \n"); 
+		}
 		delete animator;
 		animator = nullptr;
 	}
