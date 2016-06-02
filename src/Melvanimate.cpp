@@ -23,14 +23,16 @@ bool Melvanimate::begin()
 	DebugMelvanimatef("Begin Melvana called\n");
 
 	_HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
-	_HTTP.serveStatic("/", SPIFFS, "/index.htm", "max-age=86400");
-	_HTTP.serveStatic("/jquery/", SPIFFS, "/jquery/", "max-age=86400");
 
 	_loadGeneral();
 	_init_LEDs();
 	fillPresetArray();
 }
 
+void Melvanimate::addJQueryhandlers() {
+	_HTTP.serveStatic("/", SPIFFS, "/index.htm", "max-age=86400");
+	_HTTP.serveStatic("/jquery/", SPIFFS, "/jquery/", "max-age=86400");
+}
 
 void Melvanimate::loop()
 {
@@ -684,7 +686,7 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 	int i;
 	for (i = 0; i < params; i++) {
 		AsyncWebParameter* h = request->getParam(i);
-		Serial.printf("[Melvanimate::_handleWebRequest] [%s]: %s\n", h->name().c_str(), h->value().c_str());
+		DebugMelvanimatef("[Melvanimate::_handleWebRequest] [%s]: %s\n", h->name().c_str(), h->value().c_str());
 	}
 #endif
 

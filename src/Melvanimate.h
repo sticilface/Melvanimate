@@ -39,7 +39,7 @@
 using namespace std::placeholders;
 
 
-#define DebugMelvanimate
+//#define DebugMelvanimate
 
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimate)
@@ -69,6 +69,7 @@ public:
 	void deviceName(const char * name) { _deviceName = name; }
 	const char * deviceName() { return _deviceName; }
 
+	void addJQueryhandlers(); 
 
 	// pixel count functions
 	void setPixels(const int pixels);
