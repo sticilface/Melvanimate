@@ -17,14 +17,16 @@
 #include <NeoPixelBus.h>
 #include <ArduinoJson.h>
 #include "AsyncJson.h"
-#define MQTT_MAX_PACKET_SIZE 256 //  this overrides the default packet size for pubsubclient packet.. otherwise it is 128 bytes, too small.  
+#define MQTT_MAX_PACKET_SIZE 256 //  this overrides the default packet size for pubsubclient packet.. otherwise it is 128 bytes, too small.
 #include <PubSubClient.h>
 #include <Adafruit_GFX.h>
 #include <Melvanimate.h>
+#include <Hash.h> //  required for platformio build
+#include <ESP8266mDNS.h> // required for platformio build
 
 AsyncWebServer HTTP(80);
 
-//  these are default effects... comment them out here and in setup to remove.  Thats it. 
+//  these are default effects... comment them out here and in setup to remove.  Thats it.
 #include "effects/SwitchEffect.h"
 #include "effects/SimpleEffect.h"
 #include "effects/DMXEffect.h"
@@ -35,13 +37,13 @@ AsyncWebServer HTTP(80);
 
 
 const uint16_t defaultpixelcount =  20;
-const char* devicename = "MyWS2812";  
+const char* devicename = "MyWS2812";
 const char* ssid     = "ssid";
 const char* password = "password";
 
 Melvanimate lights(HTTP, defaultpixelcount);  //  METHOD defaults to use RX pin, GPIO3, using DMA method... to change see mybus.h within Melvanimate
 
-using namespace helperfunc; // used for things like dim. 
+using namespace helperfunc; // used for things like dim.
 
 
 void setup()
@@ -87,23 +89,25 @@ void setup()
 
 //  Add effects to the manager.
   lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off...
-  lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));       
-  lights.Add("RainbowChase", new RainbowChase); 
-  lights.Add("Shapes",       new Shapes); 
-  lights.Add("Adalight",     new AdalightEffect(Serial, 115200));   //  default serial device and baud. 
-  lights.Add("UDP",          new UDPEffect);                        
+  lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));
+  lights.Add("RainbowChase", new RainbowChase);
+  lights.Add("Shapes",       new Shapes);
+  lights.Add("Adalight",     new AdalightEffect(Serial, 115200));   //  default serial device and baud.
+  lights.Add("UDP",          new UDPEffect);
   lights.Add("DMX",          new DMXEffect );                       // need to test - requires custom libs included
 
-  
+
   lights.begin();
-  lights.deviceName(devicename);  
+  lights.addJQueryhandlers(); // needed if you are not using ESPmanager to bind jquery handles. 
+
+  lights.deviceName(devicename);
   lights.Start("Off");
 
   HTTP.begin();
 
   Serial.print(F("Free Heap: "));
   Serial.println(ESP.getFreeHeap());
-  Serial.println("Ready"); 
+  Serial.println("Ready");
 }
 
 void loop()

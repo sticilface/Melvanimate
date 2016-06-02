@@ -51,6 +51,8 @@ void setup()
 
   Serial.begin(115200);
   Serial.println("");
+  Serial.println("Melvanimate - WS2812 control");
+
 
   SPIFFS.begin(); 
 
@@ -75,7 +77,8 @@ void setup()
 
   Serial.print(F("Free Heap: "));
   Serial.println(ESP.getFreeHeap());
-  Serial.println("Ready"); 
+  Serial.print("Ready IP: ");
+  Serial.println(WiFi.localIP());
 }
 
 void loop()
@@ -105,9 +108,6 @@ void offFn(effectState &state, EffectHandler* ptr)
 
     case PRE_EFFECT: {
 
-      if (animator) {
-        delete animator;
-      }
 
       // have to be careful of number of pixels.. < 300 generally OK. 
       lights.createAnimator();
