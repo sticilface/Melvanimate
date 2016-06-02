@@ -13,6 +13,7 @@
 #include <internal/HslColor.h>
 #include <internal/HsbColor.h>
 #include <NeoPixelBus.h>
+#include <functional>
 
 
 #include <ArduinoJson.h>
@@ -32,7 +33,6 @@ union storedColor {
 };
 
 //enum palette_type { OFF = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
-enum random_mode { NOT_RANDOM = 0 , TOTAL_RANDOM, TIME_BASED_RANDOM, RANDOM_AFTER_LOOP};
 
 #define NUMBER_OF_RANDOM_MODES 4
 #define NUMBER_OF_PALETTE_TYPES 9
@@ -40,11 +40,17 @@ enum random_mode { NOT_RANDOM = 0 , TOTAL_RANDOM, TIME_BASED_RANDOM, RANDOM_AFTE
 extern const char * random_mode_strings[];
 extern const char * palettes_strings[];
 
+class EffectHandler; 
+
 class Palette
 {
 
+private:
+	typedef std::function< void(void) > callback; 
+
 public:
 	enum palette_type { OFF = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
+	enum random_mode { NOT_RANDOM = 0 , TOTAL_RANDOM, TIME_BASED_RANDOM, RANDOM_AFTER_LOOP};
 
 	Palette(const char * name = "Palette");
 	Palette(palette_type mode, uint16_t total, const char * name = "Palette" );
@@ -54,7 +60,24 @@ public:
 	RgbColor previous();
 	RgbColor current();
 
-	void refresh();
+	void refresh() {}; 
+
+	void loop() {
+
+		if (_random && millis() - _randtimertick > (_delay * 1000) ) { 
+
+			if (_eventCallback) {
+				_eventCallback(); 
+			}
+
+		}
+
+	}; 
+
+
+	void attachCallback( callback  ptr)  {
+		_eventCallback = ptr; 
+	}
 
 	void input(RgbColor inputcolour)
 	{
@@ -83,9 +106,9 @@ public:
 	static inline const char * enumToString(palette_type mode) { return palettes_strings[mode] ;  }
 	static palette_type stringToEnum(const char *);
 
-	random_mode randommode() { return _random; };
+	Palette::random_mode randommode() { return _random; };
 
-	static random_mode randommodeStringtoEnum(const char * mode);
+	static Palette::random_mode randommodeStringtoEnum(const char * mode);
 
 	const char * randommodeAsString() { return random_mode_strings[_random]; }
 
@@ -127,9 +150,10 @@ public:
 
 	static uint8_t available(palette_type mode, uint16_t total);
 
-	void delay(uint32_t delay) {_delay = delay; }
+	void delay(uint32_t delay) { _delay = delay; }
 	uint32_t delay() { return _delay; }
 private:
+
 	RgbColor _last;
 	uint16_t _position;
 	uint16_t _total; 		// sets number of colours in palette.  not always used.
@@ -142,4 +166,6 @@ private:
 	uint32_t _delay{10};
 	uint32_t _randtimertick{0};
 	const char * _name;
+	callback  _eventCallback{nullptr}; 
+
 };
