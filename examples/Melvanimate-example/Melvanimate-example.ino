@@ -130,9 +130,7 @@ void offFn(effectState &state, EffectHandler* ptr)
 
     case PRE_EFFECT: {
 
-      if (animator) {
-        delete animator;
-      }
+
 
       // have to be careful of number of pixels.. < 300 generally OK. 
       lights.createAnimator();
