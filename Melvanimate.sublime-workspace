@@ -519,54 +519,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "src/Melvanimate.h",
-			"settings":
-			{
-				"buffer_size": 2735,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/effects/Shapes.h",
-			"settings":
-			{
-				"buffer_size": 1871,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "src/Melvanimate.cpp",
-			"settings":
-			{
-				"buffer_size": 31000,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/ESPAsyncWebServer.h",
-			"settings":
-			{
-				"buffer_size": 10818,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/WebRequest.cpp",
-			"settings":
-			{
-				"buffer_size": 23836,
-				"line_ending": "Unix"
-			}
-		},
-		{
-			"file": "examples/Melvanimate-example/Melvanimate-example.ino",
-			"settings":
-			{
-				"buffer_size": 6340,
-				"line_ending": "Unix"
-			}
-		}
 	],
 	"build_system": "",
 	"build_system_choices":
@@ -681,11 +633,33 @@
 	"expanded_folders":
 	[
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate",
-		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src",
-		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects"
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager/data",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager/data/jquery",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src"
 	],
 	"file_history":
 	[
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/Shapes.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/Melvanimate.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/MelvanimateMQTT.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/ObjectManager.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/mybus.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/Palette.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/PropertyManager.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/EffectHandler.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/EffectManager.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/EffectManager.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/EQ.h",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/data/index.htm",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager/data/index.htm",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/Melvanimate.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/Melvanimate-example.ino",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/WebRequest.cpp",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/ESPAsyncWebServer.h",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/CamperOS/src/camperOS.cpp",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/CamperOS/src/PJONPacket.h",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/CamperOS/src/camperOS.h",
@@ -744,7 +718,6 @@
 		"/Users/amelvin/Arduino/ESP31B/tools/gen_appbin.py",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/MelvanimateMQTT.cpp",
 		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/effects/Snakes.h",
-		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/MelvanimateMQTT.h",
 		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/ObjectManager.cpp",
 		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Melvtrix.h",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/Blobs.h",
@@ -781,7 +754,6 @@
 		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/AbstractPropertyHandler.h",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/Adalight.h",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/Effect2.h",
-		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/EffectHandler.h",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/EffectHandler.cpp",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/effects/Off.cpp",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/effects/Off.h",
@@ -797,27 +769,11 @@
 		"/Users/amelvin/platformio/melvanimate/src/effects.ino",
 		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/FrameworkArduino/MD5Builder.cpp",
 		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/firmware.elf",
-		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/misc.ino",
-		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/ObjectManager.h",
-		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/SimpleTimer/_SimpleTimer.h",
-		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/SimpleTimer_ID419/SimpleTimer.h",
-		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/ESPmanager/ESPmanager.cpp",
-		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/test_effects.ino",
-		"/Users/amelvin/platformio/melvanimate/lib/ESPmanager/examples/ESPmanager-example/data/config.htm",
-		"/Users/amelvin/Library/Application Support/Sublime Text 3/Packages/User/Deviot/Preferences.Deviot-settings",
-		"/Users/amelvin/platformio/melvanimate/lib/ESPmanager/examples/ESPmanager-example/data/configjava.js",
-		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/effectobject.cpp",
-		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Melvana.cpp",
-		"/Users/amelvin/platformio/melvanimate/lib/melvanimate/Melvana.h",
-		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/firmware.bin",
-		"/Users/amelvin/platformio/melvanimate/lib/Adafruit-GFX/Adafruit_GFX.cpp",
-		"/Users/amelvin/platformio/melvanimate/lib/Adafruit-GFX/Adafruit_GFX.h",
-		"/Users/amelvin/platformio/espmanager/src/data/config.htm",
-		"/Users/amelvin/platformio/espmanager/.pioenvs/nodemcu/ESPmanager/ESPmanager.cpp"
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/misc.ino"
 	],
 	"find":
 	{
-		"height": 22.0
+		"height": 35.0
 	},
 	"find_in_files":
 	{
@@ -835,6 +791,9 @@
 		"case_sensitive": true,
 		"find_history":
 		[
+			"getJSON",
+			"get",
+			"data.esp",
 			"_HTTP.arg",
 			"_HTTP.hasArg",
 			"fontCapHeight",
@@ -959,10 +918,7 @@
 			"Files",
 			"_currentHandler",
 			"next",
-			"return_total_y",
-			"ChangeNeoPixels",
-			"Settingsmanager::",
-			"PID_Vars.Output"
+			"return_total_y"
 		],
 		"highlight": true,
 		"in_selection": false,
@@ -1014,186 +970,8 @@
 	"groups":
 	[
 		{
-			"selected": 1,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "src/Melvanimate.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 2735,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 1,
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "src/effects/Shapes.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 1871,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 0,
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "src/Melvanimate.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 31000,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 4,
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/ESPAsyncWebServer.h",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 10818,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								2915,
-								2915
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1159.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 3,
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "/Users/amelvin/Dropbox/Sketchbook/libraries/ESPAsyncWebServer/src/WebRequest.cpp",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 23836,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								22762,
-								22762
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 9902.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 2,
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "examples/Melvanimate-example/Melvanimate-example.ino",
-					"semi_transient": false,
-					"settings":
-					{
-						"buffer_size": 6340,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								0,
-								0
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/C++/C++.sublime-syntax",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 96.0,
-						"zoom_level": 1.0
-					},
-					"stack_index": 5,
-					"type": "text"
-				}
 			]
 		}
 	],
