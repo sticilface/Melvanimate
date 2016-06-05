@@ -109,8 +109,8 @@ private:
 
 	const char * _deviceName{nullptr}; 
 	uint16_t  _pixels;
-	uint8_t _pin;
-	bool _settings_changed;
+	uint8_t _pin{DEFAULT_WS2812_PIN};
+	bool _settings_changed{false};
 
 	uint8_t _waiting{0};
 	uint32_t _waiting_timeout{0};
