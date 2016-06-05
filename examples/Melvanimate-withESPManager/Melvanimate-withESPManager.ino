@@ -32,6 +32,7 @@
 #include "effects/UDPEffect.h"
 #include "effects/RainbowChase.h"
 #include "effects/Shapes.h"
+#include "effects/White.h"
 
 
 const uint16_t defaultpixelcount =  20;
@@ -66,6 +67,7 @@ void setup()
   lights.Add("Adalight",     new AdalightEffect(Serial, 115200));   //  default serial device and baud. 
   lights.Add("UDP",          new UDPEffect);                        
   lights.Add("DMX",          new DMXEffect );                       // need to test - requires custom libs included
+  lights.Add("White",        new White); //
 
   
   lights.begin();
@@ -120,7 +122,7 @@ void offFn(effectState &state, EffectHandler* ptr)
 
         for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
 
-          RgbColor originalColor = strip->GetPixelColor(pixel);
+          RgbColor originalColor = myPixelColor(strip->GetPixelColor(pixel));  //myPixelColor is wrapper to convert RgbwColor to RgbColor if 4 color is used
 
           AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
             //float progress = easing(param.progress);
@@ -184,7 +186,7 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
 
         for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
 
-          RgbColor originalColor = strip->GetPixelColor(pixel);
+          RgbColor originalColor = myPixelColor(strip->GetPixelColor(pixel));  //myPixelColor is wrapper to convert RgbwColor to RgbColor if 4 color is used
 
           AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
 

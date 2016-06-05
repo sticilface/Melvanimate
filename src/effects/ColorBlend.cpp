@@ -104,7 +104,7 @@ void ColorBlend::Draw()
 
 				pixel = matrix()->getPixel(x, y);
 
-				RgbColor originalcolor = strip->GetPixelColor(pixel);
+				RgbColor originalcolor = myPixelColor(strip->GetPixelColor(pixel));
 				float xposition = (float)x / (float)width;
 				float yposition = (float)y / (float)height;
 
@@ -129,7 +129,7 @@ void ColorBlend::Draw()
 	} else {
 
 		for (uint16_t i = 0; i < _pixels; i++) {
-			RgbColor originalcolor = strip->GetPixelColor(i);
+			RgbColor originalcolor = myPixelColor(strip->GetPixelColor(i));
 			float position = (float)i / (float)_pixels;
 
 			RgbColor targetcolor = RgbColor::LinearBlend(c1, c2, position   );

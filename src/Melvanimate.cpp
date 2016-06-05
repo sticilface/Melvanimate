@@ -1139,7 +1139,7 @@ uint32_t Melvanimate::getPower()
 
 
 		for (int i = 0; i < strip->PixelCount(); i++) {
-			RgbColor colour = strip->GetPixelColor(i);
+			RgbColor colour = myPixelColor(strip->GetPixelColor(i));
 			int brightness = colour.CalculateBrightness();
 			brightness = map(brightness, 0, 255, 0, 60);
 			brightnesstally = brightnesstally + brightness;
