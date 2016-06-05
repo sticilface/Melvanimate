@@ -71,9 +71,12 @@ void Melvanimate::loop()
 void Melvanimate::_init_LEDs()
 {
 	if (strip) {
+		strip->ClearTo(0);
+		strip->Show();
 		delete strip;
 		strip = nullptr;
 	}
+	
 	if (animator) {
 		delete animator;
 		animator = nullptr ;
