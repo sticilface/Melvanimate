@@ -12,8 +12,11 @@
 #include <FS.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-
-
+#include <ESPmanager.h>
+#include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ESP8266HTTPUpdateServer.h>
+#include <ArduinoOTA.h>
 #include <ArduinoJson.h>
 #include <NeoPixelBus.h>
 #define MQTT_MAX_PACKET_SIZE 256 //  this overrides the default packet size for pubsubclient packet.. otherwise it is 128 bytes, too small.  
@@ -32,7 +35,7 @@
 #include "effects/Shapes.h"
 
 
-const uint16_t defaultpixelcount =  20;
+const uint16_t defaultpixelcount =  48;
 const char* devicename = "MyWS2812";  
 const char* ssid     = "ssid";
 const char* password = "password";
@@ -40,7 +43,7 @@ const char* password = "password";
 
 ESP8266WebServer HTTP(80);
 Melvanimate lights(HTTP, defaultpixelcount , 2);  //  pin is ignored, should use DMA (RXD) or UART (GPIO2) methods.
-
+ESPmanager settings(HTTP, SPIFFS, "ESPManager"); //Integrated from ESPman
 using namespace helperfunc; // used for things like dim. 
 
 
@@ -110,6 +113,7 @@ void setup()
 void loop()
 {
   HTTP.handleClient();
+  settings.handle(); //Inserted from ESPMan
   lights.loop();
 }
 
