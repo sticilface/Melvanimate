@@ -31,13 +31,17 @@ bool White::Start()
 
 		for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
 
-			RgbwColor originalColor = strip->GetPixelColor(pixel);
+			//RgbwColor originalColor = strip->GetPixelColor(pixel);
+			MyColorFeature::ColorObject originalColor = strip->GetPixelColor(pixel);
 
 			AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
 				//float progress = easing(param.progress);
 				float progress = param.progress;
-				RgbwColor updatedColor = RgbwColor::LinearBlend(originalColor, RgbwColor(0, 0, 0, brightness() ), progress);
-				strip->SetPixelColor(pixel, updatedColor);
+				//MyColorFeature::ColorObject  updatedColor = RgbwColor::LinearBlend(originalColor, RgbwColor(0, 0, 0, brightness() ), progress);
+				 MyColorFeature::ColorObject  updatedColor = MyColorFeature::ColorObject::LinearBlend(originalColor, MyColorFeature::ColorObject(brightness()), progress);
+				if (strip->PixelsSize() == 4) {
+					strip->SetPixelColor(pixel, updatedColor);
+				}
 			};
 
 			animator->StartAnimation(pixel, 1000, animUpdate);

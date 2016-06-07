@@ -1,14 +1,14 @@
 /*-------------------------------------------------------------------------------------------------------
 
               ESP8266 & Arduino IDE
-              Animation software to control WS2812 - several requirements see 
+              Animation software to control WS2812 - several requirements see
 
 
 
   Sticilface - Beerware licence
 
 --------------------------------------------------------------------------------------------------------*/
- 
+
 #include <FS.h>
 #include <ESP8266WiFi.h>
 #include <ESPAsyncTCP.h>
@@ -53,7 +53,7 @@ void setup()
   Serial.begin(115200);
   Serial.println("");
 
-  SPIFFS.begin(); 
+  SPIFFS.begin();
 
   Serial.println("SPIFFS FILES:");
   {
@@ -70,17 +70,17 @@ void setup()
   Serial.print("Connecting to ");
   Serial.println(ssid);
 
-  WiFi.mode(WIFI_STA); 
-  
+  WiFi.mode(WIFI_STA);
+
   WiFi.begin(ssid, password);
-  
+
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
 
   Serial.println("");
-  Serial.println("WiFi connected");  
+  Serial.println("WiFi connected");
   Serial.println("IP address: ");
   Serial.println(WiFi.localIP());
 
@@ -99,7 +99,7 @@ void setup()
   lights.Add("White",        new White); //
 
   lights.begin();
-  lights.addJQueryhandlers(); // needed if you are not using ESPmanager to bind jquery handles. 
+  lights.addJQueryhandlers(); // needed if you are not using ESPmanager to bind jquery handles.
 
   lights.deviceName(devicename);
   lights.Start("Off");
@@ -168,7 +168,7 @@ void offFn(effectState &state, EffectHandler* ptr)
     break;
     case RUN_EFFECT: {
       strip->ClearTo(0);
-      lights.deleteAnimator();  //  Not needed once off. 
+      lights.deleteAnimator();  //  Not needed once off.
     }
     break;
     case POST_EFFECT: {
@@ -200,8 +200,8 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
 
     case PRE_EFFECT: {
 
-      // creates animator, default size is number of pixels. 
-      lights.createAnimator(); 
+      // creates animator, default size is number of pixels.
+      lights.createAnimator();
       effect.SetTimeout(2000); //  set speed through the effect
       lights.autoWait(); //  halts progress through states until animator has finished animating
 
@@ -250,8 +250,3 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
     }
   }
 }
-
-
-
-
-
