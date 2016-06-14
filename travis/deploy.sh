@@ -5,7 +5,7 @@ set -e # Exit with nonzero exit code if anything fails
 echo "script started"
 
 # generate the manifest
-python $TRAVIS_BUILD_DIR/scripts/buildmanifest.py /tmp/package /tmp/package/manifest.json
+python $HOME/scripts/buildmanifest.py /tmp/package /tmp/package/manifest.json
 
 #  no host checking
 #ssh -v -p 4022 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i /tmp/travis.key $HOME_USER@$HOME_IP "mkdir -p ~/projects/$TRAVIS_REPO_SLUG/$TRAVIS_BRANCH/latest/"
