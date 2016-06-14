@@ -14,5 +14,5 @@ python $HOME/scripts/buildmanifest.py /tmp/package /tmp/package/manifest.json
 
 echo "DEPLOY HOME"
 
-ssh -v -p 4022  -i /tmp/travis.key $DEPLOY_USER@DEPLOY_DEST "mkdir -p ~/projects/$TRAVIS_REPO_SLUG/$TRAVIS_BRANCH/$1/"
-scp -v -P 4022  -i /tmp/travis.key -rp /tmp/package/. "$DEPLOY_USER@DEPLOY_DEST:~/projects/$TRAVIS_REPO_SLUG/$TRAVIS_BRANCH/$1/"
+ssh -v -p 4022  -i /tmp/travis.key $DEPLOY_USER@$DEPLOY_DEST "mkdir -p ~/projects/$TRAVIS_REPO_SLUG/$TRAVIS_BRANCH/$1/"
+scp -v -P 4022  -i /tmp/travis.key -rp /tmp/package/. "$DEPLOY_USER@$DEPLOY_DEST:~/projects/$TRAVIS_REPO_SLUG/$TRAVIS_BRANCH/$1/"
