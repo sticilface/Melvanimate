@@ -2,9 +2,9 @@ sudo: false
 language: bash
 os:
 - linux
-addons:
-  ssh_known_hosts:
-  - www.amelvin.co.uk:4022
+# addons:
+#   ssh_known_hosts:
+#   - www.amelvin.co.uk:4022
 env:
   global:
   - BUILD_FOLDER=$TRAVIS_BUILD_DIR/build.tmp
@@ -20,6 +20,7 @@ env:
   - secure: b/MYAmu7NEj7RBceSom8Jt4CIhbYfECvkaps1LiPxEKbmMGS15xmlnKaQ2EYJdaJm1CytaqUBXoYSTmoaHjiXH5sknxWvLeSqMiPTc/gKFMubLSbGLwOE4pYoEOr5IhFp9QDXIOhvlrBmOXi9a76xAONYQU/ZusjVOgvsR5DBHqA7U5mcCLpO2Fv4uYQH1+mFphBW7YbIYZIhM9TDpjOmTiZklMgqODayjg/4I1AHa1lVxANFk6iKT0hW1viqZ5IrIyR1ELKzNuTB3E+5bMp+Lj7c8EACYqM2WQYJ+X9k0YA1+WK/sdAS85hDH2pgkJwbqZgBlBulvsYVRa3MspiktGpPyr5ATBmv7/pg5JhF7fteSD6PZqsusgekvh0kzoUgSfscHl0ouc5Tum+lJSUUjIvkBmVZPan+JOMfyiBvDesNhAM1Rl8vFsB2juzeRZX37LHO3d6Y2jDVdkdJ97yfGWKkZiQXBlR6VNl7nTHQdNyoOyR0zFdOY7K40B3LUEHX9mtyga0PRVZf5iUz7oiakpydan5cWtIvYd2+D+jLlLeM1b6Z614zU8C7Wh3cHu/Za7+D2ybj4ki5ABfUGouFRujVZMpagKHp22ZGlASgxYrR3ObmToVBPYUer7Ni0UVPLM6PVzoF3Fz6USQkhnblc07J+5OYDiBUkcaGUsN2OE=
   - secure: xGQ3sLmfI3FCl6PR6whcXA2Jf885gKaANM5p8qeQqwYV9ft5SQwWDbZuc7EUFeoCgX5p1cUomKuN7kwkAO39+1Xi5vQt5HGPbj4Ligbqg1KdiOUmRiAP0CwreSO8wKTp42K8nP10eWeLtBcixcM0cTP3i0KAhvXHotinHQAsVzU9lTmutvFS3tDpAjSMMGX2jzjgaTRoP/dbiruxZBZzSKF55f5OJRXqTXWe7ZEVEx1iWbXsD3p3fqsIAU93iCHASC9NDPG4vI+V4BwbtLuptNh6c8OVMLilxQrIhRc6kDg7vkCp9kkTaH3tK7x8rB46KhFHVNaU2fNNAN3hvDgpH0o4GqRLunMSkRKWq0zRhF8IsNbFDn4PcIUI3ujCUgqL8VX29eIjx3uhWCeS8Kq4De7VAWKXRM+HoB9oDt0zQ1W+LRsl23D7iZFQjHqMoSh7jXrgfoRewh9W9PGZfeYbHJEkMAa+1jbOLKyEbJ89inBnMlMIQSido8TEK+z3PHI9EOHVNI8WUo+ymeAOBHOQfhra7NTyh8qVRxtlSNCW66Jnv8QQNaUk/vHEnB7hVLw3TFl0/TqQnN5+9j0/QyTgX+XYoSjrn0xzwhVZgO09r6qWKtQOVpwQPzPLF4ZN+sVuswOal3omLN87n3bjHsN/l141xvLLi6ht694RBgKOMoc=
 before_install:
+- ssh-keyscan -t $TRAVIS_SSH_KEY_TYPES -p 4022 -H $DEPLOY_DEST 2>&1 | tee -a $HOME/.ssh/known_hosts
 - openssl aes-256-cbc -K $encrypted_0c5054dac5bc_key -iv $encrypted_0c5054dac5bc_iv
   -in travisgit.enc -out /tmp/travis.key -d
 - chmod 600 /tmp/travis.key
