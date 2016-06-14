@@ -50,7 +50,7 @@ install:
 - git clone https://github.com/adafruit/Adafruit-GFX-Library  $HOME/Arduino/libraries/Adafruit-GFX-Library
 - git clone https://github.com/sticilface/ESPmanager          $HOME/Arduino/libraries/ESPmanager
 - cd $HOME/Arduino/libraries/ESPmanager
-- git checkout develop
+- git checkout upgrade-gui
 - cd $TRAVIS_BUILD_DIR
 script:
 - echo -e "travis_fold:end:sketch_test_env_prepare"
