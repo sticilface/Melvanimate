@@ -45,6 +45,10 @@ install:
   - git clone https://github.com/Makuna/NeoPixelBus             $HOME/Arduino/libraries/NeoPixelBus
   - git clone https://github.com/knolleary/pubsubclient         $HOME/Arduino/libraries/pubsubclient
   - git clone https://github.com/adafruit/Adafruit-GFX-Library  $HOME/Arduino/libraries/Adafruit-GFX-Library
+  - git clone https://github.com/sticilface/ESPmanager          $HOME/Arduino/libraries/ESPmanager
+  - cd $HOME/Arduino/libraries/ESPmanager
+  - git checkout develop
+  - cd $TRAVIS_BUILD_DIR
 script:
   - echo -e "travis_fold:end:sketch_test_env_prepare"
   - echo -e "travis_fold:start:sketch_test"
