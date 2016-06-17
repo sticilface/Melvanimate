@@ -41,6 +41,7 @@ install:
   - git clone https://github.com/Makuna/NeoPixelBus             $TRAVIS_BUILD_DIR/libs/NeoPixelBus
   - git clone https://github.com/knolleary/pubsubclient         $TRAVIS_BUILD_DIR/libs/pubsubclient
   - git clone https://github.com/adafruit/Adafruit-GFX-Library  $TRAVIS_BUILD_DIR/libs/Adafruit-GFX-Library
+  - git clone https://github.com/Makuna/NeoPixelBus             $TRAVIS_BUILD_DIR/libs/NeoPixelBus
   - git clone -b upgrade-gui https://github.com/sticilface/ESPmanager          $TRAVIS_BUILD_DIR/libs/ESPmanager
 
   - platformio lib install 64
@@ -50,3 +51,13 @@ script:
     --lib="$TRAVIS_BUILD_DIR" 
     --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncTCP" 
     --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncWebServer"
+    --lib="$TRAVIS_BUILD_DIR/libs/NeoPixelBus"
+    --lib="$TRAVIS_BUILD_DIR/libs/pubsubclient"
+    --lib="$TRAVIS_BUILD_DIR/libs/Adafruit-GFX-Library"
+    --lib="$TRAVIS_BUILD_DIR/libs/NeoPixelBus"
+    --lib="$TRAVIS_BUILD_DIR/libs/ESPmanager"
+
+
+
+
+
