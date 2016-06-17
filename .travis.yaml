@@ -51,3 +51,13 @@ script:
     --lib="$TRAVIS_BUILD_DIR" 
     --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncTCP" 
     --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncWebServer"
+    --lib="$TRAVIS_BUILD_DIR/libs/NeoPixelBus"
+    --lib="$TRAVIS_BUILD_DIR/libs/pubsubclient"
+    --lib="$TRAVIS_BUILD_DIR/libs/Adafruit-GFX-Library"
+    --lib="$TRAVIS_BUILD_DIR/libs/NeoPixelBus"
+    --lib="$TRAVIS_BUILD_DIR/libs/ESPmanager"
+
+
+
+
+
