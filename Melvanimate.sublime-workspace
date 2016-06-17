@@ -633,15 +633,18 @@
 	"expanded_folders":
 	[
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate",
-		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager/data",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager/data/espman",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager/data/jquery",
-		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src"
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/travis"
 	],
 	"file_history":
 	[
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/travis/deploy.sh",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/.travis.yml.old",
+		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/.travis.yml",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/effects/Shapes.h",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/src/Melvanimate.h",
@@ -766,10 +769,7 @@
 		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/melvanimate/palette.h",
 		"/Users/amelvin/platformio/melvanimate/src/misc.h",
 		"/Users/amelvin/Dropbox/Sketchbook/libraries/ESPmanager/ESPasyncJson.h",
-		"/Users/amelvin/platformio/melvanimate/src/effects.ino",
-		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/FrameworkArduino/MD5Builder.cpp",
-		"/Users/amelvin/platformio/melvanimate/.pioenvs/nodemcu2/firmware.elf",
-		"/Users/amelvin/Dropbox/Sketchbook/libraries/Melvanimate/examples/Melvanimate-example/misc.ino"
+		"/Users/amelvin/platformio/melvanimate/src/effects.ino"
 	],
 	"find":
 	{
