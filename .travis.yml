@@ -11,8 +11,16 @@ addons:
     - tree
 env:
   matrix:
+  # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++" 
+  # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++ -D Debug_ESPManager -D DEBUG_ESP_PORT=Serial "
+
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++ -D Debug_ESPManager -D DEBUG_ESP_PORT=Serial "
   - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++" 
-  #- PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/ESPmanager-example/ESPmanager-example.ino" PLATFORMIO_BUILD_FLAGS="-D Debug_ESPManager -D DEBUG_ESP_PORT=Serial -lstdc++"
+
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++ -D Debug_ESPManager -D DEBUG_ESP_PORT=Serial "
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++" 
+
+
 install:
   - pip install -U platformio
   - platformio platforms install espressif --with-package framework-arduinoespressif
