@@ -1,0 +1,53 @@
+language: python
+python:
+- '2.7'
+sudo: false
+cache:
+  directories:
+  - ~/.platformio
+addons:
+  apt:
+    packages:
+    - tree
+env:
+  matrix:
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++" 
+  #- PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/ESPmanager-example/ESPmanager-example.ino" PLATFORMIO_BUILD_FLAGS="-D Debug_ESPManager -D DEBUG_ESP_PORT=Serial -lstdc++"
+install:
+  - pip install -U platformio
+  - platformio platforms install espressif --with-package framework-arduinoespressif
+  - rm -rf ~/.platformio/packages/framework-arduinoespressif
+  - git clone https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
+  - export PATH="$HOME/.platformio/packages/toolchain-xtensa/bin:$PATH"
+  - cd $HOME/.platformio/packages/toolchain-xtensa/lib
+  # update sdk 
+  - xtensa-lx106-elf-ar -d libmain.a mem_manager.o
+  - xtensa-lx106-elf-ar d libstdc++.a pure.o
+  - xtensa-lx106-elf-ar d libstdc++.a vterminate.o
+  - xtensa-lx106-elf-ar d libstdc++.a guard.o
+  - xtensa-lx106-elf-ar d libstdc++.a functexcept.o
+  - xtensa-lx106-elf-ar d libstdc++.a del_op.o
+  - xtensa-lx106-elf-ar d libstdc++.a del_opv.o
+  - xtensa-lx106-elf-ar d libstdc++.a new_op.o
+  - xtensa-lx106-elf-ar d libstdc++.a new_opv.o
+ # finsih sdk updates 
+  - cd $TRAVIS_BUILD_DIR
+  - echo "10606" > ~/.platformio/packages/framework-arduinoespressif/version.txt
+  - mkdir /tmp/build
+  - mkdir $TRAVIS_BUILD_DIR/libs
+  #- git clone https://github.com/bblanchon/ArduinoJson          $TRAVIS_BUILD_DIR/libs/ArduinoJson
+  - git clone https://github.com/me-no-dev/ESPAsyncTCP          $TRAVIS_BUILD_DIR/libs/ESPAsyncTCP
+  - git clone https://github.com/me-no-dev/ESPAsyncWebServer    $TRAVIS_BUILD_DIR/libs/ESPAsyncWebServer
+  - git clone https://github.com/Makuna/NeoPixelBus             $TRAVIS_BUILD_DIR/libs/NeoPixelBus
+  - git clone https://github.com/knolleary/pubsubclient         $TRAVIS_BUILD_DIR/libs/pubsubclient
+  - git clone https://github.com/adafruit/Adafruit-GFX-Library  $TRAVIS_BUILD_DIR/libs/Adafruit-GFX-Library
+  - git clone https://github.com/Makuna/NeoPixelBus             $TRAVIS_BUILD_DIR/libs/NeoPixelBus
+  - git clone -b upgrade-gui https://github.com/sticilface/ESPmanager          $TRAVIS_BUILD_DIR/libs/ESPmanager
+
+  - platformio lib install 64
+
+script:
+  - platformio ci --board="esp12e" --build-dir="/tmp/build" 
+    --lib="$TRAVIS_BUILD_DIR" 
+    --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncTCP" 
+    --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncWebServer"
