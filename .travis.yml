@@ -14,11 +14,15 @@ env:
   # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++" 
   # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++ -D Debug_ESPManager -D DEBUG_ESP_PORT=Serial "
 
-  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++ -D Debug_ESPManager -D DEBUG_ESP_PORT=Serial "
-  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++" 
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" 
+      PLATFORMIO_BUILD_FLAGS="-lstdc++ -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" 
+      PLATFORMIO_BUILD_FLAGS="-lstdc++" 
 
-  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++ -D Debug_ESPManager -D DEBUG_ESP_PORT=Serial "
-  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++" 
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino" 
+      PLATFORMIO_BUILD_FLAGS="-lstdc++ -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino" 
+      PLATFORMIO_BUILD_FLAGS="-lstdc++" 
 
 
 install:
