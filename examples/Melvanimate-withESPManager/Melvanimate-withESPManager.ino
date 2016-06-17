@@ -22,7 +22,8 @@
 #include <Adafruit_GFX.h>
 #include <ESPmanager.h>
 #include <Melvanimate.h>
-
+#include <Hash.h> //  required for platformio build
+#include <ESP8266mDNS.h> // required for platformio build
 
 //  these are default effects... comment them out here and in setup to remove.  Thats it. 
 #include "effects/SwitchEffect.h"
