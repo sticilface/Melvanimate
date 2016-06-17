@@ -42,7 +42,6 @@ install:
   #- git clone https://github.com/knolleary/pubsubclient                        $TRAVIS_BUILD_DIR/libs/pubsubclient
   # - git clone https://github.com/adafruit/Adafruit-GFX-Library                 $TRAVIS_BUILD_DIR/libs/Adafruit-GFX-Library
   - git clone -b upgrade-gui https://github.com/sticilface/ESPmanager          $TRAVIS_BUILD_DIR/libs/ESPmanager
-
   - platformio lib install 64    # ArduinoJson
   - platformio lib install 13    # Adafruit_GFX
   - platformio lib install 547  # neopixelbus
@@ -54,10 +53,6 @@ script:
     --lib="$TRAVIS_BUILD_DIR" 
     --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncTCP" 
     --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncWebServer"
-    # --lib="$TRAVIS_BUILD_DIR/libs/NeoPixelBus"
-    #--lib="$TRAVIS_BUILD_DIR/libs/pubsubclient"
-    # --lib="$TRAVIS_BUILD_DIR/libs/Adafruit-GFX-Library"
-    # --lib="$TRAVIS_BUILD_DIR/libs/NeoPixelBus"
     --lib="$TRAVIS_BUILD_DIR/libs/ESPmanager"
 
 
