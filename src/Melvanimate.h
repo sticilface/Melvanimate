@@ -3,9 +3,9 @@
 
 #pragma once
 
-#include "Arduino.h"
+#include <Arduino.h>
 #include <functional>
-#include "IPAddress.h"
+#include <IPAddress.h>
 
 #include <ESP8266WiFi.h>
 
@@ -17,6 +17,7 @@
 #include "EQ.h"
 
 #include "MelvanimateMQTT.h"
+#include "UDP_broadcast.h"
 
 
 #include <NeoPixelBus.h>
@@ -32,7 +33,7 @@
 
 #include "mybus.h"
 #include "EffectManager.h"
-#include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function 
+#include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function
 #include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
 #include "ObjectManager.h"
 
@@ -48,7 +49,7 @@ using namespace std::placeholders;
 #define DebugMelvanimatef(...) {}
 #endif
 
-using namespace helperfunc; 
+using namespace helperfunc;
 
 
 // globals for neopixels.
@@ -64,12 +65,12 @@ class Melvanimate : public EffectManager
 public:
 	Melvanimate(AsyncWebServer & HTTP, uint16_t pixels, uint8_t pin = 2);
 
-	bool begin();
+	bool begin(const char * name);
 	void loop() override;
 	void deviceName(const char * name) { _deviceName = name; }
 	const char * deviceName() { return _deviceName; }
 
-	void addJQueryhandlers(); 
+	void addJQueryhandlers();
 
 	// pixel count functions
 	void setPixels(const int pixels);
@@ -82,14 +83,14 @@ public:
 
 	// timer functions
 	bool setTimer(int timer, String command, String effect = String() );
-	int getTimeLeft(); 
+	int getTimeLeft();
 
-	uint32_t getPower(); 
-	bool createAnimator(uint16_t count); 
-	bool createAnimator(); 
-	void deleteAnimator(); 
+	uint32_t getPower();
+	bool createAnimator(uint16_t count);
+	bool createAnimator();
+	void deleteAnimator();
 
-	void populateJson(JsonObject & root, bool onlychanged = false) ; 
+	void populateJson(JsonObject & root, bool onlychanged = false) ;
 
 	bool parse(JsonObject & root);
 
@@ -99,7 +100,7 @@ private:
 	void _init_LEDs();
 	void _initMQTT(JsonObject & root);
 
-	void _sendData(String page, int8_t code,AsyncWebServerRequest *request); 
+	void _sendData(String page, int8_t code,AsyncWebServerRequest *request);
 	void _handleWebRequest(AsyncWebServerRequest *request);
 	//void _handleMQTTrequest(char* topic, byte* payload, unsigned int length);
 
@@ -107,7 +108,7 @@ private:
 
 	MelvanimateMQTT * _mqtt{nullptr};
 
-	const char * _deviceName{nullptr}; 
+	const char * _deviceName{nullptr};
 	uint16_t  _pixels;
 	uint8_t _pin{DEFAULT_WS2812_PIN};
 	bool _settings_changed{false};
@@ -120,16 +121,10 @@ private:
 
 	AsyncWebServer & _HTTP;
 
-	uint32_t _power{0}; 
-	uint32_t _powertick{0}; 
-	bool _reInitPixelsAsync{false}; 
+	uint32_t _power{0};
+	uint32_t _powertick{0};
+	bool _reInitPixelsAsync{false};
+
+	UDP_broadcast _locator;
 
 };
-
-
-
-
-
-
-
-
