@@ -33,7 +33,7 @@ bool Melvanimate::begin(const char * name)
         _init_LEDs();
         fillPresetArray();
 
-        MDNS.addService("melvanimate", "tcp", 8270);
+//        MDNS.addService("melvanimate", "tcp", 8270);
 
         _locator.begin(_deviceName, 8827);
 
@@ -582,7 +582,7 @@ void Melvanimate::populateJson(JsonObject & root, bool onlychanged)
 
                 root["heap"] = ESP.getFreeHeap();
                 root["power"] = String(getPower());
-                root["founddevices"] = _locator.count(); 
+                root["founddevices"] = _locator.count();
 
 
 
@@ -646,16 +646,16 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
 
 /*
 
-(page == "homepage") might be a breaking change for the GUI...
+   (page == "homepage") might be a breaking change for the GUI...
 
-*/
+ */
         if (page == "homepage" || page == "all" ) {
                 populateJson(root);
         }
 
 
 
-        DebugMelvanimatef("[Melvanimate::_sendData] page = %s/n", page.c_str());
+        DebugMelvanimatef("[Melvanimate::_sendData] page = %s\n", page.c_str());
 
         if (page == "configpage" || page == "all") {
 
@@ -671,6 +671,7 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
         }
 
         if (page == "devicelist" || page == "all") {
+                root["founddevices"] = _locator.count();
                 JsonArray & devicelist = root.createNestedArray("devices");
                 _locator.addJson(devicelist);
         }
