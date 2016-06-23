@@ -33,7 +33,6 @@ bool Melvanimate::begin(const char * name)
         _init_LEDs();
         fillPresetArray();
 
-//        MDNS.addService("melvanimate", "tcp", 8270);
 
         _locator.begin(_deviceName, 8827);
 
