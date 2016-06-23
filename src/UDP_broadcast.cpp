@@ -12,7 +12,7 @@
 
 #define UDP_PING_TIMEOUT 30000
 #define UDP_TASK_TIMEOUT 5000
-#define UDP_STALE_TIMEOUT 60000
+#define UDP_STALE_TIMEOUT 100000
 
 
 static const IPAddress MELVANIMATE_MULTICAST_ADDR(224, 0, 0, 251);
@@ -78,6 +78,7 @@ void UDP_broadcast::loop() {
                                         DebugUDPf("[UDP_broadcast::loop] Removed %s (%u.%u.%u.%u) not seen for %u\n", item.name.get(), item.IP[0],item.IP[1],item.IP[2],item.IP[3], millis() - item.lastseen );
                                         //DebugUDPf("     NEED TO ADD DELETE \n");
                                         it = devices.erase(it);
+                                        _sendRequest(PING);
                                 }
                         }
 
@@ -213,7 +214,7 @@ void UDP_broadcast::_parsePacket() {
         _udp.read( buf.get(),host_len);  // bytes 8;
         buf[host_len] = '\0';
         _udp.flush();
-        DebugUDPf("[UDP_broadcast::_parsePacket] UDP RECIEVED [%u] %s (%u.%u.%u.%u:%u) %s\n", millis() / 1000,(method == PING) ? "PING" : "PONG",IP[0], IP[1], IP[2], IP[3], port, buf.get());
+        DebugUDPf("[UDP_broadcast::_parsePacket] UDP RECIEVED [%u] %s (%u.%u.%u.%u:%u) %s\n", millis(),(method == PING) ? "PING" : "PONG",IP[0], IP[1], IP[2], IP[3], port, buf.get());
         _addToList(IP, std::move(buf) );
 
         //delete[] buf;
