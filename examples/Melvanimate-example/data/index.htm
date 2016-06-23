@@ -74,7 +74,7 @@
     <div data-role="header" data-theme="a" data-position="fixed">
         <h1 class='myheader'><var class="devicename">Melvanimate</var></h1>
         <a href="#leftpanel" class="ui-btn ui-btn-left ui-alt-icon ui-nodisc-icon ui-corner-all ui-btn-icon-notext ui-icon-bars">Menu</a>
-        <a href="#devicepopupMenu"  data-rel="popup" id="device_list_button" class="ui-btn ui-btn-right ui-alt-icon ui-nodisc-icon ui-corner-all ui-btn-icon-notext ui-icon-gear">Devices</a>
+        <a href="#devicepopupMenu"  data-rel="popup" id="device_list_button" class="ui-btn ui-btn-right ui-alt-icon ui-nodisc-icon ui-corner-all ui-btn-icon-notext ui-icon-navigation">Devices</a>
 
     <div data-role="popup" id="devicepopupMenu" data-theme="a">
 
@@ -997,7 +997,7 @@ $("#eqpage").on("pagebeforeshow", function() {
             $(document).on('click', '#device_list_button'  , function() {
               //console.log("Device list button pressed");
               $("#status").empty().append("Waiting ").css("color", "blue");
-              $('#device_list_fieldset').empty().append("Waiting ").css("color", "blue");
+              //$('#device_list_fieldset').empty().append("Waiting ").css("color", "blue");
                 $.post("data.esp", "data=devicelist"  , function(data) {
 
                     }).success(function(e) {
@@ -1292,6 +1292,7 @@ $("#eqpage").on("pagebeforeshow", function() {
             $("#homepage").on("pagebeforeshow", function() {
 
                 $("#flip-enable").on("change", flipChanged );
+                $("#device_list_button").hide();
 
                 var mode = $('#modeslist').val();
 
@@ -1518,6 +1519,16 @@ $("#eqpage").on("pagebeforeshow", function() {
                       if (result.hasOwnProperty('settings')) {
                           settings = result.settings;
                           //console.log("Settings Allocated");
+                      }
+
+                      if (result.hasOwnProperty('founddevices')) {
+
+                        if (result.founddevices > 0) {
+                          $("#device_list_button").show();
+                        } else {
+                          $("#device_list_button").hide();
+                        }
+
                       }
 
                   if (!pagevar) { pagevar = $.mobile.activePage.attr('id'); }
