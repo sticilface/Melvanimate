@@ -20,6 +20,7 @@
 
 
 */
+//#define WS2812_UART_METHOD
 
 //typedef NeoGrbwFeature MyPixelColorFeature;
 
