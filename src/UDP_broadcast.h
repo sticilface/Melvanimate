@@ -31,8 +31,8 @@
 #include <list>
 #include <ArduinoJson.h>
 
-#define DebugUDP
-//#define UDP_TEST_SENDER //  this sends lots of pretend 
+//#define DebugUDP
+//#define UDP_TEST_SENDER //  this sends lots of pretend
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugUDP)
 #define DebugUDPf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
@@ -74,11 +74,11 @@ public:
 
 private:
   typedef std::list<  std::unique_ptr<UDP_item>  > UDPList;
-  enum UDP_REQUEST_TYPE { PING = 0, PONG };
+  enum UDP_REQUEST_TYPE : uint8_t { PING = 0, PONG };
   UDPList devices;
   void _restart();
   bool _listen();
-  uint32_t _getOurIp();
+  //uint32_t _getOurIp();
   void _update();
   void _parsePacket();
   void _sendRequest(UDP_REQUEST_TYPE method);
@@ -87,22 +87,20 @@ private:
   uint16_t _port{0};
   const char * _host{nullptr};
   uint32_t _lastmessage{0};
-  UdpContext* _conn{nullptr};
+//  UdpContext* _conn{nullptr};
   bool _waiting4ping{false};
   uint32_t _checkTimeOut{0};
   uint32_t _sendPong{0};
+  bool _state{false};
+  WiFiUDP _udp;
 
-  WiFiEventHandler _disconnectedHandler;
-  WiFiEventHandler _gotIPHandler;
+   WiFiEventHandler _disconnectedHandler;
+   WiFiEventHandler _gotIPHandler;
 
   #ifdef UDP_TEST_SENDER
       void _test_sender();
   #endif
 
-  struct message {
-    uint16_t checksum;
-    uint16_t host_length;
-    IPAddress IP;
 
-  };
+
 };
