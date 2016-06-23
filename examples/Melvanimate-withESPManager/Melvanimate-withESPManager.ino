@@ -1,7 +1,7 @@
 /*-------------------------------------------------------------------------------------------------------
 
               ESP8266 & Arduino IDE
-              Animation software to control WS2812 - several requirements see 
+              Animation software to control WS2812 - several requirements see
 
 
 
@@ -17,7 +17,7 @@
 #include <NeoPixelBus.h>
 #include <ArduinoJson.h>
 #include <AsyncJson.h>
-#define MQTT_MAX_PACKET_SIZE 256 //  this overrides the default packet size for pubsubclient packet.. otherwise it is 128 bytes, too small.  
+#define MQTT_MAX_PACKET_SIZE 256 //  this overrides the default packet size for pubsubclient packet.. otherwise it is 128 bytes, too small.
 #include <PubSubClient.h>
 #include <Adafruit_GFX.h>
 #include <ESPmanager.h>
@@ -25,7 +25,7 @@
 #include <Hash.h> //  required for platformio build
 #include <ESP8266mDNS.h> // required for platformio build
 
-//  these are default effects... comment them out here and in setup to remove.  Thats it. 
+//  these are default effects... comment them out here and in setup to remove.  Thats it.
 #include "effects/SwitchEffect.h"
 #include "effects/SimpleEffect.h"
 #include "effects/DMXEffect.h"
@@ -37,15 +37,15 @@
 
 
 const uint16_t defaultpixelcount =  20;
-const char* devicename = "MyWS2812";  
+const char* devicename = "MyWS2812";
 
 
 
 AsyncWebServer HTTP(80);
 Melvanimate lights(HTTP, defaultpixelcount);  //  METHOD defaults to use RX pin, GPIO3, using DMA method... to change see mybus.h within Melvanimate
-ESPmanager manager(HTTP, SPIFFS, devicename); 
+ESPmanager manager(HTTP, SPIFFS, devicename);
 
-using namespace helperfunc; // used for things like dim. 
+using namespace helperfunc; // used for things like dim.
 
 
 void setup()
@@ -56,23 +56,23 @@ void setup()
   Serial.println("Melvanimate - WS2812 control");
 
 
-  SPIFFS.begin(); 
+  SPIFFS.begin();
 
   manager.begin();
 
 //  Add effects to the manager.
   lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off...
-  lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));       
-  lights.Add("RainbowChase", new RainbowChase); 
-  lights.Add("Shapes",       new Shapes); 
-  lights.Add("Adalight",     new AdalightEffect(Serial, 115200));   //  default serial device and baud. 
-  lights.Add("UDP",          new UDPEffect);                        
+  lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));
+  lights.Add("RainbowChase", new RainbowChase);
+  lights.Add("Shapes",       new Shapes);
+  lights.Add("Adalight",     new AdalightEffect(Serial, 115200));   //  default serial device and baud.
+  lights.Add("UDP",          new UDPEffect);
   lights.Add("DMX",          new DMXEffect );                       // need to test - requires custom libs included
   lights.Add("White",        new White); //
 
+
   
-  lights.begin();
-  lights.deviceName(devicename);  
+  lights.begin( manager.deviceName() );
   lights.Start("Off");
 
 
@@ -104,7 +104,7 @@ void offFn(effectState &state, EffectHandler* ptr)
 
   if (ptr) {
 
-    //  cast pointer to the class defined in the Add... allows you to access any functions within it..  
+    //  cast pointer to the class defined in the Add... allows you to access any functions within it..
     SwitchEffect& effect = *static_cast<SwitchEffect*>(ptr);
 
     switch (state) {
@@ -112,7 +112,7 @@ void offFn(effectState &state, EffectHandler* ptr)
     case PRE_EFFECT: {
 
 
-      // have to be careful of number of pixels.. < 300 generally OK. 
+      // have to be careful of number of pixels.. < 300 generally OK.
       lights.createAnimator();
       effect.SetTimeout(1000); //  set speed through the effect
       lights.autoWait(); //  halts progress through states untill animator has finished..
@@ -142,7 +142,7 @@ void offFn(effectState &state, EffectHandler* ptr)
     break;
     case RUN_EFFECT: {
       strip->ClearTo(0);
-      lights.deleteAnimator();  //  Not needed once off. 
+      lights.deleteAnimator();  //  Not needed once off.
     }
     break;
     case POST_EFFECT: {
@@ -174,8 +174,8 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
 
     case PRE_EFFECT: {
 
-      // creates animator, default size is number of pixels. 
-      lights.createAnimator(); 
+      // creates animator, default size is number of pixels.
+      lights.createAnimator();
 
       effect.SetTimeout(2000); //  set speed through the effect
 
@@ -226,8 +226,3 @@ void SimpleColorFn(effectState &state, EffectHandler* ptr)
     }
   }
 }
-
-
-
-
-

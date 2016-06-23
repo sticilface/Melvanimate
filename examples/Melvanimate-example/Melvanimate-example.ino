@@ -98,10 +98,9 @@ void setup()
   lights.Add("DMX",          new DMXEffect );                       // need to test - requires custom libs included
   lights.Add("White",        new White); //
 
-  lights.begin();
+  lights.begin( devicename );
   lights.addJQueryhandlers(); // needed if you are not using ESPmanager to bind jquery handles.
 
-  lights.deviceName(devicename);
   lights.Start("Off");
 
   HTTP.begin();
