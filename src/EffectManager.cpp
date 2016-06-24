@@ -10,7 +10,7 @@
 
 
 #define MAXLEDANIMATIONS 300 // number of pixels before animtor is not created
-#define MAX_PRESET_FILE_SIZE 1000 // max size of permitted settings files... 
+#define MAX_PRESET_FILE_SIZE 1000 // max size of permitted settings files...
 #define MAX_NUMBER_PRESET_FILES 10
 
 
@@ -56,7 +56,7 @@ EffectHandler* EffectManager::_findhandle(const char * handle)
 	EffectHandler* handler;
 	bool found = false;
 	for (handler = _firstHandle; handler; handler = handler->next()) {
-		if ( stricmp( handler->name(), handle) == 0) {
+		if ( strcasecmp( handler->name(), handle) == 0) {
 			found = true;
 			break;
 		}
@@ -104,7 +104,7 @@ bool EffectManager::Start(EffectHandler* handler)
 					Presets_s * preset = &_presetS[i];
 					if (preset->handle == _NextInLine) {
 
-						if (!strcmp(preset->name, "Default") || !strcmp( preset->name, "default")) {
+						if (!strcasecmp(preset->name, "Default") || !strcmp( preset->name, "default")) {
 
 							if (Load(preset->file, preset->id  )) {
 								DebugEffectManagerf("[Start] Default Loaded %u\n", preset->id);
@@ -556,7 +556,7 @@ bool EffectManager::Load(const char * name)
 
 		for (uint8_t i = 0; i < _presetcountS; i++) {
 			Presets_s * preset = &_presetS[i];
-			if (!stricmp(preset->name, name) ) {
+			if (!strcasecmp(preset->name, name) ) {
 				return Load(preset->file, preset->id);
 			}
 		}
@@ -932,20 +932,3 @@ int EffectManager::_nextFreeFile()
 	return -1;
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -10,27 +10,29 @@ addons:
     packages:
     - tree
 env:
+  global:
+    - COMMON_VARS="-lc -lstdc++ -I$HOME/.platformio/packages/framework-arduinoespressif/tools/sdk/libc/xtensa-lx106-elf/include -L$HOME/.platformio/packages/framework-arduinoespressif/tools/sdk/libc/xtensa-lx106-elf/lib"
   matrix:
   # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++"
   # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++ -D Debug_ESPManager -D DEBUG_ESP_PORT=Serial "
 
   - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino"
-      PLATFORMIO_BUILD_FLAGS="-lstdc++ -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
+      PLATFORMIO_BUILD_FLAGS="$COMMON_VARS -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
   - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino"
-      PLATFORMIO_BUILD_FLAGS="-lstdc++"
+      PLATFORMIO_BUILD_FLAGS="$COMMON_VARS"
 
   - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino"
-      PLATFORMIO_BUILD_FLAGS="-lstdc++ -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
+      PLATFORMIO_BUILD_FLAGS="$COMMON_VARS -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
   - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino"
-      PLATFORMIO_BUILD_FLAGS="-lstdc++"
+      PLATFORMIO_BUILD_FLAGS="$COMMON_VARS"
 
 
 install:
   - pip install -U platformio
-  - platformio platforms install espressif --with-package framework-arduinoespressif
+  - platformio platforms install espressif --with-package framework-arduinoespressif --with-package ldscripts
   - rm -rf ~/.platformio/packages/framework-arduinoespressif
-#  - git clone https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
-  - git clone --branch 2.3.0 --depth 1 https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
+  - git clone https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
+#  - git clone --branch 2.3.0 --depth 1 https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
   - export PATH="$HOME/.platformio/packages/toolchain-xtensa/bin:$PATH"
   - cd $HOME/.platformio/packages/toolchain-xtensa/lib
   # update sdk
@@ -43,6 +45,11 @@ install:
   - xtensa-lx106-elf-ar d libstdc++.a del_opv.o
   - xtensa-lx106-elf-ar d libstdc++.a new_op.o
   - xtensa-lx106-elf-ar d libstdc++.a new_opv.o
+
+  # update ld script
+  - cd $HOME/.platformio/packages/ldscripts
+  - rm -f esp8266.flash.common.ld
+  - wget https://gist.githubusercontent.com/sticilface/441a64cb7d73799afab6fcaa4ad6bdee/raw/34d27106ae274fc866bdb332c89f43ed63e5c0c2/esp8266.flash.common.ld
  # finsih sdk updates
   - cd $TRAVIS_BUILD_DIR
   - echo "10606" > ~/.platformio/packages/framework-arduinoespressif/version.txt
@@ -55,11 +62,12 @@ install:
   #- git clone https://github.com/knolleary/pubsubclient                        $TRAVIS_BUILD_DIR/libs/pubsubclient
   # - git clone https://github.com/adafruit/Adafruit-GFX-Library                 $TRAVIS_BUILD_DIR/libs/Adafruit-GFX-Library
   - git clone -b upgrade-gui https://github.com/sticilface/ESPmanager          $TRAVIS_BUILD_DIR/libs/ESPmanager
-  - platformio lib install 64    # ArduinoJson
+  - git clone https://github.com/bblanchon/ArduinoJson                         $TRAVIS_BUILD_DIR/libs/ArduinoJson
+  #- platformio lib install 64    # ArduinoJson
   - platformio lib install 13    # Adafruit_GFX
   - platformio lib install 547  # neopixelbus
   - platformio lib install 89  # pubsubclient
-
+  - tree $HOME/.platformio/packages/framework-arduinoespressif/tools
 
 script:
   - platformio ci --board="esp12e" --build-dir="/tmp/build"
@@ -67,3 +75,4 @@ script:
     --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncTCP"
     --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncWebServer"
     --lib="$TRAVIS_BUILD_DIR/libs/ESPmanager"
+    --lib="$TRAVIS_BUILD_DIR/libs/ArduinoJson"
