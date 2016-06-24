@@ -11,28 +11,29 @@ addons:
     - tree
 env:
   matrix:
-  # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++" 
+  # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++"
   # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++ -D Debug_ESPManager -D DEBUG_ESP_PORT=Serial "
 
-  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" 
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino"
       PLATFORMIO_BUILD_FLAGS="-lstdc++ -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
-  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" 
-      PLATFORMIO_BUILD_FLAGS="-lstdc++" 
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino"
+      PLATFORMIO_BUILD_FLAGS="-lstdc++"
 
-  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino" 
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino"
       PLATFORMIO_BUILD_FLAGS="-lstdc++ -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
-  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino" 
-      PLATFORMIO_BUILD_FLAGS="-lstdc++" 
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino"
+      PLATFORMIO_BUILD_FLAGS="-lstdc++"
 
 
 install:
   - pip install -U platformio
   - platformio platforms install espressif --with-package framework-arduinoespressif
   - rm -rf ~/.platformio/packages/framework-arduinoespressif
-  - git clone https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
+#  - git clone https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
+  - git clone --branch 2.3.0 --depth 1 https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
   - export PATH="$HOME/.platformio/packages/toolchain-xtensa/bin:$PATH"
   - cd $HOME/.platformio/packages/toolchain-xtensa/lib
-  # update sdk 
+  # update sdk
   - xtensa-lx106-elf-ar -d libmain.a mem_manager.o
   - xtensa-lx106-elf-ar d libstdc++.a pure.o
   - xtensa-lx106-elf-ar d libstdc++.a vterminate.o
@@ -42,7 +43,7 @@ install:
   - xtensa-lx106-elf-ar d libstdc++.a del_opv.o
   - xtensa-lx106-elf-ar d libstdc++.a new_op.o
   - xtensa-lx106-elf-ar d libstdc++.a new_opv.o
- # finsih sdk updates 
+ # finsih sdk updates
   - cd $TRAVIS_BUILD_DIR
   - echo "10606" > ~/.platformio/packages/framework-arduinoespressif/version.txt
   - mkdir /tmp/build
@@ -61,13 +62,8 @@ install:
 
 
 script:
-  - platformio ci --board="esp12e" --build-dir="/tmp/build" 
-    --lib="$TRAVIS_BUILD_DIR" 
-    --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncTCP" 
+  - platformio ci --board="esp12e" --build-dir="/tmp/build"
+    --lib="$TRAVIS_BUILD_DIR"
+    --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncTCP"
     --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncWebServer"
     --lib="$TRAVIS_BUILD_DIR/libs/ESPmanager"
-
-
-
-
-
