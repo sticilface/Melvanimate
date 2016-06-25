@@ -707,6 +707,12 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
                 addAllpresets(root);
         }
 
+        if (page == "palette") {
+
+                populateJson(root);
+        }
+
+
         // Serial.println("JSON REPLY");
         // root.prettyPrintTo(Serial);
         // Serial.println();
@@ -756,8 +762,9 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
         //   set the page to the requested page
         if (request->hasParam("data", true) ) {
-                DebugMelvanimatef("[Melvanimate::_handleWebRequest] Page Requested = %s\n", page.c_str());
                 page = request->getParam("data",true)->value();
+                DebugMelvanimatef("[Melvanimate::_handleWebRequest] Page Requested = %s\n", page.c_str());
+
         }
 
 
