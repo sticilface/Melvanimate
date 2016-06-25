@@ -26,6 +26,9 @@ bool Melvanimate::begin(const char * name)
         DebugMelvanimatef("Begin Melvana called\n");
 
         _HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
+        _HTTP.on("/site.appcache", HTTP_ANY, std::bind (&Melvanimate::_handleManifest, this, _1));
+
+
 
         _HTTP.serveStatic("", SPIFFS, "/", "max-age=86400");
 
@@ -734,6 +737,26 @@ template <class T> void Melvanimate::_sendJsontoHTTP( const T & root, AsyncWebSe
 
 }
 
+
+void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
+{
+        AsyncResponseStream *response = request->beginResponseStream("text/cache-manifest"); //Sends 404 File Not Found
+//response->addHeader("Content-Type","text/cache-manifest");
+        response->print("CACHE MANIFEST\n");
+        response->printf("# %s\n", __DATE__ " " __TIME__ );
+        response->print("CACHE:\n");
+        response->print("jquery/jqm1.4.5.css\n");
+        response->print("jquery/jq1.11.1.js\n");
+        response->print("jquery/jqm1.4.5.js\n");
+        response->print("jqColorPicker.min.js\n");
+        response->print("NETWORK:\n");
+        response->print("data.esp\n");
+        response->print("*\n");
+        request->send(response);
+
+
+
+}
 
 void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 {

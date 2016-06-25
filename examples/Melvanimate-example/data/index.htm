@@ -1,6 +1,7 @@
 
 <!DOCTYPE html>
-<html>
+<html manifest="site.appcache">
+
 
 <head>
     <title class="devicename"></title>
@@ -1839,13 +1840,14 @@ $("#eqpage").on("pagebeforeshow", function() {
                   }
 //palette
                     if ($.mobile.activePage.attr('id') == 'palette') {
-
+                      console.log("Active page = palette");
+                      console.log(result);
                        if (result.hasOwnProperty('settings') && result.settings.hasOwnProperty('Palette'))
                        {
 
                         palettevars = result.settings.Palette;
 
-                      //console.log(result);
+
 
                         if (palettevars.hasOwnProperty('mode')) {
                             $("#select-palettes2").val(palettevars.mode).selectmenu("refresh");

@@ -17,8 +17,7 @@
 #include <NeoPixelBus.h>
 #include <ArduinoJson.h>
 #include <AsyncJson.h>
-#define MQTT_MAX_PACKET_SIZE 256 //  this overrides the default packet size for pubsubclient packet.. otherwise it is 128 bytes, too small.
-#include <PubSubClient.h>
+#include <AsyncMqttClient.h>
 #include <Adafruit_GFX.h>
 #include <ESPmanager.h>
 #include <Melvanimate.h>
@@ -47,6 +46,9 @@ ESPmanager manager(HTTP, SPIFFS, devicename);
 
 using namespace helperfunc; // used for things like dim.
 
+// forward declarations sometimes needed! 
+void offFn(effectState &state, EffectHandler* ptr);
+void SimpleColorFn(effectState &state, EffectHandler* ptr);
 
 void setup()
 {
@@ -71,7 +73,7 @@ void setup()
   lights.Add("White",        new White); //
 
 
-  
+
   lights.begin( manager.deviceName() );
   lights.Start("Off");
 

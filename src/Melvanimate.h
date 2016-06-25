@@ -102,6 +102,7 @@ private:
 
 	void _sendData(String page, int8_t code,AsyncWebServerRequest *request);
 	void _handleWebRequest(AsyncWebServerRequest *request);
+	void _handleManifest(AsyncWebServerRequest *request);
 	//void _handleMQTTrequest(char* topic, byte* payload, unsigned int length);
 
 	template <class T> static void _sendJsontoHTTP( const T& root, AsyncWebServerRequest *request) ;

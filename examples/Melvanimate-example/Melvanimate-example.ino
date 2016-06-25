@@ -17,8 +17,7 @@
 #include <NeoPixelBus.h>
 #include <ArduinoJson.h>
 #include "AsyncJson.h"
-#define MQTT_MAX_PACKET_SIZE 256 //  this overrides the default packet size for pubsubclient packet.. otherwise it is 128 bytes, too small.
-#include <PubSubClient.h>
+#include <AsyncMqttClient.h>
 #include <Adafruit_GFX.h>
 #include <Melvanimate.h>
 #include <Hash.h> //  required for platformio build
@@ -46,6 +45,9 @@ Melvanimate lights(HTTP, defaultpixelcount);  //  METHOD defaults to use RX pin,
 
 using namespace helperfunc; // used for things like dim.
 
+// forward declarations sometimes needed!
+void offFn(effectState &state, EffectHandler* ptr);
+void SimpleColorFn(effectState &state, EffectHandler* ptr);
 
 void setup()
 {
