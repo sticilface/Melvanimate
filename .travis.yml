@@ -67,6 +67,10 @@ install:
   - platformio lib install 13    # Adafruit_GFX
   - platformio lib install 547  # neopixelbus
   - platformio lib install 89  # pubsubclient
+  # - platformio lib install 
+  # - platformio lib install 305  # ESPAsyncTCP
+  # - platformio lib install 306 # ESPAsyncWebServer
+
   - tree $HOME/.platformio/packages/framework-arduinoespressif/tools
 
 script:
