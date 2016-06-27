@@ -28,21 +28,42 @@ bool Melvanimate::begin(const char * name)
         _HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
         _HTTP.on("/site.appcache", HTTP_ANY, std::bind (&Melvanimate::_handleManifest, this, _1));
 
-
-
-        _HTTP.serveStatic("", SPIFFS, "/", "max-age=86400");
+        //_HTTP.serveStatic("", SPIFFS, "/").setCacheControl("max-age=86400");
 
         _loadGeneral();
         _init_LEDs();
         fillPresetArray();
 
-
         _locator.begin(_deviceName, 8827);
 
 }
 
+
+/*
+
+
+      MUST CHANGE THIS.....
+
+
+ */
 void Melvanimate::addJQueryhandlers() {
-        _HTTP.serveStatic("/jquery/", SPIFFS, "/jquery/", "max-age=86400");
+        _HTTP.on("/jquery/jqm1.4.5.css", HTTP_GET, [](AsyncWebServerRequest *request){
+                AsyncWebServerResponse * response = request->beginResponse(302);
+                response->addHeader("Location","http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css");
+                request->send(response);
+        }).setFilter(ON_STA_FILTER);
+
+        _HTTP.on("/jquery/jq1.11.1.js", HTTP_GET, [](AsyncWebServerRequest *request){
+                AsyncWebServerResponse * response = request->beginResponse(302);
+                response->addHeader("Location","http://code.jquery.com/jquery-1.11.1.min.js");
+                request->send(response);
+        }).setFilter(ON_STA_FILTER);
+
+        _HTTP.on("/jquery/jqm1.4.5.js", HTTP_GET, [](AsyncWebServerRequest *request){
+                AsyncWebServerResponse * response = request->beginResponse(302);
+                response->addHeader("Location","http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js");
+                request->send(response);
+        }).setFilter(ON_STA_FILTER);
 }
 
 void Melvanimate::loop()
@@ -586,9 +607,6 @@ void Melvanimate::populateJson(JsonObject & root, bool onlychanged)
                 root["power"] = String(getPower());
                 root["founddevices"] = _locator.count();
 
-
-
-
                 /*
                       Home page
                  */
@@ -672,9 +690,10 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
 
         }
 
-        if (page == "devicelist" || page == "all") {
+        if (page == "devicelist" || page == "all" || page == "homepage") {
                 root["founddevices"] = _locator.count();
                 JsonArray & devicelist = root.createNestedArray("devices");
+
                 _locator.addJson(devicelist);
         }
 
@@ -740,17 +759,38 @@ template <class T> void Melvanimate::_sendJsontoHTTP( const T & root, AsyncWebSe
 
 void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
 {
-        AsyncResponseStream *response = request->beginResponseStream("text/cache-manifest"); //Sends 404 File Not Found
-//response->addHeader("Content-Type","text/cache-manifest");
-        response->print("CACHE MANIFEST\n");
-        response->printf("# %s\n", __DATE__ " " __TIME__ );
-        response->print("CACHE:\n");
-        response->print("jquery/jqm1.4.5.css\n");
-        response->print("jquery/jq1.11.1.js\n");
-        response->print("jquery/jqm1.4.5.js\n");
-        response->print("jqColorPicker.min.js\n");
-        response->print("NETWORK:\n");
-        response->print("data.esp\n");
+        static uint32_t random_var = 0;
+        static bool alwaysrandom = false;
+
+        if (request->hasParam("random") ) {
+                random_var = random(0,30000);
+                DebugMelvanimatef("[Melvanimate::_handleManifest] Random Manifest Called\n");
+        };
+        if (request->hasParam("alwaysrandom") ) {
+                alwaysrandom = !alwaysrandom;
+                DebugMelvanimatef("[Melvanimate::_handleManifest] alwaysrandom = %s\n", (alwaysrandom) ? "true" : "false");
+        };
+
+
+        AsyncResponseStream *response = request->beginResponseStream(F("text/cache-manifest")); //Sends 404 File Not Found
+        response->addHeader(F("Content-Type"),F( "text/cache-manifest"));
+        response->addHeader(F("Cache-Control"),F( "must-revalidate"));
+        response->print(F("CACHE MANIFEST\n"));
+        response->printf( "# %s\n", __DATE__ " " __TIME__ );
+
+        if (!alwaysrandom) {
+                response->printf("# %u\n", random_var);
+        } else {
+                response->printf("# %u\n", random(0,30000) );
+        }
+
+        response->print(F("CACHE:\n"));
+        response->print(F("jquery/jqm1.4.5.css\n"));
+        response->print(F("jquery/jq1.11.1.js\n"));
+        response->print(F("jquery/jqm1.4.5.js\n"));
+        response->print(F("jqColorPicker.min.js\n"));
+        response->print(F("jquery/images/ajax-loader.gif\n"));
+        response->print(F("NETWORK:\n"));
         response->print("*\n");
         request->send(response);
 
