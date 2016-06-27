@@ -10,7 +10,7 @@
 #include <functional>
 #include <ArduinoJson.h>
 
-#define DebugMelvanimateMQTT
+//#define DebugMelvanimateMQTT
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimateMQTT)
 #define DebugMelvanimateMQTTf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
@@ -77,7 +77,7 @@ private:
         AsyncMqttClient _mqttClient;
         bool _disconnected{false};
         uint32_t _timeout{0};
-        
+
         //uint32_t _send_flag{0};
         //uint32_t _send_changed_flag{0};
         IPAddress _addr;
