@@ -22,6 +22,8 @@
     <script>
     $( document ).on( "mobileinit", function() {
       console.log("PAGE mobileinit 2 ");
+      //         <h2 style="text-align:right">[Power: <var id="power">0</var> mA] [Heap: <var id="heap">-</var> ] [Status: <var id="status"></var> ]</h2>
+
     });
     </script>
 
@@ -57,6 +59,67 @@ if (typeof(Storage) !== "undefined") {
 //});
   </script>
 
+    <script type="text/javascript">
+    var ws = null;
+    function ge(s){ return document.getElementById(s);}
+    function ce(s){ return document.createElement(s);}
+    function stb(){ window.scrollTo(0, document.body.scrollHeight || document.documentElement.scrollHeight); }
+    function sendBlob(str){
+      var buf = new Uint8Array(str.length);
+      for (var i = 0; i < str.length; ++i) buf[i] = str.charCodeAt(i);
+      ws.send(buf);
+    }
+    function addMessage(m){
+      console.log(m);
+       var msg = ce("div");
+       msg.innerText = m;
+       $("#wsmessages").append(msg);
+       //stb();
+    }
+    function startSocket(){
+      ws = new WebSocket('ws://'+document.location.host+'/espman/ws',['arduino']);
+      ws.binaryType = "arraybuffer";
+      ws.onopen = function(e){
+        addMessage("Connected");
+      };
+      ws.onclose = function(e){
+        addMessage("Disconnected");
+        setTimeout(function(){ startSocket() }, 5000);
+      };
+      ws.onerror = function(e){
+        console.log("ws error", e);
+        addMessage("Error");
+      };
+      ws.onmessage = function(e){
+        console.log(e.data);
+        $("#wsalert").empty().append(e.data);
+        $("#wsalert").popup( "open" );
+        addMessage(e.data);
+        setTimeout(function(){
+          $("#wsalert").popup( "close" );
+        }, 2000);
+
+        // var msg = "";
+        // if(e.data instanceof ArrayBuffer){
+        //   msg = "BIN:";
+        //   var bytes = new Uint8Array(e.data);
+        //   for (var i = 0; i < bytes.length; i++) {
+        //     msg += String.fromCharCode(bytes[i]);
+        //   }
+        // } else {
+        //   msg = "TXT:"+e.data;
+        // }
+        // addMessage(msg);
+      };
+      // ge("input_el").onkeydown = function(e){
+      //   stb();
+      //   if(e.keyCode == 13 && ge("input_el").value != ""){
+      //     ws.send(ge("input_el").value);
+      //     ge("input_el").value = "";
+      //   }
+      // }
+    }
+    </script>
 
     <STYLE type="text/css" id="mystyleelement">
         .centerwrapper {
@@ -102,7 +165,7 @@ if (typeof(Storage) !== "undefined") {
 
 </head>
 
-<body>
+<body id="body" onload="startSocket()">
 
 
 
@@ -113,20 +176,16 @@ if (typeof(Storage) !== "undefined") {
 
     <div data-role="popup" id="devicepopupMenu" data-theme="a">
 
-<form>
-<fieldset data-role="controlgroup" data-theme="a" data-inset="true" style="min-width:210px;" class="ui-content" id='device_list_fieldset'>
-<legend>Choose Device:</legend>
-</fieldset>
-</form>
+        <form>
+        <fieldset data-role="controlgroup" data-theme="a" data-inset="true" style="min-width:210px;" class="ui-content" id='device_list_fieldset'>
+        <legend>Choose Device:</legend>
+        </fieldset>
+        </form>
+    </div>
 
-<!--<ul data-role="listview" data-inset="true" style="min-width:210px;">-->
-<!--<li data-role="list-divider">Select Device</li>-->
-<!--<li><a href="#">View details</a></li>-->
-<!--<li><a href="#">Edit</a></li>-->
-<!--<li><a href="#">Disable</a></li>-->
-<!--<li><a href="#">Delete</a></li>-->
-<!--</ul>-->
-</div>
+    <div data-role="popup" id="wsalert" class="ui-content" data-theme="a" style="max-width:350px;" data-transition="slideup" data-position-to="#footer">
+          <p> Hello im an alert</p>
+    </div>
 
     </div>
 
@@ -145,6 +204,8 @@ if (typeof(Storage) !== "undefined") {
             <a href="#eqpage" data-role="button" class="ui-btn" id ="eqbutton">EQ</a>
             <a href="#configpage" data-role="button" class="ui-btn">Config</a>
             <a href="/espman/" rel="external" data-role="button" class="ui-btn">ESPmanager</a>
+            <a href="#messages"  data-role="button" class="ui-btn">Messages</a>
+
             <a href="#my-header" data-rel="close" class="ui-btn">Close</a>
 
         </div>
@@ -152,8 +213,7 @@ if (typeof(Storage) !== "undefined") {
 
     </div>
 
-    <div data-role="footer" data-theme="a">
-        <h2 style="text-align:right">[Power: <var id="power">0</var> mA] [Heap: <var id="heap">-</var> ] [Status: <var id="status"></var> ]</h2>
+    <div id = "footer" data-role="footer" data-theme="a">
     </div>
 
     <div data-role="page" id="homepage">
@@ -779,6 +839,23 @@ if (typeof(Storage) !== "undefined") {
 
     </div>
 
+    <div data-role="page" id="messages" data-close-btn="right" data-dialog="true">
+
+        <div data-role="header">
+          <h1>Messages</h1>
+        </div>
+
+        <div data-role="content">
+
+          <div id="wsmessages"></div>
+
+        </div>
+
+    </div>
+
+
+
+
      <script>
 
         // function loadcss(url, callback) {
@@ -919,17 +996,18 @@ if (typeof(Storage) !== "undefined") {
     });
 
 
-      //      $(document).on("pageshow", "#layout", function() {
 
+$(document).ready(function () {
+      if ($(window).width() > 400) {
+        console.log("Width > 400");
+        $("#footer").empty().append("<h4 style=\"text-align:right\">[Power: <var id=\"power\">0</var> mA] [Heap: <var id=\"heap\">-</var> ] [Status: <var id=\"status\"></var> ]</h>");
+      } else {
+        console.log("Width < 400");
+        $("#footer").empty().append("<h4 style=\"text-align:right\">[<var id=\"power\">0</var> mA] [<var id=\"heap\"></var> k] [<var id=\"status\"></var>]</h>");
+      }
+      $("[data-role='footer']").toolbar( "refresh" );
 
-
-
-   //         });
-
-
-            //$(document).on('pageinit', '#autotune', function(){
-
-            //      GetData();
+});
 
 
             $(document).on("pagecreate", "#layout", function() {
@@ -955,9 +1033,10 @@ if (typeof(Storage) !== "undefined") {
 
             });
 
+$( "#footer" ).on( "toolbarcreate", function( event, ui ) {
 
 
-
+} );
 
             // $(document).on("pagebeforeshow", "#layout", function() {
 
@@ -1012,6 +1091,8 @@ if (typeof(Storage) !== "undefined") {
                 // } else {
 
                 // }
+                      $.mobile.resetActivePageHeight();
+
 
                  $('#modeslist').change(function() {
 
@@ -1055,6 +1136,7 @@ $("#eqpage").on("pagebeforeshow", function() {
                 e.preventDefault();
                 GetData($.mobile.activePage.attr('id'));
                 //console.log("#myheader click");
+                ws.send($.mobile.activePage.attr('id'));
             });
 
             // $(document).on("mobileinit", function() {
