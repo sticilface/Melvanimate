@@ -1,4 +1,4 @@
-
+<!-- V0.01 -->
 <!DOCTYPE html>
 <html manifest="site.appcache">
 
@@ -18,10 +18,44 @@
     <link rel="stylesheet" href="/jquery/jqm1.4.5.css">
 <!--     <script src="/allscripts.js"></script> -->
     <script src="/jquery/jq1.11.1.js"></script>
+
+    <script>
+    $( document ).on( "mobileinit", function() {
+      console.log("PAGE mobileinit 2 ");
+    });
+    </script>
+
+
     <script src="/jquery/jqm1.4.5.js"></script>
     <script type="text/javascript" src="jqColorPicker.min.js"></script>
 
 
+  <script>
+
+  var _online = navigator.onLine;
+
+  console.log( (_online)? "SITE is online" : "SITE is offline");
+// Update configuration to our liking
+//$( document ).on( "mobileinit", function() {
+
+
+if (typeof(Storage) !== "undefined") {
+    // Code for localStorage/sessionStorage.
+    console.log("LOCAL STORAGE SUPPORTED");
+} else {
+    // Sorry! No Web Storage support..
+    console.log("LOCAL STORAGE NOT SUPPORTED");
+}
+
+
+
+  // We want popups to cover the page behind them with a dark background
+  // $.mobile.popup.prototype.options.overlayTheme = "b";
+
+  // // Set a namespace for jQuery Mobile data attributes
+  // $.mobile.ns = "jqm-";
+//});
+  </script>
 
 
     <STYLE type="text/css" id="mystyleelement">
@@ -799,6 +833,22 @@
         var _currentdeviceName = "";
         var _originalname = "";
         console.log(_currentdevice);
+        var _connectedStatus = "";
+
+        var _offlineDeviceList = {};
+
+        if (localStorage.devicelist) {
+          console.log("deviceList @ init = ");
+          console.log ( localStorage["devicelist"] );
+          try {
+          _offlineDeviceList = JSON.parse(localStorage["devicelist"]);
+          }
+          catch (err) {
+            console.log("PARSE ERROR");
+          }
+        } else {
+          console.log("deviceList is not defined ");
+        }
 
         var _deviceName = "";
 
@@ -848,6 +898,17 @@
 
       $(document).on( "pagechange", function( event ) { GetData($.mobile.activePage.attr('id'));  } );
 
+// $(document).on('offline online', function (event) {
+//     alert('You are ' + event.type + '!');
+//     _connectedStatus = event.type;
+// });
+
+// $(document).ready(function() {
+//   $(window).bind("offline online", function(event) { alert('You are ' + event.type + '!') ; });
+// });
+
+
+
 
   //    $('.noEnterSubmit').bind('keypress', false);
 
@@ -893,6 +954,7 @@
 
 
             });
+
 
 
 
@@ -945,7 +1007,11 @@
 
             $(document).on("pagecreate", "#homepage", function() {
 
+                // if (localStorage.founddevices > 0) {
 
+                // } else {
+
+                // }
 
                  $('#modeslist').change(function() {
 
@@ -996,50 +1062,47 @@ $("#eqpage").on("pagebeforeshow", function() {
             // });
 
             $(document).on('click', '#device_list_button'  , function() {
-              //console.log("Device list button pressed");
+
               $("#status").empty().append("Waiting ").css("color", "blue");
-              //$('#device_list_fieldset').empty().append("Waiting ").css("color", "blue");
-                $.post("data.esp", "data=devicelist"  , function(data) {
+
+
+
+
+                        if (_offlineDeviceList) {
+                          console.log("Using Offine List");
+
+                            populatedevicelist(_offlineDeviceList);
+
+                        }
+
+
+                  $.post( _currentdevice + "data.esp"  , "data=devicelist"  , function(data) {
 
                     }).success(function(e) {
 
                       if (e.hasOwnProperty('devices')) {
-                        var isconnected = "";
-                        if ( _currentdeviceName == _originalname) { isconnected = "checked=\"checked\""; }
 
-                        $('#device_list_fieldset').empty().append( "<legend>Choose Device:</legend>").css("color", "black");
-                        $("#device_list_fieldset").append("<input type=\"radio\" data-mini=\"true\" name=\"device\" class=\"deviceselectclass\" id=\"radio-choice-v-home\" value=\"0\"" + isconnected + "><label for=\"radio-choice-v-home\">" + _originalname + "</label>");
+                          populatedevicelist(e.devices);
 
-                            $.each(e.devices, function(key, value) {
-                                name = value.name.trim();
+                          //localStorage.setItem("founddevices", );
+                          localStorage["devicelist"] = JSON.stringify(e.devices);
+                          console.log("Stored found devices: ");
+                          _offlineDeviceList = JSON.parse(localStorage["devicelist"]);
 
-                                //console.log("name =" + name + ", _currentdeviceName=" + _currentdeviceName);
+                          console.log(_offlineDeviceList);
+                          //gameState = JSON.parse(localStorage["currentGame"])
 
-                                if ( name == _currentdeviceName) {
-                                  isconnected = "checked=\"checked\"";
-                                  console.log("matched: name =" + name + ", _currentdeviceName=" + _currentdeviceName);
-                                } else {
-                                  isconnected = "";
-                                }
-
-
-                                ip = value.IP[0] + "." + value.IP[1] + "."+ value.IP[2] + "."+ value.IP[3];
-                                //console.log("KEY = " + key + ", name = " + value.name + ", (" + ip + ")" );
-                                $("#device_list_fieldset").append("<input type=\"radio\" data-mini=\"true\" name=\"device\" class=\"deviceselectclass\" id=\"radio-choice-v-" + key + "a\" value=\"" +
-                                ip + "\"" + isconnected + "><label for=\"radio-choice-v-" + key + "a\">" + name + "</label>");
-
-
-
-
-                            });
-                        $("#device_list_fieldset").enhanceWithin();
 
                       }
 
-                        $("#status").empty().append("Success").css("color", "green");;
+                        $("#status").empty().append("Success").css("color", "green");
                     })
                     .error(function() {
-                        $("#status").empty().append("Error").css("color", "red");;
+
+                        $("#status").empty().append("Offline").css("color", "red");
+
+                        _connectedStatus = "offline";
+
                     })
                     .complete(function() {});
 
@@ -1047,15 +1110,17 @@ $("#eqpage").on("pagebeforeshow", function() {
 
             $(document).on('change','.deviceselectclass', function(e) {
 
-              if ($(this).val() != 0 ) {
-                _currentdevice = "http://" + $(this).val() + "/";
-                _currentdeviceName = $(this).parent().text();
-              } else {
-                _currentdevice = getBaseUrl();
-                _currentdeviceName = _originalname;
-              }
+              // if ($(this).val() != 0 ) {
+                 _currentdevice = "http://" + $(this).val() + "/";
+                 _currentdeviceName = $(this).parent().text();
+              // } else {
+              //  _currentdevice = getBaseUrl();
+              //  _currentdeviceName = _originalname;
+              //}
 
               GetData($.mobile.activePage.attr('id'));
+
+
 
             });
 
@@ -1290,10 +1355,27 @@ $("#eqpage").on("pagebeforeshow", function() {
             });
 
 
+
             $("#homepage").on("pagebeforeshow", function() {
 
+              // if (navigator.onLine) {
+              //   console.log("Online");
+              // } else {
+              //   console.log("Offline");
+              // }
+
+
                 $("#flip-enable").on("change", flipChanged );
-                $("#device_list_button").hide();
+
+                if (localStorage.founddevices > 1 ) {
+
+                  $("#device_list_button").show();
+
+                } else {
+                  $("#device_list_button").hide();
+                }
+
+
 
                 var mode = $('#modeslist').val();
 
@@ -1522,12 +1604,26 @@ $("#eqpage").on("pagebeforeshow", function() {
                           //console.log("Settings Allocated");
                       }
 
-                      if (result.hasOwnProperty('founddevices')) {
+                       if (result.hasOwnProperty('devices')) {
+                            localStorage["devicelist"] = JSON.stringify(result.devices);
+                            _offlineDeviceList = result.devices;
+                          }
 
-                        if (result.founddevices > 0) {
+                          // else {
+                          //   localStorage["devicelist"] = {};
+                          //   _offlineDeviceList = {};
+                          // }
+
+
+
+                      if (result.hasOwnProperty('founddevices')) {
+                        localStorage.founddevices = result.founddevices;
+                        if (result.founddevices > 1) {
                           $("#device_list_button").show();
+                          //populatedevicelist(result.devices);
                         } else {
                           $("#device_list_button").hide();
+                          //localStorage.founddevices = 0;
                         }
 
                       }
@@ -2013,6 +2109,38 @@ $("#eqpage").on("pagebeforeshow", function() {
                 $('#singlematrix-config').fadeIn();
                 $('#multimatrix-config').fadeOut();
             }
+
+        }
+
+        function populatedevicelist(data) {
+
+                  var isconnected = "";
+
+                        $('#device_list_fieldset').empty().append( "<legend>Choose Device:</legend>").css("color", "black");
+
+                            $.each(data, function(key, value) {
+                                name = value.name.trim();
+
+                                if ( name == _currentdeviceName) {
+                                  isconnected = "checked=\"checked\"";
+                                  console.log("matched: name =" + name + ", _currentdeviceName=" + _currentdeviceName);
+                                } else {
+                                  isconnected = "";
+                                }
+
+                                ip = value.IP[0] + "." + value.IP[1] + "."+ value.IP[2] + "."+ value.IP[3];
+                                $("#device_list_fieldset").append("<input type=\"radio\" data-mini=\"true\" name=\"device\" class=\"deviceselectclass\" id=\"radio-choice-v-" + key + "a\" value=\"" +
+                                ip + "\"" + isconnected + "><label for=\"radio-choice-v-" + key + "a\">" + name + "</label>");
+
+                            });
+
+
+                $("#device_list_fieldset").enhanceWithin();
+
+
+
+
+
 
         }
     </script>
