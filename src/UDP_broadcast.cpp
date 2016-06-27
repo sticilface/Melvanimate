@@ -132,60 +132,7 @@ bool UDP_broadcast::_listen() {
 
         _state = _udp.beginMulticast( WiFi.localIP(),  MELVANIMATE_MULTICAST_ADDR, _port);
 
-//
-//         if (!_conn) {
-//                 uint32_t ourIp = _getOurIp();
-//                 if(ourIp == 0) {
-//                         return false;
-//                 }
-//
-//                 ip_addr_t ifaddr;
-//                 ifaddr.addr = ourIp;
-//                 ip_addr_t multicast_addr;
-//                 multicast_addr.addr = (uint32_t) MELVANIMATE_MULTICAST_ADDR;
-//
-//                 if (igmp_joingroup(&ifaddr, &multicast_addr)!= ERR_OK) {
-//                         return false;
-//                 }
-//
-//                 _conn = new UdpContext;
-//                 _conn->ref();
-//
-//                 if (!_conn->listen(*IP_ADDR_ANY, _port)) {
-//                         return false;
-//                 }
-//                 _conn->setMulticastInterface(ifaddr);
-//                 _conn->setMulticastTTL(1);
-//                 _conn->onRx(std::bind(&UDP_broadcast::_update, this));
-//                 _conn->connect(multicast_addr, _port);
-//         }
-//         DebugUDPf("[UDP_broadcast::_listen] Finsished.");
-//
-//         return true;
-//
 }
-
-// uint32_t UDP_broadcast::_getOurIp(){
-//         IPAddress IP {0,0,0,0};
-//         WiFiMode mode = WiFi.getMode();
-//         if(mode == WIFI_STA || mode ==  WIFI_AP_STA) {
-//                 IP = WiFi.localIP();
-//                 return (uint32_t)IP;
-//         } else if (mode == WIFI_AP) {
-//                 IP = WiFi.softAPIP();
-//                 return (uint32_t)IP;
-//         } else {
-//                 return 0;
-//         }
-// }
-
-// void UDP_broadcast::_update() {
-//
-//         if (!_conn || !_conn->next()) {
-//                 return;
-//         }
-//         _parsePacket();
-// }
 
 void UDP_broadcast::_parsePacket() {
 
@@ -207,8 +154,6 @@ void UDP_broadcast::_parsePacket() {
         }
         uint8_t host_len = _udp.read();  // byte 8
 
-        //char * buf = new char[host_len+1];
-
         std::unique_ptr<char[]> buf(new char[host_len + 1]);
 
         _udp.read( buf.get(),host_len);  // bytes 8;
@@ -217,7 +162,7 @@ void UDP_broadcast::_parsePacket() {
         DebugUDPf("[UDP_broadcast::_parsePacket] UDP RECIEVED [%u] %s (%u.%u.%u.%u:%u) %s\n", millis(),(method == PING) ? "PING" : "PONG",IP[0], IP[1], IP[2], IP[3], port, buf.get());
         _addToList(IP, std::move(buf) );
 
-        //delete[] buf;
+
 
         if (method == PING) {
                 DebugUDPf("[UDP_broadcast::_parsePacket] Recieved PING: RESPONDING WITH PONG\n");
@@ -301,10 +246,24 @@ void UDP_broadcast::_addToList(IPAddress IP, std::unique_ptr<char[]>(ID) ) {
 }
 
 uint8_t UDP_broadcast::count() {
-        return devices.size();
+        return devices.size() + 1;
 }
 
 void UDP_broadcast::addJson(JsonArray & root) {
+
+        //  this adds the current device.  Rather than keep it in memory...
+        JsonObject & thisdevice = root.createNestedObject();
+        JsonArray & IPjson = thisdevice.createNestedArray("IP");
+
+        IPAddress IP = WiFi.localIP();
+
+        IPjson.add(IP[0]);
+        IPjson.add(IP[1]);
+        IPjson.add(IP[2]);
+        IPjson.add(IP[3]);
+
+        thisdevice["name"] = _host;
+
 
         for (UDPList::iterator it=devices.begin(); it!=devices.end(); ++it) {
                 UDP_item & udp_item = **it;
