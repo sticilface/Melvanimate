@@ -10,7 +10,7 @@
 #include <functional>
 #include <ArduinoJson.h>
 
-//#define DebugMelvanimateMQTT
+#define DebugMelvanimateMQTT
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimateMQTT)
 #define DebugMelvanimateMQTTf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
@@ -29,6 +29,7 @@ public:
         MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t Port = 1883);
 
         ~MelvanimateMQTT() {
+          _mqttClient.disconnect();
         }
 
         void loop();
@@ -49,6 +50,14 @@ public:
         bool addJson(JsonObject & root);
         bool parseJson(JsonObject & root) {
         };
+
+        IPAddress getIP() {
+          return _addr;
+        }
+
+        uint16_t getPort() {
+          return _port;
+        }
         //PubSubClient * mqttclient() { return &_client; }
         // Melvanimate * pmelvanimate() {
         //         return _melvanimate;
@@ -66,7 +75,9 @@ private:
         uint32_t _reconnectTimer {0};
         Melvanimate * _melvanimate {nullptr};
         AsyncMqttClient _mqttClient;
-
+        bool _disconnected{false};
+        uint32_t _timeout{0};
+        
         //uint32_t _send_flag{0};
         //uint32_t _send_changed_flag{0};
         IPAddress _addr;

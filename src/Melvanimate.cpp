@@ -488,10 +488,8 @@ bool Melvanimate::parse(JsonObject & root)
 void Melvanimate::_initMQTT(JsonObject & root)
 {
 
-
-
         IPAddress addr;
-        uint16_t port = 0;
+        uint16_t port = 1883;
         DebugMelvanimatef("[Melvanimate::_initMQTT] called\n");
 
         // Serial.println();
@@ -509,20 +507,33 @@ void Melvanimate::_initMQTT(JsonObject & root)
                         addr[2] = MQTTjson["ip"][2];
                         addr[3] = MQTTjson["ip"][3];
 
-                        if (_mqtt) {
-                                delete _mqtt;
-                        }
 
-                        if (MQTTjson["port"]) {
-
+                        if (MQTTjson.containsKey("port")) {
                                 port = MQTTjson["port"];
-                                _mqtt = new MelvanimateMQTT(this, addr, port);
-
-                        } else {
-                                _mqtt = new MelvanimateMQTT(this, addr);
                         }
+
+                        if (_mqtt && (_mqtt->getIP() != addr || _mqtt->getPort() != port   )) {
+
+                          delete _mqtt;
+                          _mqtt = nullptr;
+                          _mqtt = new MelvanimateMQTT(this, addr, port);
+
+                          if (!_mqtt) {
+                            DebugMelvanimatef("[Melvanimate::_initMQTT] FAILED\n");
+                          }
+
+                        } else if (_mqtt){
+                          DebugMelvanimatef("[Melvanimate::_initMQTT] No changes Required\n");
+                          if (!*_mqtt) {
+                            DebugMelvanimatef("[Melvanimate::_initMQTT] But it is NOT connected\n");
+                          }
+                        } else if (!_mqtt) {
+                          _mqtt = new MelvanimateMQTT(this, addr, port);
+                        }
+
 
                         DebugMelvanimatef("[Melvanimate::_initMQTT] (%u,%u,%u,%u) : %u \n", addr[0], addr[1], addr[2], addr[3], port );
+
 
 
                         // if (_mqtt && *_mqtt) {
@@ -945,16 +956,6 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 #endif
 
                         _initMQTT(settings);
-
-//		} else if (request->getParam("enablemqtt") == "off" ) {
-//			DebugMelvanimatef("[_handleWebRequest] Disable mqtt..");
-
-
-
-
-
-//		}
-
 
                 }
 

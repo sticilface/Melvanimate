@@ -5,15 +5,17 @@
 
 MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t Port) : _melvanimate(lights), _addr(Addr), _port(Port)
 {
+				DebugMelvanimateMQTTf("[MelvanimateMQTT::MelvanimateMQTT] IP (%u.%u.%u.%u):%u\n", _addr[0], _addr[1], _addr[2], _addr[3], _port );
+
 				 char * willtopic = nullptr;
 
         _mqttClient.onConnect( [this, willtopic]() {
-
+								_disconnected = false;
                 _mqttClient.publish( ( "esp/" + String(_melvanimate->deviceName() ) ).c_str(), 2, false, WiFi.localIP().toString().c_str() );
                 publish( "status", "online", false);
                 publish( "IP", WiFi.localIP().toString().c_str(), false);
                 _mqttClient.subscribe( ( String(_melvanimate->deviceName()) + "/+/set").c_str(), 2);
-								DebugMelvanimateMQTTf("MQTT Connected\n");
+								DebugMelvanimateMQTTf("[MelvanimateMQTT::MelvanimateMQTT] MQTT Connected\n");
 
 								if (willtopic) {
 									free(willtopic);
@@ -23,8 +25,9 @@ MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t 
         });
 
         _mqttClient.onDisconnect( [this](AsyncMqttClientDisconnectReason reason) {
-                DebugMelvanimateMQTTf("Disconnected to MQTT...\n");
-                _mqttClient.connect();
+                DebugMelvanimateMQTTf("[MelvanimateMQTT::MelvanimateMQTT] MQTT Disconnected\n");
+								_disconnected = true;
+            //    _mqttClient.connect();
 
         });
 
@@ -40,7 +43,7 @@ MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t 
 
         _mqttClient.setWill( willtopic, 2, true, "Disconnected");
         //.setCredentials("username", "password")
-        DebugMelvanimateMQTTf("Connecting to MQTT...");
+        DebugMelvanimateMQTTf("[MelvanimateMQTT::MelvanimateMQTT] Connecting to MQTT...");
         _mqttClient.connect();
 
 }
@@ -54,6 +57,12 @@ void MelvanimateMQTT::loop()
         // } else {
         //  _reconnect();
         // }
+
+				if (_disconnected && millis() - _timeout > 30000) {
+					DebugMelvanimateMQTTf("[MelvanimateMQTT::loop] Async - reconnecting to MQTT...\n");
+					_mqttClient.connect();
+					_timeout = millis();
+				}
 
 }
 
