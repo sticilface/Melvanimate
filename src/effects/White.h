@@ -1,4 +1,4 @@
-//   just gives a brightness to work with rgbw LEDS. 
+//   just gives a brightness to work with rgbw LEDS.
 
 
 #pragma once
@@ -17,13 +17,14 @@ public:
 	}
 
 	bool Start() override;
+	bool Run() override; 
 
 	void Refresh() override {
-		Start(); 
+		Start();
 	}
 
 	inline uint8_t brightness() { return getVar<uint8_t>("brightness"); }
-	
+
 private:
 
 };

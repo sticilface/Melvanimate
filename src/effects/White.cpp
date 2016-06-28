@@ -20,8 +20,6 @@ bool White::Start()
 		animator = nullptr;
 	}
 
-
-
 	animator = new NeoPixelAnimator(  ( strip->PixelCount() < MAX_NUMBER_OF_ANIMATIONS) ? strip->PixelCount() : MAX_NUMBER_OF_ANIMATIONS  );
 
 
@@ -39,13 +37,22 @@ bool White::Start()
 				float progress = param.progress;
 				//MyColorFeature::ColorObject  updatedColor = RgbwColor::LinearBlend(originalColor, RgbwColor(0, 0, 0, brightness() ), progress);
 				 MyColorFeature::ColorObject  updatedColor = MyColorFeature::ColorObject::LinearBlend(originalColor, MyColorFeature::ColorObject(brightness()), progress);
-				if (strip->PixelsSize() == 4) {
+				//if (strip->PixelsSize() == 4) {
 					strip->SetPixelColor(pixel, updatedColor);
-				}
+				//}
 			};
 
 			animator->StartAnimation(pixel, 1000, animUpdate);
 
 		}
 	}
+}
+
+bool White::Run() {
+
+	if (animator && !animator->IsAnimating()) {
+		delete animator;
+		animator = nullptr;
+	}
+
 }
