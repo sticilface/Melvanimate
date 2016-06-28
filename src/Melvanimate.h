@@ -103,6 +103,7 @@ private:
 	void _sendData(String page, int8_t code,AsyncWebServerRequest *request);
 	void _handleWebRequest(AsyncWebServerRequest *request);
 	void _handleManifest(AsyncWebServerRequest *request);
+	void _checkheap(); 
 	//void _handleMQTTrequest(char* topic, byte* payload, unsigned int length);
 
 	template <class T> static void _sendJsontoHTTP( const T& root, AsyncWebServerRequest *request) ;
@@ -124,6 +125,7 @@ private:
 
 	uint32_t _power{0};
 	uint32_t _powertick{0};
+	uint32_t _heap{0};
 	bool _reInitPixelsAsync{false};
 
 	UDP_broadcast _locator;

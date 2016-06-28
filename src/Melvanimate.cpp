@@ -68,7 +68,7 @@ void Melvanimate::addJQueryhandlers() {
 
 void Melvanimate::loop()
 {
-
+        _checkheap();
         _process();         //  this is function from EffectManager that has to be run.
         _timer.run();
         _saveGeneral();
@@ -614,7 +614,7 @@ void Melvanimate::populateJson(JsonObject & root, bool onlychanged)
                         root["device"] = _deviceName;
                 }
 
-                root["heap"] = ESP.getFreeHeap();
+                root["heap"] = _heap;
                 root["power"] = String(getPower());
                 root["founddevices"] = _locator.count();
 
@@ -751,6 +751,7 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
         // Serial.println();
 
         _sendJsontoHTTP(root, request);
+        DebugMelvanimatef("[Melvanimate::_sendData] jsonBuffer Size = %u\n", jsonBuffer.size() );
 
 }
 
@@ -1346,4 +1347,14 @@ void Melvanimate::deleteAnimator()
                 delete animator;
                 animator = nullptr;
         }
+}
+
+void Melvanimate::_checkheap()
+{
+
+    uint32_t newTest = ESP.getFreeHeap();
+    if(newTest  != _heap){
+      _heap = newTest;
+    }
+
 }
