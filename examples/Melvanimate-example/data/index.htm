@@ -165,7 +165,7 @@ if (typeof(Storage) !== "undefined") {
 
 </head>
 
-<body id="body" onload="startSocket()">
+<body id="body" onload="">
 
 
 
@@ -857,6 +857,27 @@ if (typeof(Storage) !== "undefined") {
 
 
      <script>
+
+
+     /****************************************************
+      *                    Appcache
+      *
+      ****************************************************/
+
+     function handleAppCache() {
+       if (applicationCache == undefined) {
+         return;
+       }
+
+       if (applicationCache.status == applicationCache.UPDATEREADY) {
+         applicationCache.swapCache();
+         location.reload();
+         return;
+       }
+
+       applicationCache.addEventListener('updateready', handleAppCache, false);
+     }
+
 
         // function loadcss(url, callback) {
         //     var link = document.createElement("link");
