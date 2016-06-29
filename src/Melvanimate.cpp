@@ -20,7 +20,7 @@ Melvanimate::Melvanimate(AsyncWebServer & HTTP, uint16_t pixels, uint8_t pin) : 
 
 bool Melvanimate::begin(const char * name)
 {
-
+        using namespace std::placeholders;
         _deviceName = name;
 
         DebugMelvanimatef("Begin Melvana called\n");

@@ -18,8 +18,6 @@
 #define DebugMelvanimateMQTTf(...) {}
 #endif
 
-using namespace std::placeholders;
-
 class Melvanimate;
 
 class MelvanimateMQTT

@@ -37,7 +37,7 @@
 #include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
 #include "ObjectManager.h"
 
-using namespace std::placeholders;
+//using namespace std::placeholders;
 
 
 //#define DebugMelvanimate
@@ -48,6 +48,7 @@ using namespace std::placeholders;
 #else
 #define DebugMelvanimatef(...) {}
 #endif
+
 
 using namespace helperfunc;
 
@@ -63,6 +64,8 @@ class MelvanimateMQTT;
 class Melvanimate : public EffectManager
 {
 public:
+	
+
 	Melvanimate(AsyncWebServer & HTTP, uint16_t pixels, uint8_t pin = 2);
 
 	bool begin(const char * name);
@@ -103,7 +106,7 @@ private:
 	void _sendData(String page, int8_t code,AsyncWebServerRequest *request);
 	void _handleWebRequest(AsyncWebServerRequest *request);
 	void _handleManifest(AsyncWebServerRequest *request);
-	void _checkheap(); 
+	void _checkheap();
 	//void _handleMQTTrequest(char* topic, byte* payload, unsigned int length);
 
 	template <class T> static void _sendJsontoHTTP( const T& root, AsyncWebServerRequest *request) ;

@@ -5,6 +5,7 @@
 
 MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t Port) : _melvanimate(lights), _addr(Addr), _port(Port)
 {
+				using namespace std::placeholders;
 				DebugMelvanimateMQTTf("[MelvanimateMQTT::MelvanimateMQTT] IP (%u.%u.%u.%u):%u\n", _addr[0], _addr[1], _addr[2], _addr[3], _port );
 
 				 char * willtopic = nullptr;
