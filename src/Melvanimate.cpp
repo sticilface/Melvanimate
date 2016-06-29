@@ -785,7 +785,6 @@ void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
 
 
         AsyncResponseStream *response = request->beginResponseStream(F("text/cache-manifest")); //Sends 404 File Not Found
-        response->addHeader(F("Content-Type"),F( "text/cache-manifest"));
         response->addHeader(F("Cache-Control"),F( "must-revalidate"));
         response->print(F("CACHE MANIFEST\n"));
         response->printf( "# %s\n", __DATE__ " " __TIME__ );
@@ -802,12 +801,10 @@ void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
         response->print(F("jquery/jqm1.4.5.js\n"));
         response->print(F("jqColorPicker.min.js\n"));
         response->print(F("jquery/images/ajax-loader.gif\n"));
+        response->print(F("index.htm\n"));
         response->print(F("NETWORK:\n"));
         response->print("*\n");
         request->send(response);
-
-
-
 }
 
 void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
