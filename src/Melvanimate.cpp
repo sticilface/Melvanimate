@@ -70,18 +70,9 @@ void Melvanimate::loop()
 {
         _checkheap();
         _process();         //  this is function from EffectManager that has to be run.
-        _timer.run();
-        _saveGeneral();
-
-        yield();
-
-        _locator.loop();
-
-        if (_mqtt) {
-                _mqtt->loop();
-        }
 
         static uint32_t tick = 0;
+
 
         if ( millis() - tick > 30) {
                 if (animator) {
@@ -96,7 +87,31 @@ void Melvanimate::loop()
 
         }
 
-        yield();
+        //yield();
+
+        _timer.run();
+        _saveGeneral();
+        _locator.loop();
+
+        if (_mqtt) {
+                _mqtt->loop();
+        }
+
+
+        if ( millis() - tick > 30) {
+                if (animator) {
+                        if ( animator->IsAnimating() ) {
+                                animator->UpdateAnimations();
+                        }
+                }
+                if (strip) {
+                        strip->Show();
+                }
+                tick = millis();
+
+        }
+
+        //yield();
 
         if (_reInitPixelsAsync) {
                 strip->ClearTo(0);
@@ -104,28 +119,6 @@ void Melvanimate::loop()
                 _reInitPixelsAsync = false;
         }
 
-
-// //#ifdef DebugMelvanimate
-//         {
-//                 static uint32_t mdns_search_timeout = 0;
-//
-//                 if (millis() - mdns_search_timeout > 10000) {
-//                         mdns_search_timeout = millis();
-//
-//                         int number = MDNS.queryService("melvanimate", "tcp");
-//
-//                         if (number > 0) {
-//
-//                                 for (uint8_t result = 0; result < number; result++) {
-//                                         int port = MDNS.port(result);
-//                                         String host = MDNS.hostname(result);
-//                                         IPAddress IP = MDNS.IP(result);
-//                                         DebugMelvanimatef("Service Found [%u] %s (%u.%u.%u.%u) port = %u\n", result, host.c_str(), IP[0], IP[1], IP[2], IP[3], port);
-//                                 }
-//                         }
-//                 }
-//         }
-// //#endif
 }
 
 
@@ -1212,6 +1205,9 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
                 }
         }         // end of if(p_root)
 
+        sendEvent("refresh","command");
+
+
         _sendData(page, code, request);
 
         DebugMelvanimatef("[handle] time %u: [Heap] %u\n", millis() - start_time, ESP.getFreeHeap());
@@ -1354,4 +1350,11 @@ void Melvanimate::_checkheap()
       _heap = newTest;
     }
 
+}
+
+void Melvanimate::sendEvent(const char * msg, const char * topic)
+{
+  if (_events) {
+    _events->send(msg,topic);
+  }
 }

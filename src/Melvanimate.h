@@ -1,4 +1,14 @@
+//  toDo
 
+/*
+
+1.  Integrate Events, event posting,
+2. automatic refresh
+
+
+
+
+*/
 
 
 #pragma once
@@ -12,17 +22,13 @@
 #include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
 
-//#include "BufferedPrint.h"
 #include "helperfunc.h"
 #include "EQ.h"
 
 #include "MelvanimateMQTT.h"
 #include "UDP_broadcast.h"
-
-
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
-
 #include <FS.h>
 
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
@@ -36,9 +42,6 @@
 #include "Melvtrix.h" // this is a variation on the NeomAtrix lib, that uses callbacks to pass x,y,pixel back to function
 #include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
 #include "ObjectManager.h"
-
-//using namespace std::placeholders;
-
 
 //#define DebugMelvanimate
 
@@ -60,11 +63,10 @@ extern NeoPixelAnimator * animator;
 
 class MelvanimateMQTT;
 
-
 class Melvanimate : public EffectManager
 {
 public:
-	
+
 
 	Melvanimate(AsyncWebServer & HTTP, uint16_t pixels, uint8_t pin = 2);
 
@@ -96,6 +98,13 @@ public:
 	void populateJson(JsonObject & root, bool onlychanged = false) ;
 
 	bool parse(JsonObject & root);
+
+	void setEventsServer(AsyncEventSource * events) {
+		_events = events;
+	}
+
+	void sendEvent(const char * msg, const char * topic);
+
 
 private:
 	bool _saveGeneral(bool override = false);
@@ -132,5 +141,6 @@ private:
 	bool _reInitPixelsAsync{false};
 
 	UDP_broadcast _locator;
+	AsyncEventSource * _events{nullptr};
 
 };
