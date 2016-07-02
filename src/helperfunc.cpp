@@ -191,8 +191,8 @@ bool helperfunc::parsespiffs(char *& data,  DynamicJsonBuffer & jsonBuffer, Json
 void  helperfunc::Adalight_Flash()
 {
 
-	if (!animator) return; 
-	
+	if (!animator) return;
+
 	AnimEaseFunction easing = NeoEase::QuadraticInOut;
 	AnimUpdateCallback animUpdate = [ = ] (const AnimationParam & param) {
 
@@ -224,10 +224,10 @@ bool helperfunc::expandMatrixConfigToJson(JsonObject & root)
     return false;
   }
 
-  JsonObject & matrixjson = root["Matrix"]; 
+  JsonObject & matrixjson = root["Matrix"];
 
-  uint8_t _matrixconfig = matrixjson["config"]; 
-  bool _multiplematrix = matrixjson["multiple"];  
+  uint8_t _matrixconfig = matrixjson["config"];
+  bool _multiplematrix = matrixjson["multiple"];
 
   bool bottom = (_matrixconfig & NEO_MATRIX_BOTTOM) ;
   bool right = (_matrixconfig & NEO_MATRIX_RIGHT) ;
@@ -280,3 +280,44 @@ bool helperfunc::expandMatrixConfigToJson(JsonObject & root)
   return true;
 }
 
+void helperfunc::cpuCycleTimer(bool mark) {
+
+  static uint32_t oldmin{0};
+  static uint32_t oldmax{0};
+  static uint32_t oldlast{0};
+  static uint32_t timer{0};
+  static uint32_t sum{0};
+  static uint32_t count{0};
+
+  if (mark) {
+    oldlast = micros();
+    return;
+  }
+
+  uint32_t currentdif = micros() - oldlast;
+
+  if (currentdif < oldmin || oldmin == 0) {
+    oldmin = currentdif;
+  } 
+
+  if (currentdif > oldmax)
+  {
+    oldmax = currentdif;
+  }
+
+  sum += currentdif;
+
+  oldlast = micros();
+  count++;
+
+  if (millis() - timer > 100) {
+
+    Serial.printf("%u %u %u\n", oldmin, oldmax, sum / count);
+    timer = millis();
+    oldmin = -1;
+    oldmax = 0;
+    count = 0;
+    sum = 0;
+  }
+
+}
