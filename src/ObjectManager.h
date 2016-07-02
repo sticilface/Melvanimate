@@ -77,7 +77,7 @@ private:
 	ObjectUpdateCallback _ObjUpdate;
 	uint16_t * _pixels{nullptr};
 	uint16_t _total{0};
-	uint32_t _timeout{0};
+	uint32_t _timeout{30};
 	uint32_t _lasttick{0};
 
 public:
@@ -117,6 +117,10 @@ public:
 				if (_ObjUpdate()) {
 					_lasttick = millis();
 					return true;
+				} else {
+					_lasttick = millis();
+					_timeout = 200; //  back off 
+
 				}
 			}
 		}
@@ -302,4 +306,3 @@ public:
 
 
 // };
-
