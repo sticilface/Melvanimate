@@ -72,13 +72,19 @@ bool Shapes::Start()
 
 	for (uint8_t obj = 0; obj < effectnumber(); obj++) {
 
+
+
 		SimpleEffectObject * current =  static_cast<SimpleEffectObject*>(_vars->manager->Get(obj));  // cast handler to the Blobs class...
 
 		if (!current) { break; }
 
+		current->end();
+
 		current->SetObjectUpdateCallback( [ current, this ]() {
 
-			palette()->input(color()); 
+			uint32_t starttime = micros();
+
+			palette()->input(color());
 
 			uint16_t pixel_count = 0;
 
@@ -101,7 +107,7 @@ bool Shapes::Start()
 					pixel_count++;
 				});
 
-				shape(current); //  this calls function above to populate pixel_count.... 
+				shape(current); //  this calls function above to populate pixel_count....
 				current->create(pixel_count); //  create the memory for that number of pixels
 				pixel_count = 0;
 
@@ -111,7 +117,7 @@ bool Shapes::Start()
 					}
 				});
 
-				shape(current); // calls the above function to draw it... 
+				shape(current); // calls the above function to draw it...
 
 			} else {
 				//  linear points creation
@@ -126,7 +132,6 @@ bool Shapes::Start()
 			}
 
 			// pixels chosen check not in use by another animator...
-
 			for (uint16_t i = 0; i < current->total(); i++) {
 				if (_vars->manager->Inuse(current,  current->pixels()[i] ) ) {
 					return false;
@@ -144,7 +149,7 @@ bool Shapes::Start()
 
 				RgbColor updatedColor;
 
-				if (progress < 0.5) {
+				if (progress < 0.5f) {
 					updatedColor = RgbColor::LinearBlend(0, targetColor, progress * 2.0f);
 				} else {
 					updatedColor = RgbColor::LinearBlend(targetColor, 0, (progress - 0.5f) * 2.0f);
@@ -158,9 +163,9 @@ bool Shapes::Start()
 				///  maybe need to delete pixels() at end of the effect here...
 				//  to remove it from the in use....
 
-				if (param.state == AnimationState_Completed) {
-					current->end();
-				}
+				// if (param.state == AnimationState_Completed) {
+				// 	current->end();
+				// }
 
 			};
 
@@ -187,7 +192,10 @@ bool Shapes::Run()
 {
 	if (_vars) {
 		if (_vars->manager) {
+
 			_vars->manager->Update();
+			//cpuCycleTimer();
+
 		}
 	}
 }
@@ -211,6 +219,9 @@ bool Shapes::Stop()
 
 void Shapes::setshape(Shapetype shape)
 {
+	using namespace std::placeholders;
+
+
 	switch ( shape ) {
 
 	case RANDOM: {
@@ -279,8 +290,3 @@ void Shapes::drawTriangle(SimpleEffectObject * Object)
 	if (!Object || !matrix()) { return; }
 	matrix()->drawTriangle(Object->x, Object->y, Object->x + Object->size, Object->y, Object->x + (Object->size / 2), Object->y + Object->size , 0); //  fills shape with
 }
-
-
-
-
-
