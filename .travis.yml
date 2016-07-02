@@ -31,8 +31,8 @@ install:
   - pip install -U platformio
   - platformio platforms install espressif --with-package framework-arduinoespressif --with-package ldscripts
   - rm -rf ~/.platformio/packages/framework-arduinoespressif
-  - git clone https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
-#  - git clone --branch 2.3.0 --depth 1 https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
+#  - git clone https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
+  - git clone --branch 2.3.0 --depth 1 https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
   - export PATH="$HOME/.platformio/packages/toolchain-xtensa/bin:$PATH"
   - cd $HOME/.platformio/packages/toolchain-xtensa/lib
   # update sdk
@@ -67,7 +67,7 @@ install:
   - platformio lib install 13    # Adafruit_GFX
   - platformio lib install 547  # neopixelbus
   - platformio lib install 89  # pubsubclient
-  # - platformio lib install 
+  # - platformio lib install
   # - platformio lib install 305  # ESPAsyncTCP
   # - platformio lib install 306 # ESPAsyncWebServer
 
