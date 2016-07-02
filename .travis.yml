@@ -70,6 +70,7 @@ install:
   # - platformio lib install
   # - platformio lib install 305  # ESPAsyncTCP
   # - platformio lib install 306 # ESPAsyncWebServer
+  - platformio lib install 346 # https://github.com/marvinroger/async-mqtt-client
 
   - tree $HOME/.platformio/packages/framework-arduinoespressif/tools
 
