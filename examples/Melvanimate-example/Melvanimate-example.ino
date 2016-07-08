@@ -33,7 +33,7 @@
 
 
 const uint16_t defaultpixelcount =  20;
-const char* devicename = "MyWS2812";  
+const char* devicename = "MyWS2812";  //MQTT address
 const char* ssid     = "ssid";
 const char* password = "password";
 
@@ -66,7 +66,7 @@ void setup()
     Serial.printf("\n");
   }
 
-
+ WiFi.mode(WIFI_STA); //Turns off Access point mode
 
   Serial.print("Connecting to ");
   Serial.println(ssid);
