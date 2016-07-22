@@ -2,18 +2,14 @@
 
 #include "UDP_broadcast.h"
 
-// #include "WiFiUdp.h"
-// #include "lwip/opt.h"
-// #include "lwip/udp.h"
-// #include "lwip/inet.h"
-// #include "lwip/igmp.h"
-// #include "lwip/mem.h"
-// #include "include/UdpContext.h"
+// OLD
+// #define UDP_PING_TIMEOUT 30000
+// #define UDP_TASK_TIMEOUT 5000
+// #define UDP_STALE_TIMEOUT 100000
 
-#define UDP_PING_TIMEOUT 30000
-#define UDP_TASK_TIMEOUT 5000
-#define UDP_STALE_TIMEOUT 100000
-
+#define UDP_PING_TIMEOUT 5 * 60 * 1000   //  5min ping interval
+#define UDP_TASK_TIMEOUT 60 * 1000       //  1 min tasker
+#define UDP_STALE_TIMEOUT 20 * 60 * 1000 // 20min stale remove...
 
 static const IPAddress MELVANIMATE_MULTICAST_ADDR(224, 0, 0, 251);
 

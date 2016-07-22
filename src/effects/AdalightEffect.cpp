@@ -14,21 +14,23 @@ extern NeoPixelAnimator * animator;
 bool AdalightEffect::Start()
 {
 
-	animator = new NeoPixelAnimator(1);
 
-	//if (millis() > 30000) { 
-	if (animator) {
-		Adalight_Flash(); 
-	}
+
 
 	if (_Serial) {
 		_Serial.flush();
-		//delay(500);
-		//Serial.end(); //  this seems to cause reboot
+
+	//	_Serial.end(); //  this seems to cause reboot
 		_Serial.begin(serialspeed());
+
 	}
 
+	animator = new NeoPixelAnimator(1);
 
+	//if (millis() > 30000) {
+	if (animator) {
+		Adalight_Flash();
+	}
 
 }
 
@@ -63,13 +65,13 @@ bool AdalightEffect::Run()
 	if (animator)
 	{
 		if (animator->IsAnimating()) {
-			return false; 
+			return false;
 		}
 	}
 
 	if (animator) {
 		delete animator;
-		animator = nullptr; 
+		animator = nullptr;
 	}
 
 	if (!_vars) {

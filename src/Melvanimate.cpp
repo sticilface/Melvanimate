@@ -36,6 +36,10 @@ bool Melvanimate::begin(const char * name)
 
         _locator.begin(_deviceName, 8827);
 
+#ifdef RANDOM_MANIFEST_ON_BOOT
+        	 _randomvar = random (0,30000000);
+#endif
+
 }
 
 
@@ -95,20 +99,6 @@ void Melvanimate::loop()
 
         if (_mqtt) {
                 _mqtt->loop();
-        }
-
-
-        if ( millis() - tick > 30) {
-                if (animator) {
-                        if ( animator->IsAnimating() ) {
-                                animator->UpdateAnimations();
-                        }
-                }
-                if (strip) {
-                        strip->Show();
-                }
-                tick = millis();
-
         }
 
         //yield();
@@ -764,29 +754,16 @@ template <class T> void Melvanimate::_sendJsontoHTTP( const T & root, AsyncWebSe
 
 void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
 {
-        static uint32_t random_var = 0;
-        static bool alwaysrandom = false;
-
-        if (request->hasParam("random") ) {
-                random_var = random(0,30000);
-                DebugMelvanimatef("[Melvanimate::_handleManifest] Random Manifest Called\n");
-        };
-        if (request->hasParam("alwaysrandom") ) {
-                alwaysrandom = !alwaysrandom;
-                DebugMelvanimatef("[Melvanimate::_handleManifest] alwaysrandom = %s\n", (alwaysrandom) ? "true" : "false");
-        };
-
+  #ifdef DISABLE_MANIFEST
+          request->send(404);
+          return;
+  #endif
 
         AsyncResponseStream *response = request->beginResponseStream(F("text/cache-manifest")); //Sends 404 File Not Found
         response->addHeader(F("Cache-Control"),F( "must-revalidate"));
         response->print(F("CACHE MANIFEST\n"));
         response->printf( "# %s\n", __DATE__ " " __TIME__ );
 
-        if (!alwaysrandom) {
-                response->printf("# %u\n", random_var);
-        } else {
-                response->printf("# %u\n", random(0,30000) );
-        }
 
         response->print(F("CACHE:\n"));
         response->print(F("jquery/jqm1.4.5.css\n"));

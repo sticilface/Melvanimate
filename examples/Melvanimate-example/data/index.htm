@@ -15,21 +15,11 @@
   <script src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
   <script src="http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script> -->
 
-    <link rel="stylesheet" href="/jquery/jqm1.4.5.css">
+<!--    <link rel="stylesheet" href="/jquery/jqm1.4.5.css">-->
 <!--     <script src="/allscripts.js"></script> -->
-    <script src="/jquery/jq1.11.1.js"></script>
-
-    <script>
-    $( document ).on( "mobileinit", function() {
-      console.log("PAGE mobileinit 2 ");
-      //         <h2 style="text-align:right">[Power: <var id="power">0</var> mA] [Heap: <var id="heap">-</var> ] [Status: <var id="status"></var> ]</h2>
-
-    });
-    </script>
-
-
-    <script src="/jquery/jqm1.4.5.js"></script>
-    <script type="text/javascript" src="jqColorPicker.min.js"></script>
+<!--    <script src="/jquery/jq1.11.1.js"></script>-->
+<!--    <script src="/jquery/jqm1.4.5.js"></script>-->
+<!--    <script type="text/javascript" src="jqColorPicker.min.js"></script>-->
 
 
   <script>
@@ -89,7 +79,7 @@ if (typeof(Storage) !== "undefined") {
 
     <style>
         body {
-            visibility: visible
+            visibility: hidden
         }
     </style>
 
@@ -108,7 +98,7 @@ if (typeof(Storage) !== "undefined") {
 
         <form>
         <fieldset data-role="controlgroup" data-theme="a" data-inset="true" style="min-width:210px;" class="ui-content" id='device_list_fieldset'>
-        <legend>Choose Device:</legend>
+        <legend class="centerwrapper">Choose Device:</legend>
         </fieldset>
         </form>
     </div>
@@ -795,35 +785,36 @@ if (typeof(Storage) !== "undefined") {
 
 
 
-        // function loadcss(url, callback) {
-        //     var link = document.createElement("link");
-        //     link.setAttribute("rel", "stylesheet");
-        //     link.setAttribute("href", url);
-        //     link.addEventListener('load', function() {
-        //         var script = document.createElement("script");
-        //         script.textContent = "(" + callback.toString() + ")();";
-        //         document.body.appendChild(script);
-        //     }, false);
-        //     document.body.appendChild(link);
-        // }
+        function loadcss(url, callback) {
+            var link = document.createElement("link");
+            link.setAttribute("rel", "stylesheet");
+            link.setAttribute("href", url);
+            link.addEventListener('load', function() {
+                var script = document.createElement("script");
+                script.textContent = "(" + callback.toString() + ")();";
+                document.body.appendChild(script);
+            }, false);
+            document.body.appendChild(link);
+        }
 
-        // function loadjs(url, callback) {
-        //     var script = document.createElement("script");
-        //     script.setAttribute("src", url);
-        //     script.addEventListener('load', function() {
-        //         var script = document.createElement("script");
-        //         script.textContent = "(" + callback.toString() + ")();";
-        //         document.body.appendChild(script);
-        //     }, false);
-        //     document.body.appendChild(script);
-        // }
+        function loadjs(url, callback) {
+            var script = document.createElement("script");
+            script.setAttribute("src", url);
+            script.addEventListener('load', function() {
+                var script = document.createElement("script");
+                script.textContent = "(" + callback.toString() + ")();";
+                document.body.appendChild(script);
+            }, false);
+            document.body.appendChild(script);
+        }
 
-        // loadcss("/espman/jqm1.4.5.css", function() {
-        //     loadjs("/espman/jq1.11.1.js", function() {
-        //         //window.jQ=jQuery.noConflict(true);
-        //         loadjs("/espman/jqm1.4.5.js", function() {
-        //             //window.jQ=jQuery.noConflict(true);
-        //             loadjs("jqColorPicker.min.js", function() {
+
+        loadcss("/jquery/jqm1.4.5.css", function() {
+            loadjs("/jquery/jq1.11.1.js", function() {
+                //window.jQ=jQuery.noConflict(true);
+                loadjs("/jquery/jqm1.4.5.js", function() {
+                    //window.jQ=jQuery.noConflict(true);
+                    loadjs("jqColorPicker.min.js", function() {
                         $(function() {
 
                             $("[data-role='header']").toolbar();
@@ -831,13 +822,15 @@ if (typeof(Storage) !== "undefined") {
                             $("body>[data-role='panel']").panel();
 
                         });
-        //                 RUNDOCUMENT();
-        //           //      GetData("homepage");
-        //                 $("body").css("visibility", "visible");
-        //             });
-        //         });
-        //     });
-        // });
+                        RUNDOCUMENT();
+                        GetData("homepage");
+                        $("body").css("visibility", "visible");
+                    });
+                });
+            });
+        });
+
+
         function getBaseUrl() {
             var re = new RegExp(/^.*\//);
             return re.exec(window.location.href);
@@ -908,9 +901,7 @@ if (typeof(Storage) !== "undefined") {
         var NEO_TILE_ZIGZAG = 0x80 // Tile order reverses between lines
         var NEO_TILE_SEQUENCE = 0x80 // Bitmask for tile line order
 
-   //     function RUNDOCUMENT() {
 
-      $(document).on( "pagechange", function( event ) { GetData($.mobile.activePage.attr('id'));  } );
 
 // $(document).on('offline online', function (event) {
 //     alert('You are ' + event.type + '!');
@@ -1121,6 +1112,101 @@ function startEvents() {
 }
 
   //    $('.noEnterSubmit').bind('keypress', false);
+        function RUNDOCUMENT() {
+
+                   $('.color').colorPicker({
+                    preventFocus: true,
+                    renderCallback: function($elm, toggled) {
+                        if (toggled === true) { // simple, lightweight check
+                            // ... like an open callback
+                        } else if (toggled === false) {
+
+                            // ... like a close callback
+                            //var nameof = $(this).attr("name");
+                            //var $form = $(this).closest('input');
+
+                            //console.log($form.attr('name'));
+                            var colors = this.color.colors,
+                                rgb = colors.RND.rgb;
+                            //console.log(rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + colors.alpha);
+
+                            var $form = $elm.closest('form');
+                            var inputName = $elm.attr('name');
+                            //var inputValue = $elm.attr('value');
+
+                            // var data = {
+                            //     color: {
+                            //         name: inputName,
+                            //         R: rgb.r,
+                            //         G: rgb.g,
+                            //         B: rgb.b,
+                            //     }
+                            // };
+                            // console.log(JSON.stringify(data));
+
+                            $("#status").empty().append("Waiting ").css("color", "blue");;
+
+                            $.post(_currentdevice + "data.esp", inputName + "=" + rgb.r + "," + rgb.g + "," + rgb.b
+                                // function(data) {
+                                //     console.log(data);
+                                // }
+                            ).success(function(e) {
+                              if (e) {
+                                processJSON(e);
+                              }
+                            $("#status").empty().append("Success").css("color", "green");;
+                        })
+                        .error(function() {
+                            $("#status").empty().append("Error").css("color", "red");;
+                        })
+                        .complete(function() {});
+
+                            $elm.css('color', "rgb(" + colors.RND.rgb.r + "," + colors.RND.rgb.g + "," + colors.RND.rgb.b + ")");
+                            $elm.css('text-shadow', 'none');
+                        }
+                    },
+                    buildCallback: function($elm) {
+                        var colorInstance = this.color,
+                            colorPicker = this,
+                            random = function(n) {
+                                return Math.round(Math.random() * (n || 255));
+                            };
+                        $elm.append('<div class="cp-memory">' +
+                            '<div></div><div></div><div></div><div></div>' +
+                            '<div></div><div></div><div></div><div class="cp-store">S</div>').
+                        on('click', '.cp-memory div', function(e) {
+                          console.log("Colour picker click");
+                            var $this = $(this);
+
+                            if (this.className) {
+                                $this.parent().prepend($this.prev()).children().eq(0).
+                                css('background-color', '#' + colorInstance.colors.HEX);
+                            } else {
+                                colorInstance.setColor($this.css('background-color'));
+                                colorPicker.render();
+                            }
+                        }).find('.cp-memory div').each(function() {
+                            !this.className && $(this).css({
+                                background: 'rgb(' + random() + ', ' + random() + ', ' + random() + ')'
+                            });
+                        });
+                    },
+                    opacity: false,
+                    cssAddon: // could also be in a css file instead
+                        '.cp-memory {margin-bottom:6px; clear:both;}' +
+                        '.cp-xy-slider:active {cursor:none;}' +
+                        '.cp-memory div {float:left; width:17px; height:17px; margin-right:2px;' +
+                        'background:rgba(0,0,0,1); text-align:center; line-height:17px;}' +
+                        '.cp-memory .cp-store {width:21px; margin:0; background:none; font-weight:bold;' +
+                        'box-sizing:border-box; border: 1px solid; border-color: #666 #222 #222 #666;}' +
+                        '.cp-color-picker{z-index:16777271}'
+                });
+
+
+                $('#effectoptions').children('div').each(function(index) {
+                  $(this).hide();
+                });
+
 
       $('.noEnterSubmit').keypress(function(e){
     //if ( e.which == 13 ) return false;
@@ -1128,6 +1214,7 @@ function startEvents() {
     if ( e.which == 13 ) e.preventDefault();
     });
 
+      $(document).on( "pagechange", function( event ) { GetData($.mobile.activePage.attr('id'));  } );
 
 
 $(document).ready(function () {
@@ -1518,6 +1605,19 @@ $("#eqpage").on("pagebeforeshow", function() {
                 if (command == "overwrite") {
                   $('#input_savename').closest('div.ui-field-contain').show();
                   $('#savepage_effects_list_select').closest('div.ui-field-contain').show();
+                  //$('#input_savename').val( $('#savepage_effects_list_select').val() );
+
+                  if (presetspagedata.hasOwnProperty('Presets')) {
+
+                    $.each(presetspagedata.Presets, function(key, value) {
+                      //console.log("key = " + key + " value = " , value);
+                    if ($('#savepage_effects_list_select').val() == value.ID) {
+                      $('#input_savename').val(value.name);
+                    }
+
+                    });
+                  }
+
                 }
 
                 if (command == "delete" || command == "load") {
@@ -1532,15 +1632,17 @@ $("#eqpage").on("pagebeforeshow", function() {
 
                 });
 
+
                 $('#savepage_effects_list_select').change(function() {
 
                   selected = $(this).val();
+                  console.log( "selected = " + selected);
 
                   if (presetspagedata.hasOwnProperty('Presets')) {
 
                     $.each(presetspagedata.Presets, function(key, value) {
-
-                    if (selected == key) {
+                      console.log("key = " + key + " value = " , value);
+                    if (selected == value.ID) {
                       $('#input_savename').val(value.name);
                     }
 
@@ -1621,93 +1723,6 @@ $("#eqpage").on("pagebeforeshow", function() {
               //     }
               //   });
 
-                $('.color').colorPicker({
-                    preventFocus: true,
-                    renderCallback: function($elm, toggled) {
-                        if (toggled === true) { // simple, lightweight check
-                            // ... like an open callback
-                        } else if (toggled === false) {
-
-                            // ... like a close callback
-                            //var nameof = $(this).attr("name");
-                            //var $form = $(this).closest('input');
-
-                            //console.log($form.attr('name'));
-                            var colors = this.color.colors,
-                                rgb = colors.RND.rgb;
-                            //console.log(rgb.r + ', ' + rgb.g + ', ' + rgb.b + ', ' + colors.alpha);
-
-                            var $form = $elm.closest('form');
-                            var inputName = $elm.attr('name');
-                            //var inputValue = $elm.attr('value');
-
-                            // var data = {
-                            //     color: {
-                            //         name: inputName,
-                            //         R: rgb.r,
-                            //         G: rgb.g,
-                            //         B: rgb.b,
-                            //     }
-                            // };
-                            // console.log(JSON.stringify(data));
-
-                            $("#status").empty().append("Waiting ").css("color", "blue");;
-
-                            $.post(_currentdevice + "data.esp", inputName + "=" + rgb.r + "," + rgb.g + "," + rgb.b
-                                // function(data) {
-                                //     console.log(data);
-                                // }
-                            ).success(function(e) {
-                              if (e) {
-                                processJSON(e);
-                              }
-                            $("#status").empty().append("Success").css("color", "green");;
-                        })
-                        .error(function() {
-                            $("#status").empty().append("Error").css("color", "red");;
-                        })
-                        .complete(function() {});
-
-                            $elm.css('color', "rgb(" + colors.RND.rgb.r + "," + colors.RND.rgb.g + "," + colors.RND.rgb.b + ")");
-                            $elm.css('text-shadow', 'none');
-                        }
-                    },
-                    buildCallback: function($elm) {
-                        var colorInstance = this.color,
-                            colorPicker = this,
-                            random = function(n) {
-                                return Math.round(Math.random() * (n || 255));
-                            };
-                        $elm.append('<div class="cp-memory">' +
-                            '<div></div><div></div><div></div><div></div>' +
-                            '<div></div><div></div><div></div><div class="cp-store">S</div>').
-                        on('click', '.cp-memory div', function(e) {
-                          console.log("Colour picker click");
-                            var $this = $(this);
-
-                            if (this.className) {
-                                $this.parent().prepend($this.prev()).children().eq(0).
-                                css('background-color', '#' + colorInstance.colors.HEX);
-                            } else {
-                                colorInstance.setColor($this.css('background-color'));
-                                colorPicker.render();
-                            }
-                        }).find('.cp-memory div').each(function() {
-                            !this.className && $(this).css({
-                                background: 'rgb(' + random() + ', ' + random() + ', ' + random() + ')'
-                            });
-                        });
-                    },
-                    opacity: false,
-                    cssAddon: // could also be in a css file instead
-                        '.cp-memory {margin-bottom:6px; clear:both;}' +
-                        '.cp-xy-slider:active {cursor:none;}' +
-                        '.cp-memory div {float:left; width:17px; height:17px; margin-right:2px;' +
-                        'background:rgba(0,0,0,1); text-align:center; line-height:17px;}' +
-                        '.cp-memory .cp-store {width:21px; margin:0; background:none; font-weight:bold;' +
-                        'box-sizing:border-box; border: 1px solid; border-color: #666 #222 #222 #666;}' +
-                        '.cp-color-picker{z-index:16777271}'
-                });
 
                 // $("#brightness").on('slidestop', function() {
                 //     $("#status").empty().append("Waiting...").css("color", "blue");;
@@ -1787,7 +1802,7 @@ $("#eqpage").on("pagebeforeshow", function() {
 
             }
 
- //       } // end of rundocumentt
+        } // end of rundocumentt
 
     function flipChanged(e) {
 
@@ -2356,12 +2371,11 @@ $("#eqpage").on("pagebeforeshow", function() {
 
                 $("#device_list_fieldset").enhanceWithin();
 
-
-
-
-
-
         }
+
+
+
+
     </script>
 </body>
 
