@@ -34,7 +34,7 @@ void UDP_broadcast::begin(const char * host, uint16_t port)  {
 
         });
 
-//        _sendRequest(PING);
+        _sendRequest(PING);
 
         DebugUDPf("[UDP_broadcast::begin] Finished\n");
 }
