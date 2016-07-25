@@ -2,8 +2,9 @@
 
 /*
 
-1.  Integrate Events, event posting,
-2. automatic refresh
+1.  ?Integrate Events, event posting,
+2.  ?automatic refresh
+3. Use RTC memory to remember state after reboot.
 
 
 
@@ -107,6 +108,10 @@ public:
 
 
 private:
+
+	void _saveState();
+	void _getState();
+
 	bool _saveGeneral(bool override = false);
 	bool _loadGeneral();
 	void _init_LEDs();

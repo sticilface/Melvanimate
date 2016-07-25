@@ -9,6 +9,9 @@
 
 using namespace helperfunc;
 
+uint16_t RTC::addr_counter = sizeof(rtc_data_t) + 1;
+
+
 AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 {
 	if (ptr) {
@@ -28,6 +31,10 @@ AbstractPropertyHandler* PropertyManager::addVar(AbstractPropertyHandler* ptr)
 			PropertyManagerf("[PropertyManager::addVar] Added: %s\n", ptr->name());
 			lasthandle->next(ptr);
 		}
+
+		//PropertyManagerf("[PropertyManager::addVar] Rtc Mem Loc: %u\n", _rtcAddr);
+		//_rtcAddr = ptr->setAddr(_rtcAddr); //  sets the location in RTC memory to store changed variables.
+
 		return ptr;
 	}
 
@@ -117,22 +124,29 @@ bool Variable<RgbColor>::parseJsonProperty(JsonObject & root)
 			convertcolor(root, _name);
 		}
 
-		uint8_t R = root[_name][0];
-		uint8_t G = root[_name][1];
-		uint8_t B = root[_name][2];
+		RgbColor in;
 
-		if (_var.R != R) {
-			_var.R = R;
+		in.R = root[_name][0];
+		in.G = root[_name][1];
+		in.B = root[_name][2];
+
+		if (in != _var) {
 			_changed = true;
+			set(in);
 		}
-		if (_var.G != G) {
-			_var.G = G;
-			_changed = true;
-		}
-		if (_var.B != B) {
-			_var.B = B;
-			_changed = true;
-		}
+
+		// if (_var.R != R) {
+		// 	_var.R = R;
+		// 	_changed = true;
+		// }
+		// if (_var.G != G) {
+		// 	_var.G = G;
+		// 	_changed = true;
+		// }
+		// if (_var.B != B) {
+		// 	_var.B = B;
+		// 	_changed = true;
+		// }
 
 //		Serial.printf("[Variable<RgbColor>::parseJsonProperty] color1 (%u,%u,%u)\n", _var.R, _var.G, _var.B);
 
@@ -177,5 +191,3 @@ bool Variable<const char *>::parseJsonProperty(JsonObject & root)
 // 		Serial.printf("[class Variable<const char *>] _var freed\n");
 // 	}
 // }
-
-

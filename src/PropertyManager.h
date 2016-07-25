@@ -16,6 +16,39 @@
 #define PropertyManagerf(...) {}
 #endif
 
+//bool rtcUserMemoryRead(uint32_t offset, uint32_t *data, size_t size);
+//bool rtcUserMemoryWrite(uint32_t offset, uint32_t *data, size_t size);
+
+class RTC {
+public:
+	static uint16_t addr_counter;
+	static void reset() { addr_counter = 0; }
+	RTC(uint16_t size = 4) : _size(size) {
+		_addr = addr_counter;
+		size_t rounded = (size + 3) & (~3)
+		addr_counter += (rounded / 4);
+		//Serial.printf("RTC initialised _addr = %u\n", _addr);
+	}
+
+	bool write(uint32_t *data) {
+		//Serial.printf("RTC write [%u] uint32_t = %u\n", _addr, *data);
+		ESP.rtcUserMemoryWrite( _addr, data, _size);
+	}
+
+	bool read(uint32_t *data){
+		//Serial.printf("RTC read [%u] uint32_t = %u\n", _addr ,*data);
+		ESP.rtcUserMemoryRead( _addr, data, _size);
+	}
+
+	uint16_t address() { return _addr; }
+
+private:
+	uint16_t _addr{0};
+	uint16_t _size{0};
+
+};
+
+
 
 class AbstractPropertyHandler
 {
@@ -23,21 +56,28 @@ public:
 	virtual ~AbstractPropertyHandler() {}
 	virtual bool addJsonProperty(JsonObject & root, bool onlychanged = false) {return false; };
 	virtual bool parseJsonProperty(JsonObject & root) { return false; } ;
+	//virtual uint16_t setAddr(uint16_t addr) { return addr; } //  if override is not defined then it is not stored so return original address...
+	virtual void LoadRTC() {};
+	virtual void SaveRTC() {};
 
-	void setChanged(bool changed) { 
-		_changed = changed; 
+
+	void setChanged(bool changed) {
+		_changed = changed;
 		PropertyManagerf("[Variable::setChanged]  (%s)_changed  = %s\n", _name, (_changed)? "true": "false") ; }
 	const char * name() { return _name; }
 	AbstractPropertyHandler* next() { return _next; }
 	void next (AbstractPropertyHandler* next) { _next = next; }
 	AbstractPropertyHandler* p() { return this; }
 
+
+
 private:
 	AbstractPropertyHandler* _next = nullptr;
 
 protected:
 	const char * _name = nullptr;
-	bool _changed{false}; 
+	bool _changed{false};
+	//uint16_t _rtcAddr{0};
 
 };
 
@@ -54,18 +94,28 @@ public:
 	Variable(const char * name, T value)
 	{
 		_name = name;
-		set(value);
+		_var = value;
 	};
 
 	~Variable() override {}
 
-	//T get() { return _var; }
 	T get() { return _var; }
 
-	void set(T value) { _var = value; }
+	void set(T value) {
+		_var = value;
+
+		SaveRTC();
+
+		// ESP.rtcUserMemoryWrite(_rtcAddr, &val,  1);
+		// Serial.printf("Setting var %s :", _name);
+		// Serial.println(value);
+	}
+
+
+
 	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override
 	{
-		PropertyManagerf("[Variable::addJsonProperty] (%s) _changed = %s, onlychanged = %s\n", name() ,(_changed)? "true" : "false",(onlychanged)? "true" : "false"  ); 
+		PropertyManagerf("[Variable::addJsonProperty] (%s) _changed = %s, onlychanged = %s\n", name() ,(_changed)? "true" : "false",(onlychanged)? "true" : "false"  );
 		if (onlychanged && !_changed) { PropertyManagerf("[Variable::addJsonProperty] returning \n"); return false; }
 		root[_name] = _var;
 		return true;
@@ -74,19 +124,41 @@ public:
 	bool parseJsonProperty(JsonObject & root) override
 	{
 		if (root.containsKey(_name)) {
-			
+
 			if (_var != root[_name] ) {
-				_var = root[_name];
-				_changed = true; 
-				PropertyManagerf("[Variable::parseJsonProperty] _changed = true\n"); 
+				set(root[_name]);
+				_changed = true;
+				PropertyManagerf("[Variable::parseJsonProperty] _changed = true\n");
 				return true;
 			}
 		}
 		return false;
 	}
 
+	// uint16_t setAddr(uint16_t addr) override {
+	// 	_rtcAddr = addr;
+	// 	return addr + 1;
+	// }
+
+	void LoadRTC() override {
+		uint32_t data;
+		_rtc.read(&data);
+
+		//ESP.rtcUserMemoryRead(_rtcAddr,  &data,  1);
+		T var = static_cast<T>(data);
+		// Serial.printf("Retrieved from RTC: %s ", _name);
+		// Serial.println(var);
+		_var = var;
+	}
+
+	void SaveRTC() override {
+		uint32_t temp = static_cast<uint32_t>(_var);
+		_rtc.write(&temp);
+	}
+
 private:
 	T _var{};
+	RTC _rtc;
 };
 
 
@@ -102,19 +174,57 @@ public:
 	Variable(const char * name, RgbColor value)
 	{
 		_name = name;
-		set(value);
+		_var = value;
 	};
 	~Variable() override { }
 
 	RgbColor& get() { return _var; }
-	void set(RgbColor value) { _var = value; }
+
+	void set(RgbColor value) {
+		_var = value;
+		SaveRTC();
+
+	 }
 
 	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override;
 	bool parseJsonProperty(JsonObject & root) override;
+	// uint16_t setAddr(uint16_t addr) override {
+	// 	_rtcAddr = addr;
+	// 	return addr + 1;
+	// }
+	void LoadRTC() override {
+		uint32_t Val;
+		_rtc.read(&Val);
+		//ESP.rtcUserMemoryRead(_rtcAddr,  &Val,  1);
 
+		_var.R = Val >> 16 & 0xFF;
+		_var.G = Val >> 8 & 0xFF;
+		_var.B = Val & 0xFF;
+
+	Serial.printf("Retrieved from RTC: %s RGB(%u,%u,%u)\n",_name , _var.R, _var.G, _var.B);
+
+		// ESP.rtcUserMemoryRead(_rtcAddr,  &Var.Data32,  1);
+		// Serial.printf("Retrieved from RTC: %s RGB(%u,%u,%u)\n",_name , Var.Bytes[0], Var.Bytes[1], Var.Bytes[2]);
+		// _var.R = Var.Bytes[0];
+		// _var.G = Var.Bytes[1];
+		// _var.B = Var.Bytes[2];
+	}
+
+	void SaveRTC() override {
+		uint32_t Val = (uint32_t)( _var.R << 16 | _var.G << 8 | _var.B );
+		_rtc.write(&Val);
+	}
 
 private:
 	RgbColor _var = RgbColor(0, 0, 0);
+	RTC _rtc;
+	//
+	// union
+	// {
+	// uint32_t Data32;
+	// uint8_t Bytes[4];
+	// } Var;
+
 };
 
 
@@ -172,7 +282,7 @@ public:
 	{
 		_name = name;
 		//set(value);
-		_var.mode(value); 
+		_var.mode(value);
 	};
 	~Variable() override {}
 
@@ -189,7 +299,7 @@ public:
 	{
 		if (root.containsKey(_name)) {
 			_changed =  _var.parseJson(root);
-			return _changed; 
+			return _changed;
 		} else {
 			return false;
 		}
@@ -206,7 +316,8 @@ public:
 	Variable(const char * name)
 	{
 		_name = name;
-		_var = new MelvtrixMan; 
+		_var = new MelvtrixMan;
+		Serial.printf("Melvtrix Size = %u\n", sizeof(MelvtrixMan));
 	};
 	Variable(const char * name, MelvtrixMan* value): _var(value)
 	{
@@ -214,10 +325,10 @@ public:
 		//set(value);
 	};
 	~Variable() override {
-		if (_var) 
+		if (_var)
 		{
 			delete _var;
-			_var = nullptr; 
+			_var = nullptr;
 		}
 	}
 
@@ -235,14 +346,14 @@ public:
 	{
 		if (root.containsKey(_name)) {
 			_changed = _var->parseJson(root);
-			return _changed; 
+			return _changed;
 		} else {
 			return false;
 		}
 	}
 
 private:
-	MelvtrixMan * _var{nullptr};// = MelvtrixMan(1,2,3); 
+	MelvtrixMan * _var{nullptr};// = MelvtrixMan(1,2,3);
 };
 
 
@@ -253,17 +364,23 @@ public:
 	Variable(const char * name)
 	{
 		_name = name;
-		_var = IPAddress(0, 0, 0, 0);
+		_var = INADDR_NONE;
 	};
 	Variable(const char * name, IPAddress value)
 	{
 		_name = name;
-		set(value);
+		_var = value;
 	};
 	~Variable() override {}
 
 	IPAddress get() { return _var; }
-	void set(IPAddress value) { _var = value; }
+
+	void set(IPAddress value) {
+		_var = value;
+
+		SaveRTC();
+
+	}
 
 	bool addJsonProperty(JsonObject & root, bool onlychanged = false) override
 	{
@@ -288,18 +405,18 @@ public:
 				}
 
 				if (_var != ret) {
-					_var = ret;
-					_changed = true; 
+					set(ret);
+					_changed = true;
 					return true;
 				}
 			} else {
 				const char * input = root[_name];
-				IPAddress temp; 
+				IPAddress temp;
 				if (temp.fromString(input)) {
 					if (temp != _var) {
-						_var = temp;
+						set(temp);
 						_changed = true;
-						return true; 
+						return true;
 					}
 				}
 			}
@@ -308,161 +425,44 @@ public:
 		return false;
 	}
 
+	// uint16_t setAddr(uint16_t addr) override {
+	// 	_rtcAddr = addr;
+	// 	return addr + 1;
+	// }
+
+	void LoadRTC() override {
+
+		uint32_t data;
+		//ESP.rtcUserMemoryRead(_rtcAddr,  &data,  1);
+		_rtc.read(&data);
+
+		_var[0] = data >> 24 & 0xFF;
+	  _var[1] = data >> 16 & 0xFF;
+		_var[2] = data >> 8 & 0xFF;
+		_var[3] = data & 0xFF;
+
+		//Serial.printf("Retrieved from RTC: %s[%u]  %u -> (%s)\n", _name,_rtc.address() ,data, _var.toString().c_str() ) ;
+	}
+
+	void SaveRTC() {
+		uint32_t Val = (uint32_t)( _var[0] << 24 | _var[1] << 16 | _var[2] << 8 | _var[3] );
+
+		//Serial.printf("Setting IP %s[%u] (%s) -> %u\n", _name,_rtc.address(), value.toString().c_str(), Val );
+		//ESP.rtcUserMemoryWrite(_rtcAddr, &Val,  1);
+		_rtc.write(&Val);
+	}
+
 private:
 	IPAddress _var;
+	RTC _rtc;
 };
-
-
-
-
-// template <class T>
-// class Array: public AbstractPropertyHandler
-// {
-// public:
-// 	Array(const char * name, T value, uint16_t number)
-// 	{
-// 		_number = number;
-// 		_var = new T[_number];
-// 		_name = name;
-// 		if (_var) {
-// 			for (uint16_t i = 0; i < _number; i++) {
-// 				_var[i] = value;
-// 			}
-// 		}
-// 	};
-
-// 	~Array() override
-// 	{
-// 		if (_var) {
-// 			delete[] _var;
-// 		}
-// 	}
-
-// 	operator uint16_t() const
-// 	{
-// 		return _number;
-// 	}
-
-// 	T operator[] (uint16_t i) const
-// 	{
-// 		return _var[i];
-// 	}
-
-// 	T& operator[] (uint16_t i)
-// 	{
-// 		return _var[i];
-// 	}
-
-// 	bool addJsonProperty(JsonObject & root) override
-// 	{
-// 		JsonArray& array = root.createNestedArray(_name);
-
-// 		for (uint16_t i = 0; i < _number; i++) {
-// 			array.add(_var[i]);
-// 		}
-// 		return true;
-// 	}
-
-// 	bool parseJsonProperty(JsonObject & root) override
-// 	{
-// 		if (root.containsKey(_name) ) {
-// 			if ( root[_name].is<JsonArray&>()) {
-
-// 				JsonArray& array = root[_name];
-
-// 				uint16_t count = 0;
-
-// 				 for (uint16_t i = 0; i < _number; i++) {
-// 				 	_var[i] = (array[i]); 
-// 				}
-// 				return true;
-// 			}
-// 		}
-// 		return false;
-// 	}
-
-// private:
-// 	T* _var;
-// 	uint16_t _number;
-// };
-
-
-// template <>
-// class Array<Array<class T>*>: public AbstractPropertyHandler
-// {
-// public:
-// 	Array(const char * name, T * value, uint16_t number)
-// 	{
-// 		_number = number;
-// 		_var = new T *[_number];
-// 		_name = name;
-// 		if (_var) {
-// 			for (uint16_t i = 0; i < _number; i++) {
-// 				_var[i] = value;
-// 			}
-// 		}
-// 	};
-
-// 	~Array() override
-// 	{
-// 		if (_var) {
-// 			delete[] _var;
-// 		}
-// 	}
-
-// 	operator uint16_t() const
-// 	{
-// 		return _number;
-// 	}
-
-// 	T * operator[] (uint16_t i) const
-// 	{
-// 		return _var[i];
-// 	}
-
-// 	T *& operator[] (uint16_t i)
-// 	{
-// 		return _var[i];
-// 	}
-
-// 	bool addJsonProperty(JsonObject & root) override
-// 	{
-// 		JsonArray& array = root.createNestedArray(_name);
-
-// 		for (uint16_t i = 0; i < _number; i++) {
-// 			array.add(_var[i]);
-// 		}
-// 		return true;
-// 	}
-
-// 	bool parseJsonProperty(JsonObject & root) override
-// 	{
-// 		if (root.containsKey(_name) ) {
-// 			if ( root[_name].is<JsonArray&>()) {
-
-// 				JsonArray& array = root[_name];
-
-// 				uint16_t count = 0;
-
-// 				 for (uint16_t i = 0; i < _number; i++) {
-// 				 	_var[i] = array[i]; 
-// 				}
-// 				return true;
-// 			}
-// 		}
-// 		return false;
-// 	}
-
-// private:
-// 	T ** _var;
-// 	uint16_t _number;
-// };
 
 
 class PropertyManager
 {
 public:
-	PropertyManager(): _firsthandle(nullptr) {}
+	PropertyManager(): _firsthandle(nullptr) { }
+
 	AbstractPropertyHandler* addVar(AbstractPropertyHandler* ptr);
 
 	template<class T> T getVar(const char * property)
@@ -492,6 +492,18 @@ public:
 	bool parseJsonEffect(JsonObject & root) ;  // use json so it can be used with MQTT etc...
 	bool addEffectJson(JsonObject& root, bool onlychanged = false) ;
 	void EndVars();
+	void GetRTCdata(){
+		AbstractPropertyHandler* handle = nullptr;
+		for (handle = _firsthandle; handle; handle = handle->next()) {
+			handle->LoadRTC();
+		}
+	}
+	void SaveRTCdata(){
+		AbstractPropertyHandler* handle = nullptr;
+		for (handle = _firsthandle; handle; handle = handle->next()) {
+			handle->SaveRTC();
+		}
+	}
 
 	virtual bool InitVars() { return false; }
 
@@ -508,82 +520,6 @@ public:
 		return false;
 	}
 
-	// template<class T>
-	// Array<T>& variable(const char * name)
-	// {
-
-	// 	AbstractPropertyHandler* handle = nullptr;
-
-	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
-	// 		if (!strcmp(handle->name(), name)) {
-	// 			return *((Variable<T>*)handle);
-	// 		}
-	// 	}
-	// }
-
-	// template<class T>
-	// Array<T>& array(const char * name)
-	// {
-
-	// 	AbstractPropertyHandler* handle = nullptr;
-
-	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
-	// 		if (!strcmp(handle->name(), name)) {
-	// 			return *((Array<T>*)handle);
-	// 		}
-	// 	}
-	// }
-
-
-	// overloaded index to allow getting and settings using index...
-	// template<class T>
-	// T operator[] (const char * name) const
-	// {
-
-	// 	AbstractPropertyHandler* handle = nullptr;
-
-	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
-	// 		if (!strcmp(handle->name(), name)) {
-	// 			return ((Variable<T>*)(handle))->get();
-	// 		}
-	// 	}
-	// 	return T{};
-	// }
-
-	// template<class T>
-	// T& operator[] (const char * name)
-	// {
-	// 	AbstractPropertyHandler* handle = nullptr;
-
-	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
-	// 		if (!strcmp(handle->name(), name)) {
-
-	// 			return (  (Variable<T>*)(handle))->get();
-	// 		}
-	// 	}
-	// 	return T{};
-	// }
-
-	// template<class T>
-	// T* operator* (const char * name) const
-	// {
-	// 	AbstractPropertyHandler* handle = nullptr;
-
-	// 	for (handle = _firsthandle; handle; handle = handle->next()) {
-	// 		if (!strcmp(handle->name(), name)) {
-	// 			return ((Variable<T>*)(handle));
-	// 		}
-	// 	}
-	// 	return nullptr;
-	// }
-
-
-
-
 private:
 	AbstractPropertyHandler* _firsthandle;
-
 };
-
-
-

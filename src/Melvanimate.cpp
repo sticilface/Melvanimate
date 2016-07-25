@@ -21,9 +21,10 @@ Melvanimate::Melvanimate(AsyncWebServer & HTTP, uint16_t pixels, uint8_t pin) : 
 bool Melvanimate::begin(const char * name)
 {
         using namespace std::placeholders;
+        //using namespace RTC_manager;
         _deviceName = name;
 
-        DebugMelvanimatef("Begin Melvana called\n");
+        DebugMelvanimatef("[Melvanimate::begin] called\n");
 
         _HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
         _HTTP.on("/site.appcache", HTTP_ANY, std::bind (&Melvanimate::_handleManifest, this, _1));
@@ -36,9 +37,39 @@ bool Melvanimate::begin(const char * name)
 
         _locator.begin(_deviceName, 8827);
 
-#ifdef RANDOM_MANIFEST_ON_BOOT
-        	 _randomvar = random (0,30000000);
-#endif
+        if (_rtcman.load()) {
+
+          rtc_data_t data = _rtcman.get();
+
+          switch ( (RTC_manager::rtc_ani_state_t)data.state) {
+
+            case RTC_manager::UNKNOWN: {
+              DebugMelvanimatef("[Melvanimate::begin] RTC state unknown\n");
+              Start(_defaulteffecthandle);
+              break;
+            };
+            case RTC_manager::NONE: {
+              DebugMelvanimatef("[Melvanimate::begin] RTC state NONE: Start(%u)\n", data.effect);
+              Startblank(data.effect);
+              if (Current()) {
+                Current()->GetRTCdata();
+              }
+
+              break;
+            };
+            case RTC_manager::PRESET: {
+              DebugMelvanimatef("[Melvanimate::begin] RTC state PRESET: Start(%u), Load(%u)\n", data.effect, data.preset);
+              Start(data.effect);
+              Load(data.preset);
+              break;
+            };
+
+          }
+
+
+        }
+
+
 
 }
 
@@ -450,6 +481,15 @@ bool Melvanimate::parse(JsonObject & root)
                 if (Current()->parseJson(root)) {
                         code = true;
                 }
+
+                rtc_data_t & data = _rtcman.get();
+                data.effect = Current()->index;
+                if (Current()->preset() != 255) {
+                  data.state = RTC_manager::PRESET;
+                } else {
+                  data.state = RTC_manager::NONE;
+                }
+
         }
 
         if (_mqtt && *_mqtt) {
@@ -462,6 +502,11 @@ bool Melvanimate::parse(JsonObject & root)
                         _mqtt->sendJson(true);
                 }
         }
+
+
+
+        _rtcman.save();
+
 
         return code;
 }
@@ -788,8 +833,6 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
         DebugMelvanimatef("[Melvanimate::_handleWebRequest] \n");
 
-
-
 #ifdef DebugMelvanimate
 //List all collected headers
         int params = request->params();
@@ -809,8 +852,12 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 
         }
 
-
-
+        if (request->hasParam("rtc")) {
+          Serial.println("Getting RTC Data");
+          if (_currentHandle) {
+            _currentHandle->GetRTCdata();
+          }
+        }
 
         // puts all the args into json...
         // might be better to send pallette by json instead..
@@ -1334,4 +1381,14 @@ void Melvanimate::sendEvent(const char * msg, const char * topic)
   if (_events) {
     _events->send(msg,topic);
   }
+}
+
+void Melvanimate::_saveState() {
+
+
+}
+
+void Melvanimate::_getState()
+{
+
 }

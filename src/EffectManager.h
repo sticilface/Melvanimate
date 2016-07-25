@@ -11,6 +11,8 @@
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "mybus.h"
+#include "RTC_manager.h"
+
 
 
 extern MyPixelBus * strip;
@@ -41,9 +43,11 @@ public:
 	bool Add(const char * name, EffectHandler* Handler, bool defaulteffect = false);
 
 	bool Start(EffectHandler* handle);
+	bool Startblank(uint8_t index);
 	inline bool Start()  { return Start(_toggleHandle); }
 	inline bool Start(const char * name)  { return Start(_findhandle(name)); }
-	inline bool Start(const String name)  { return Start(name.c_str()); };
+	inline bool Start(const String name)  { return Start(name.c_str()); }
+	inline bool Start(uint8_t index) { return Start(_findhandle(index)); }
 
 	void Refresh() ;
 	bool Next() ;
@@ -58,12 +62,12 @@ public:
 
 	const uint16_t total() const { return _count;}
 	const char* getName(uint8_t i);
-	
+
 	// preset hanlding
 	bool Save(uint8_t ID, const char * name, bool overwrite = false);
 
 	//bool Load(String value);  //  loads effects using file number... 1.2 3.4 etc.... needed for presets page, or presets that change running effect
-	bool Load(const char *); 
+	bool Load(const char *);
 	bool Load(uint8_t ID);    //  loads effect for the current running effect.. works from homepage...
 	bool Load(uint8_t File, uint8_t ID); //  they all call this eventually....
 	bool removePreset(uint8_t ID);
@@ -93,11 +97,13 @@ protected:
 	uint16_t _count;
 
 	void _process();  //  this must be called by any derived classes in loop.
+	RTC_manager _rtcman;
 
 private:
 	std::function<bool()>  _waitFn = nullptr;
 
 	EffectHandler* _findhandle(const char * handle);
+	EffectHandler* _findhandle(uint8_t index);
 
 	struct Presets_s {
 		~Presets_s()
@@ -123,7 +129,3 @@ private:
 
 
 };
-
-
-
-
