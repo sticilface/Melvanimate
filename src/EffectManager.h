@@ -93,6 +93,9 @@ protected:
 	EffectHandler*  _NextInLine;
 	EffectHandler*  _toggleHandle;
 	EffectHandler*  _defaulteffecthandle;
+	EffectHandler*  _findhandle(const char * handle);
+	EffectHandler*  _findhandle(uint8_t index);
+
 
 	uint16_t _count;
 
@@ -102,8 +105,7 @@ protected:
 private:
 	std::function<bool()>  _waitFn = nullptr;
 
-	EffectHandler* _findhandle(const char * handle);
-	EffectHandler* _findhandle(uint8_t index);
+
 
 	struct Presets_s {
 		~Presets_s()

@@ -41,6 +41,8 @@ bool Melvanimate::begin(const char * name)
 
           rtc_data_t data = _rtcman.get();
 
+          if (data.on) {
+
           switch ( (RTC_manager::rtc_ani_state_t)data.state) {
 
             case RTC_manager::UNKNOWN: {
@@ -54,7 +56,6 @@ bool Melvanimate::begin(const char * name)
               if (Current()) {
                 Current()->GetRTCdata();
               }
-
               break;
             };
             case RTC_manager::PRESET: {
@@ -66,8 +67,31 @@ bool Melvanimate::begin(const char * name)
 
           }
 
+        } else {
+
+          _toggleHandle = _findhandle(data.effect);
+
+          if (_toggleHandle) {
+          DebugMelvanimatef("[Melvanimate::begin] Saved State = OFF: toggle = %u\n",data.effect );
+
+          if (data.state == RTC_manager::PRESET) {
+            _toggleHandle->preset(data.preset);
+          }
+
+        } else {
+          DebugMelvanimatef("[Melvanimate::begin] Unable to find handler: %u\n",data.effect );
 
         }
+
+          Start(_defaulteffecthandle);
+
+        }
+
+
+      } else {
+        DebugMelvanimatef("[Melvanimate::begin] CRC ERROR starting default\n" );
+        Start(_defaulteffecthandle);
+      }
 
 
 
@@ -450,6 +474,8 @@ bool Melvanimate::parse(JsonObject & root)
 
         }
 
+        rtc_data_t & data = _rtcman.get();
+
         if (root.containsKey("preset")) {
 
                 //String data = root["preset"];
@@ -480,15 +506,7 @@ bool Melvanimate::parse(JsonObject & root)
         if (Current()) {
                 if (Current()->parseJson(root)) {
                         code = true;
-                }
-
-                rtc_data_t & data = _rtcman.get();
-                data.effect = Current()->index;
-                if (Current()->preset() != 255) {
-                  data.state = RTC_manager::PRESET;
-                } else {
-                  data.state = RTC_manager::NONE;
-                }
+              }
 
         }
 
@@ -503,10 +521,40 @@ bool Melvanimate::parse(JsonObject & root)
                 }
         }
 
+//  save the data to RTC after user input has been parsed...
+
+      if (Current() ) {
 
 
-        _rtcman.save();
 
+
+
+
+      if (Current() != _defaulteffecthandle) {
+        DebugMelvanimatef("[Melvanimate::parse(JsonObject & root)] Saving RTC vars ON\n");
+        data.effect = Current()->index;
+        Current()->SaveRTCdata();
+        data.on = true;
+
+        if (Current()->preset() != 255) {
+          data.state = RTC_manager::PRESET;
+          data.preset = Current()->preset();
+        } else {
+          data.state = RTC_manager::NONE;
+          data.preset = 255;
+        }
+
+      } else {
+        DebugMelvanimatef("[Melvanimate::parse(JsonObject & root)] Saving RTC vars OFF\n");
+
+        data.effect = (_toggleHandle)? _toggleHandle->index: 0;
+        data.on = false;
+      }
+
+
+      _rtcman.save();
+
+    }
 
         return code;
 }

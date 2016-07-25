@@ -93,6 +93,10 @@ bool EffectManager::Startblank(uint8_t index) {
 
         EffectHandler* handler = _findhandle(index);
 
+				if (handler != _defaulteffecthandle) {
+					_toggleHandle = handler;
+				}
+
         if (handler) {
 								Stop();
                 RTC::addr_counter = _rtcman.get().data; //
@@ -161,25 +165,35 @@ bool EffectManager::Start(EffectHandler* handler)
 
                 }
 
+								rtc_data_t & data = _rtcman.get();
+
                 //  This sets the toggle... as long as it is not the default handle... ie... Off....
                 if (_defaulteffecthandle) {
                         if (handler != _defaulteffecthandle) {
                                 _toggleHandle = handler;
-                        }
+
+																// data.effect = _NextInLine->index;
+																// data.on = true;
+								                // if (_NextInLine->preset() != 255) {
+								                //         data.state = RTC_manager::PRESET;
+								                // } else {
+								                //         data.state = RTC_manager::NONE;
+								                // }
+//																_NextInLine->SaveRTCdata();  //  if it is NOT OFF then save all the settings to RTC
+//																Serial.println("$$$$$ SAVE 1");
+//																_rtcman.save();
+                        } else {
+																// data.on = false;
+																// if (_toggleHandle) {
+																// 	data.effect = _toggleHandle->index;
+																// 	DebugEffectManagerf("[START] data.effect = _toggleHandle = %u\n", data.effect);
+																// }
+																// Serial.println("$$$$$ SAVE 2");
+																// _rtcman.save();
+												}
                 }
 
 								//  this stuff can go here has the bail options call start again if no handle...
-                rtc_data_t & data = _rtcman.get();
-                data.effect = _NextInLine->index;
-                if (_NextInLine->preset() != 255) {
-                        data.state = RTC_manager::PRESET;
-                } else {
-                        data.state = RTC_manager::NONE;
-                }
-
-                _rtcman.save();
-								_NextInLine->SaveRTCdata(); 
-
 
 #ifdef DebugEffectManager
                 int used = heap - ESP.getFreeHeap();

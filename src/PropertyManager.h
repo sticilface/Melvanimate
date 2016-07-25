@@ -25,7 +25,7 @@ public:
 	static void reset() { addr_counter = 0; }
 	RTC(uint16_t size = 4) : _size(size) {
 		_addr = addr_counter;
-		size_t rounded = (size + 3) & (~3)
+		size_t rounded = (size + 3) & (~3);
 		addr_counter += (rounded / 4);
 		//Serial.printf("RTC initialised _addr = %u\n", _addr);
 	}
@@ -107,8 +107,8 @@ public:
 		SaveRTC();
 
 		// ESP.rtcUserMemoryWrite(_rtcAddr, &val,  1);
-		// Serial.printf("Setting var %s :", _name);
-		// Serial.println(value);
+		 Serial.printf("Saving var %s :", _name);
+		 Serial.println(value);
 	}
 
 
@@ -146,8 +146,8 @@ public:
 
 		//ESP.rtcUserMemoryRead(_rtcAddr,  &data,  1);
 		T var = static_cast<T>(data);
-		// Serial.printf("Retrieved from RTC: %s ", _name);
-		// Serial.println(var);
+		 Serial.printf("Retrieved from RTC: %s ", _name);
+		 Serial.println(var);
 		_var = var;
 	}
 

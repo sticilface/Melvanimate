@@ -4,6 +4,7 @@
 
 struct rtc_data_t {
 	uint16_t size{0};
+  bool on{false};
 	uint8_t effect{0};
   uint8_t state{0};
   uint8_t preset{255};
@@ -26,12 +27,12 @@ public:
 
     bool res = ESP.rtcUserMemoryWrite(1, test, size );
 
-    Serial.printf("Addr of _data = %p, Addr of data = %p\n", &_data, &data);
+    //Serial.printf("Addr of _data = %p, Addr of data = %p\n", &_data, &data);
 
     if (!res) {
-      Serial.printf("** Failed to save data, size = %u\n", size  );
+      Serial.printf("[RTC_manager::save()] Failed to save data\n", size  );
     } else {
-      Serial.printf("** DATA SAVED **, size = %u\n", size  );
+      Serial.printf("[RTC_manager::save()] DATA SAVED .on = %s, effect = %u, preset = %u\n", (data.on)? "on": "off",  data.effect, data.preset);
     }
 
     uint8_t XOR{0};
@@ -44,6 +45,8 @@ public:
     }
 
     Serial.println();
+
+    Serial.printf("effect = %u\n", data.effect);
 
     if (ESP.rtcUserMemoryWrite(0, (uint32_t*)&XOR, 1 ))
     {
@@ -102,7 +105,8 @@ rtc_data_t & get() {
 	enum rtc_ani_state_t : uint8_t {
 		UNKNOWN = 0,
 		NONE,
-		PRESET
+		PRESET,
+    OFF_TOGGLE
 	};
 
 private:
