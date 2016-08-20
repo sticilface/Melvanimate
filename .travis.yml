@@ -1,46 +1,83 @@
+language: python
+python:
+- '2.7'
 sudo: false
-language: bash
-os:
-  - linux
+cache:
+  directories:
+  - ~/.platformio
+addons:
+  apt:
+    packages:
+    - tree
+env:
+  global:
+    - COMMON_VARS="-lc -lstdc++ -I$HOME/.platformio/packages/framework-arduinoespressif/tools/sdk/libc/xtensa-lx106-elf/include -L$HOME/.platformio/packages/framework-arduinoespressif/tools/sdk/libc/xtensa-lx106-elf/lib"
+  matrix:
+  # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++"
+  # - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino" PLATFORMIO_BUILD_FLAGS="-lstdc++ -D Debug_ESPManager -D DEBUG_ESP_PORT=Serial "
+
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino"
+      PLATFORMIO_BUILD_FLAGS="$COMMON_VARS -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-example/Melvanimate-example.ino"
+      PLATFORMIO_BUILD_FLAGS="$COMMON_VARS"
+
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino"
+      PLATFORMIO_BUILD_FLAGS="$COMMON_VARS -D DEBUG_ESP_PORT=Serial  -DDebugMelvanimate -DDebugEffectManager -DDebugEffectHandler -DDebugEQ -DDebugMelvanimateMQTT -DDebugObjectman -DDebugPalette -DDebugPropertyManager"
+  - PLATFORMIO_CI_SRC="$TRAVIS_BUILD_DIR/examples/Melvanimate-withESPManager/Melvanimate-withESPManager.ino"
+      PLATFORMIO_BUILD_FLAGS="$COMMON_VARS"
+
+
+install:
+  - pip install -U platformio
+  - platformio platforms install espressif --with-package framework-arduinoespressif --with-package ldscripts
+  - rm -rf ~/.platformio/packages/framework-arduinoespressif
+#  - git clone https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
+  - git clone --branch 2.3.0 --depth 1 https://github.com/esp8266/Arduino ~/.platformio/packages/framework-arduinoespressif
+  - export PATH="$HOME/.platformio/packages/toolchain-xtensa/bin:$PATH"
+  - cd $HOME/.platformio/packages/toolchain-xtensa/lib
+  # update sdk
+  - xtensa-lx106-elf-ar -d libmain.a mem_manager.o
+  - xtensa-lx106-elf-ar d libstdc++.a pure.o
+  - xtensa-lx106-elf-ar d libstdc++.a vterminate.o
+  - xtensa-lx106-elf-ar d libstdc++.a guard.o
+  - xtensa-lx106-elf-ar d libstdc++.a functexcept.o
+  - xtensa-lx106-elf-ar d libstdc++.a del_op.o
+  - xtensa-lx106-elf-ar d libstdc++.a del_opv.o
+  - xtensa-lx106-elf-ar d libstdc++.a new_op.o
+  - xtensa-lx106-elf-ar d libstdc++.a new_opv.o
+
+  # update ld script
+  - cd $HOME/.platformio/packages/ldscripts
+  - rm -f esp8266.flash.common.ld
+  - wget https://gist.githubusercontent.com/sticilface/441a64cb7d73799afab6fcaa4ad6bdee/raw/34d27106ae274fc866bdb332c89f43ed63e5c0c2/esp8266.flash.common.ld
+ # finsih sdk updates
+  - cd $TRAVIS_BUILD_DIR
+  - echo "10606" > ~/.platformio/packages/framework-arduinoespressif/version.txt
+  - mkdir /tmp/build
+  - mkdir $TRAVIS_BUILD_DIR/libs
+  #- git clone https://github.com/bblanchon/ArduinoJson          $TRAVIS_BUILD_DIR/libs/ArduinoJson
+  - git clone https://github.com/me-no-dev/ESPAsyncTCP                         $TRAVIS_BUILD_DIR/libs/ESPAsyncTCP
+  - git clone https://github.com/me-no-dev/ESPAsyncWebServer                   $TRAVIS_BUILD_DIR/libs/ESPAsyncWebServer
+  # - git clone https://github.com/Makuna/NeoPixelBus                            $TRAVIS_BUILD_DIR/libs/NeoPixelBus
+  #- git clone https://github.com/knolleary/pubsubclient                        $TRAVIS_BUILD_DIR/libs/pubsubclient
+  # - git clone https://github.com/adafruit/Adafruit-GFX-Library                 $TRAVIS_BUILD_DIR/libs/Adafruit-GFX-Library
+  - git clone -b upgrade-gui https://github.com/sticilface/ESPmanager          $TRAVIS_BUILD_DIR/libs/ESPmanager
+  - git clone https://github.com/bblanchon/ArduinoJson                         $TRAVIS_BUILD_DIR/libs/ArduinoJson
+  #- platformio lib install 64    # ArduinoJson
+  - platformio lib install 13    # Adafruit_GFX
+  - platformio lib install 547  # neopixelbus
+  - platformio lib install 89  # pubsubclient
+  # - platformio lib install
+  # - platformio lib install 305  # ESPAsyncTCP
+  # - platformio lib install 306 # ESPAsyncWebServer
+  - platformio lib install 346 # https://github.com/marvinroger/async-mqtt-client
+
+  - tree $HOME/.platformio/packages/framework-arduinoespressif/tools
 
 script:
-  - /sbin/start-stop-daemon --start --quiet --pidfile /tmp/custom_xvfb_1.pid --make-pidfile --background --exec /usr/bin/Xvfb -- :1 -ac -screen 0 1280x1024x16
-  - sleep 3
-  - export DISPLAY=:1.0
-  - wget http://downloads.arduino.cc/arduino-1.6.5-linux64.tar.xz
-  - tar xf arduino-1.6.5-linux64.tar.xz
-  - mv arduino-1.6.5 $HOME/arduino_ide
-  - export PATH="$HOME/arduino_ide:$PATH"
-  - which arduino
-  - mkdir -p $HOME/Arduino/libraries
-  - cp -r $TRAVIS_BUILD_DIR $HOME/Arduino/libraries/Melvanimate
-  - git clone https://github.com/bblanchon/ArduinoJson  $HOME/Arduino/libraries/ArduinoJson
-#  - git clone https://github.com/me-no-dev/ESPAsyncTCP  $HOME/Arduino/libraries/ESPAsyncTCP
-  - git clone https://github.com/Makuna/NeoPixelBus     $HOME/Arduino/libraries/NeoPixelBus
-  - git clone https://github.com/knolleary/pubsubclient $HOME/Arduino/libraries/pubsubclient
-  - git clone https://github.com/adafruit/Adafruit-GFX-Library $HOME/Arduino/libraries/Adafruit-GFX-Library
-  - cd $HOME/arduino_ide/hardware
-  - mkdir esp8266com
-  - cd esp8266com
-  - git clone https://github.com/esp8266/Arduino.git esp8266
-  - cd esp8266/tools
-  - python get.py
-  - mkdir $HOME/travis
-  - cd $HOME/travis
-  - wget https://raw.githubusercontent.com/me-no-dev/ESPAsyncTCP/master/travis/common.sh
-  - source $HOME/travis/common.sh
-  - arduino --board esp8266com:esp8266:generic --save-prefs
-  - arduino --get-pref sketchbook.path
-  - build_sketches arduino $HOME/Arduino/libraries/Melvanimate esp8266
- 
-
-notifications:
-  email:
-    on_success: change
-    on_failure: change
-  webhooks:
-    urls:
- #     - https://webhooks.gitter.im/e/60e65d0c78ea0a920347
-    on_success: change  # options: [always|never|change] default: always
-    on_failure: always  # options: [always|never|change] default: always
-    on_start: false     # default: false
+  - platformio ci --board="esp12e" --build-dir="/tmp/build"
+    --lib="$TRAVIS_BUILD_DIR"
+    --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncTCP"
+    --lib="$TRAVIS_BUILD_DIR/libs/ESPAsyncWebServer"
+    --lib="$TRAVIS_BUILD_DIR/libs/ESPmanager"
+    --lib="$TRAVIS_BUILD_DIR/libs/ArduinoJson"

@@ -9,8 +9,10 @@
 
 //#define DebugEffectHandler
 
-#ifdef DebugEffectHandler
-#define DebugEffectHandlerf(...) Serial.printf(__VA_ARGS__)
+#if defined(DEBUG_ESP_PORT) && defined(DebugEffectHandler)
+//#define DebugEffectHandlerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+#define DebugEffectHandlerf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+
 #else
 #define DebugEffectHandlerf(...) {}
 #endif
@@ -53,6 +55,7 @@ public:
 
 	void name (const char * name) { _name = name; }
 	const char * name() const {return _name; };
+	uint8_t index{0};
 
 private:
 	EffectHandler* _next{nullptr};

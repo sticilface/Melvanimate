@@ -1,6 +1,7 @@
 #include "BeatsTest.h"
 #include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
+#include "Melvanimate.h" // required for the MAX_NUMBER_OF_ANIMATIONS definition
 
 #include "Palette.h"
 
@@ -17,6 +18,9 @@ bool BeatsTest::InitVars()
 	//addVar(new Variable<float>("beatsratio", 2.1));
 	//addVar(new Variable<uint8_t>("beatstimeout", 100));
 	addVar(new Variable<EQ*>(1000, 3000)); //  EQ(samples, sampletime) //  sets the defaults for EQ beat detection...  Start with no params for just graphic equaliser settings.
+	addVar(new Variable<Palette*>("Palette", Palette::OFF));
+
+	palette()->mode(Palette::WHEEL);
 
 	_EQ = getVar<EQ*>("EQ");
 
@@ -34,7 +38,14 @@ bool BeatsTest::Start()
 		animator = nullptr;
 	}
 
-	animator = new NeoPixelAnimator(7);
+	if (animator) {
+		delete animator;
+		animator = nullptr;
+	}
+
+	_pixels =  ( strip->PixelCount() < MAX_NUMBER_OF_ANIMATIONS ) ? strip->PixelCount() : MAX_NUMBER_OF_ANIMATIONS;
+
+	animator = new NeoPixelAnimator( _pixels  );
 
 	if (_EQ) {
 
@@ -45,22 +56,47 @@ bool BeatsTest::Start()
 			//}
 
 			uint8_t channel = params.channel;
+			uint8_t size = 8 - channel;
 			uint8_t level = params.level;
 
+			bool pixel_busy = false;
+			uint16_t pre_pixel = 0;
+			uint16_t count = 0;
 
-			AnimUpdateCallback animUpdate = [ channel, level ](const AnimationParam & aniparam) {
-				// apply a exponential curve to both front and back
-				float progress = aniparam.progress;
-				// lerp between Red and Green
-				RgbColor updatedColor;
-				RgbColor targetColor = RgbColor(0, 0, 255);
-				updatedColor = RgbColor::LinearBlend(targetColor, 0,  progress) ;
-				//}
-				// in this case, just apply the color to first pixel
-				strip->SetPixelColor(  channel  , updatedColor);
-			};
+			do {
+				pre_pixel = random(0, _pixels - size);
+				count++;
+				for (uint16_t i = pre_pixel; i < pre_pixel + size; i++) {
+					if (animator->IsAnimationActive(pre_pixel)) {
+						pixel_busy = true;
+						break;
+					}
+				}
+			} while (pixel_busy && count < 50);
 
-			animator->StartAnimation(channel, level,  animUpdate);
+			//  pixel block not busy
+			if (!pixel_busy) {
+
+				uint16_t pixel = pre_pixel; 
+				RgbColor targetColor = dim( palette()->next() , brightness() );
+
+
+				for (uint16_t i = pixel; i < pixel + size; i++) {
+
+					AnimUpdateCallback animUpdate = [ = ](const AnimationParam & aniparam) {
+						
+						float progress = aniparam.progress;
+
+						RgbColor updatedColor = RgbColor::LinearBlend(targetColor, 0,  progress) ;
+
+						strip->SetPixelColor(  i  , updatedColor);
+					};
+
+					animator->StartAnimation(i, level * (size / 3),  animUpdate);
+
+				}
+			}
+
 
 		});
 	}

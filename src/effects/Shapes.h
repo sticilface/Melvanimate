@@ -4,7 +4,6 @@
 #include "Melvtrix.h"
 #include "ObjectManager.h"
 
-using namespace std::placeholders;
 
 
 class Shapes : public EffectHandler
@@ -27,7 +26,7 @@ public:
 	}
 
 	void setshape(Shapes::ShapeCallback Fn) { _shape = Fn; }
-	void setshape(Shapetype shape); 
+	void setshape(Shapetype shape);
 
 	void shape(SimpleEffectObject * Object);
 
@@ -50,7 +49,7 @@ private:
 	void drawRect(SimpleEffectObject * Object) ;
 	void fillRect(SimpleEffectObject * Object) ;
 	void fillTriangle(SimpleEffectObject * Object);
-	void drawTriangle(SimpleEffectObject * Object); 
+	void drawTriangle(SimpleEffectObject * Object);
 
 
 
@@ -65,6 +64,3 @@ private:
 	ShapeCallback  _shape; // {nullptr};
 
 };
-
-
-

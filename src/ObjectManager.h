@@ -16,8 +16,11 @@ Handler to add / create / run multiple Effect Objects at the same time...
 
 //#define DebugObjectman
 
-#ifdef DebugObjectman
-#define Debugobjf(...) Serial.printf(__VA_ARGS__)
+#if defined(DEBUG_ESP_PORT) && defined(DebugObjectman)
+//#define Debugobjf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+#define Debugobjf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+
+
 #else
 #define Debugobjf(...) {}
 #endif
@@ -77,7 +80,7 @@ private:
 	ObjectUpdateCallback _ObjUpdate;
 	uint16_t * _pixels{nullptr};
 	uint16_t _total{0};
-	uint32_t _timeout{0};
+	uint32_t _timeout{30};
 	uint32_t _lasttick{0};
 
 public:
@@ -117,6 +120,10 @@ public:
 				if (_ObjUpdate()) {
 					_lasttick = millis();
 					return true;
+				} else {
+					_lasttick = millis();
+					_timeout = 200; //  back off
+
 				}
 			}
 		}
@@ -302,4 +309,3 @@ public:
 
 
 // };
-

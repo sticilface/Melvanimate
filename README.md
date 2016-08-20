@@ -119,4 +119,5 @@ Happy Coding...
 + Makuna [NeoPixelBus](https://github.com/Makuna/NeoPixelBus)
 + [SimpleTimer](https://github.com/infomaniac50/SimpleTimer) - Used internally with version that can give timeleft.  
 + Forkineye [E131](https://github.com/forkineye/E131)
++ PitPik [tinyColorPicker](https://github.com/PitPik/tinyColorPicker)
 

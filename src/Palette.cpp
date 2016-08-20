@@ -49,7 +49,7 @@ void Palette::randommode(const char * mode)
 	}
 }
 
-random_mode Palette::randommodeStringtoEnum(const char * mode)
+Palette::random_mode Palette::randommodeStringtoEnum(const char * mode)
 {
 	if (mode) {
 		for (uint8_t i = 0; i < NUMBER_OF_RANDOM_MODES; i++) {
@@ -73,7 +73,7 @@ void Palette::mode(const char * in)
 	}
 }
 
-palette_type Palette::stringToEnum(const char * in)
+Palette::palette_type Palette::stringToEnum(const char * in)
 {
 
 	for (uint8_t i = 0; i < 9; i++ ) {
@@ -170,7 +170,6 @@ RgbColor Palette::next()
 
 	uint16_t jump_size = (_total < _available) ?  _available / _total : 1;
 
-
 	_position += jump_size;
 
 	switch (_random) {
@@ -182,7 +181,6 @@ RgbColor Palette::next()
 			changeinputflag = true;
 			_randtimertick = millis();
 		}
-
 		break;
 	}
 	case TOTAL_RANDOM: {
@@ -331,8 +329,9 @@ bool Palette::addJson(JsonObject& root)
 bool Palette::parseJson(JsonObject& root)
 {
 	PaletteDebugf("[Palette::parseJson] Func HIT\n");
-	root.prettyPrintTo(Serial);
-	Serial.println();
+	
+	// root.prettyPrintTo(Serial);
+	// Serial.println();
 
 	bool changed = false;
 

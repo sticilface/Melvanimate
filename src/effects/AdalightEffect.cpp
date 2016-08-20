@@ -9,26 +9,25 @@
 extern MyPixelBus * strip;
 extern NeoPixelAnimator * animator;
 
-
+#define DEBUG_ADALIGHT(...) {}
 
 bool AdalightEffect::Start()
 {
 
-	animator = new NeoPixelAnimator(1);
-
-	//if (millis() > 30000) { 
-	if (animator) {
-		Adalight_Flash(); 
-	}
-
 	if (_Serial) {
 		_Serial.flush();
-		//delay(500);
-		//Serial.end(); //  this seems to cause reboot
-		_Serial.begin(serialspeed());
 	}
 
+		_Serial.begin(serialspeed());
 
+	animator = new NeoPixelAnimator(1);
+
+	//if (millis() > 30000) {
+	if (animator) {
+		Adalight_Flash();
+	}
+
+_vars->state = MODE_HEADER;
 
 }
 
@@ -56,100 +55,135 @@ bool AdalightEffect::Stop()
 
 
 
+
 bool AdalightEffect::Run()
 {
-	uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
+  uint8_t prefix[] = {'A', 'd', 'a'}, hi, lo, chk, i;
 
-	if (animator)
-	{
-		if (animator->IsAnimating()) {
-			return false; 
-		}
-	}
+  uint32_t count = _Serial.available();
 
-	if (animator) {
-		delete animator;
-		animator = nullptr; 
-	}
+  switch (_vars->state) {
 
-	if (!_vars) {
-		Stop();
-		return false;
-	}
+  case MODE_HEADER:
 
-	switch (_vars->state) {
+    _vars->effectbuf_position = 0; // reset the buffer position for DATA collection...
 
-	case MODE_HEADER:
+    if (count) { // if there is _Serial available... process it... could be 1  could be 100....
+      // _Serial.print("+");
 
-		_vars->effectbuf_position = 0; // reset the buffer position for DATA collection...
+      for (int i = 0; i < count; i++) {  // go through every character in serial buffer looking for prefix...
+          delay(0);
+        DEBUG_ADALIGHT("+");
+        int readbyte = _Serial.read();
+        DEBUG_ADALIGHT(".");
 
-		if (_Serial.available()) { // if there is _Serial available... process it... could be 1  could be 100....
+        if (readbyte  == prefix[_vars->prefixcount]) { // if character is found... then look for next...
+          _vars->prefixcount++;
+        } else { _vars->prefixcount = 0;  continue; }  //  otherwise reset....  ////
 
-			for (int i = 0; i < _Serial.available(); i++) {  // go through every character in serial buffer looking for prefix...
+        if (_vars->prefixcount >= 3) {
+          _vars->effect_timeout = millis(); // generates START TIME.....
+          _vars->state = MODE_CHECKSUM;
+          _vars->prefixcount = 0;
+          DEBUG_ADALIGHT("header ");
+          break;
+        } // end of if prefix == 3
+      } // end of for loop going through serial....
 
-				if (_Serial.read() == prefix[_vars->prefixcount]) { // if character is found... then look for next...
-					_vars->prefixcount++;
-				} else { _vars->prefixcount = 0; }  //  otherwise reset....  ////
 
-				if (_vars->prefixcount == 3) {
-					_vars->effect_timeout = millis(); // generates START TIME.....
-					_vars->state = MODE_CHECKSUM;
-					_vars->prefixcount = 0;
-					break;
-				} // end of if prefix == 3
-			} // end of for loop going through serial....
-		} else if (!_Serial.available() && (_vars->ada_sent + SEND_ADA_TIMEOUT) < millis()) {
-			_Serial.print("Ada\n"); // Send "Magic Word" string to host
-			_vars->ada_sent = millis();
-		} // end of serial available....
 
-		break;
+    } else if (!count && ( millis() - _vars->ada_sent > SEND_ADA_TIMEOUT ) ) {
+      _Serial.print("Ada\n"); // Send "Magic Word" string to host
+      _vars->ada_sent = millis();
+      _vars->prefixcount = 0;
+    } // end of serial available....
 
-	case MODE_CHECKSUM:
+    break;
 
-		if (_Serial.available() >= 3) {
-			hi  = _Serial.read();
-			lo  = _Serial.read();
-			chk = _Serial.read();
-			if (chk == (hi ^ lo ^ 0x55)) {
-				_vars->state = MODE_DATA;
-			} else {
-				_vars->state = MODE_HEADER; // ELSE RESET.......
-			}
-		}
+  case MODE_CHECKSUM:
 
-		if ((_vars->effect_timeout + 1000) < millis()) { _vars->state = MODE_HEADER; } // RESET IF BUFFER NOT FILLED WITHIN 1 SEC.
+    DEBUG_ADALIGHT(" ck");
 
-		break;
+    if (count >= 3) {
+     // Serial.print("checksum..");
+      hi  = _Serial.read();
+      lo  = _Serial.read();
+      chk = _Serial.read();
+      if (chk == (hi ^ lo ^ 0x55)) {
+       DEBUG_ADALIGHT(" pass ");
+        _vars->state = MODE_DATA;
+        break;
+      } else {
+        DEBUG_ADALIGHT(" failed ");
+        _vars->state = MODE_HEADER; // ELSE RESET.......
+        break;
+      }
+    }
 
-	case MODE_DATA:
+    if (  millis() -  _vars->effect_timeout > 1000) { _vars->state = MODE_HEADER; } // RESET IF BUFFER NOT FILLED WITHIN 1 SEC.
 
-		while (_Serial.available() && _vars->effectbuf_position < 3 * strip->PixelCount()) {  // was <=
+    break;
 
-			strip->Pixels()[_vars->effectbuf_position++] = _Serial.read();
-		}
+  case MODE_DATA:
 
-		if (_vars->effectbuf_position >= 3 * strip->PixelCount()) { // goto show when buffer has recieved enough data...
-			_vars->state = MODE_SHOW;
-			break;
-		}
 
-		if ((_vars->effect_timeout + 1000) < millis()) { _vars->state = MODE_HEADER; } // RESET IF BUFFER NOT FILLED WITHIN 1 SEC.
 
-		break;
+    if ( count ) {
 
-	case MODE_SHOW:
 
-	{
-		if (strip) {
-			strip->Dirty();
-			_vars->pixellatchtime = millis();
-			strip->Show();
-		}
-		_vars->state = MODE_HEADER;
-	}
-	break;
+     DEBUG_ADALIGHT(" data ");
 
-	}
-	return true;
+      for (int i = 0; i < count; i++) {
+
+          int byteread = _Serial.read();
+
+
+         if (_vars->effectbuf_position < (  (3 * strip->PixelCount() ) - 1 ) ) {
+
+        if (byteread > -1) {
+          strip->Pixels()[_vars->effectbuf_position++] = byteread;
+        }
+
+        delay(0);
+      } else {
+        _vars->state = MODE_SHOW;
+        break; //  buffer is full....
+      }
+
+    }
+
+    }
+
+    if (_vars->effectbuf_position >= 3 * strip->PixelCount() ) { // goto show when buffer has recieved enough data...
+     // Serial.println("Show");
+      _vars->state = MODE_SHOW;
+      break;
+    }
+
+    if ( millis() - _vars->effect_timeout > 100 ) {
+      _vars->state = MODE_SHOW;
+      DEBUG_ADALIGHT("show: timeout");
+    } // SHOW IF BUFFER NOT FILLED WITHIN 100ms.
+
+    break;
+
+  case MODE_SHOW:
+
+  {
+    DEBUG_ADALIGHT("show");
+
+    if (strip) {
+      strip->Dirty();
+      _vars->pixellatchtime = millis();
+      strip->Show();
+
+    }
+
+    _vars->state = MODE_HEADER;
+
+  break;
+  }
+
+  }
+  return true;
 }

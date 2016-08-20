@@ -1,0 +1,74 @@
+sudo: false
+language: bash
+os:
+- linux
+# addons:
+#   ssh_known_hosts:
+#   - www.amelvin.co.uk:4022
+env:
+  global:
+  - BUILD_FOLDER=$TRAVIS_BUILD_DIR/build.tmp
+  - SKETCH_LOCATION="$TRAVIS_BUILD_DIR"
+  - LIBRARIES_LOCATION="-l $HOME/Arduino/libraries"
+  - BOARD_TYPE="-b generic"
+  - FLASH_SIZE="-s 4M3M"
+  - CPU_SPEED="-f 160"
+  - OUTPUT_FILE="-o $TRAVIS_BUILD_DIR/firmware.bin"
+  - DEBUG_PORT="--debug_port Serial"
+  - secure: OE22IeddFH05vcq7WDbApyeCmIBiufVhB9b4SYnOJg9/Zno0Ys0py8z9wqipJe6xjmENEJ8sAVTQirCIRarzcC2OdFHohOmf/n8zkXTv3YBx15iNKapd1XcJv0VBZMKVi3QWgA2OmjtPKYy9P1cWrxAIuHaDr+gPOR2cnE+Vti1j7yQ6brtpi4MsRTZqvYee05ugu/qejBlkc5ZPeQOrnp3GO6ZB/h+vw2qnKi8flTl3wDgqOCul6hhcOZ7vpRLEAEP5fzUe4EgmgvOXr52+XbOwFpN5yA/6fNR5SpF43PkhCOvVc+ppReZE9d7Wi2Ol4WNl0m4lE7No4Idc7K0Z1PsDyeIrl/DQ2i6nYJhilQLVkC/gBPps8gOPVB9GEW//4AScpHDZT+KAynB+Z1vkwMv9DHSE4fOf14O/ZSWh9Hxmk/gwFN5v4+M8jh1K5nXL2KQ8PFLCV24tu6lsbPV70h9iOoyJ3/lL3og5Mr5rwQlhwe6i25OjwMKb6tRE0KSX1RNBQERrI+7YaZxmoK8kKR55Lb94h1La5WvdJo4NXfKBh6FysyG8tHIbuy0XB3zllyeIUHH70LrMgD59zgG9wzIuucKYJO0F0HdUdJJj+RV4DEXojgFf7B2j+10UC0ta8HdNIuDOABiBMTqrgH2xxRalYkw654M4RZI02QCGFCQ=
+  - secure: tZB13n4uvtACcVqjUdvi9sNvQpcMsJmF+eWEWBmGl4KxqzhHm5aXYK/IEEQV7MBRqXi4hlJnEwPB1JgwZBJXwGrD1R3MyIjCOp8T5wEN2yZrbAEK3OMVTEFUODO3DEHaRccXrZ6rspMNLMKiltLGHKcjtcSunbCG+3y3zffLuA4c/4i1+ZjndMScX4czLcTj2F68GvB/b8vWeRtaZ5pUNpu3oNWI1pWmQbpsP0FJOAGiRbWWIfac4qN8bR4UJxc3CeUGW3uYpp2cfLuM9dnBbwoZLDCsH3aqWHfS254cxQCXWaliuk39SibalGXeW3uZI85/Ul7JU+LEdS/9aoeWwCqoRjLqWb3kAj5gnoJv4fZJo1zKEVubaS6zdi17t4ZbOJTQPmOtxmFO+xQuqFt0DnyyiFnlhtYDa7gQlgh/xzw/jRJE5HPH4sj6kZLr9ng7t8lw2IXlfqA4/eA0siFyNM3F5p1td+laqHmUe6kw+HyDWKfUvOoaDYE/qPM1TChTeYlxTAxDVaXy5lj5uYcKgX7SUGAmadj1NOMAQsW472u1scTQC+GgFEY7jGe9xc717LiNJNoxV0AZjzIhRjodamonnu055vpz5MyKWYkzSES547KiK5SmWyE9f5IOADn1C1VSHzR43znlOY1s5z146DM4WYptSWKXKBM1YKZS34k=
+  - secure: b/MYAmu7NEj7RBceSom8Jt4CIhbYfECvkaps1LiPxEKbmMGS15xmlnKaQ2EYJdaJm1CytaqUBXoYSTmoaHjiXH5sknxWvLeSqMiPTc/gKFMubLSbGLwOE4pYoEOr5IhFp9QDXIOhvlrBmOXi9a76xAONYQU/ZusjVOgvsR5DBHqA7U5mcCLpO2Fv4uYQH1+mFphBW7YbIYZIhM9TDpjOmTiZklMgqODayjg/4I1AHa1lVxANFk6iKT0hW1viqZ5IrIyR1ELKzNuTB3E+5bMp+Lj7c8EACYqM2WQYJ+X9k0YA1+WK/sdAS85hDH2pgkJwbqZgBlBulvsYVRa3MspiktGpPyr5ATBmv7/pg5JhF7fteSD6PZqsusgekvh0kzoUgSfscHl0ouc5Tum+lJSUUjIvkBmVZPan+JOMfyiBvDesNhAM1Rl8vFsB2juzeRZX37LHO3d6Y2jDVdkdJ97yfGWKkZiQXBlR6VNl7nTHQdNyoOyR0zFdOY7K40B3LUEHX9mtyga0PRVZf5iUz7oiakpydan5cWtIvYd2+D+jLlLeM1b6Z614zU8C7Wh3cHu/Za7+D2ybj4ki5ABfUGouFRujVZMpagKHp22ZGlASgxYrR3ObmToVBPYUer7Ni0UVPLM6PVzoF3Fz6USQkhnblc07J+5OYDiBUkcaGUsN2OE=
+  - secure: xGQ3sLmfI3FCl6PR6whcXA2Jf885gKaANM5p8qeQqwYV9ft5SQwWDbZuc7EUFeoCgX5p1cUomKuN7kwkAO39+1Xi5vQt5HGPbj4Ligbqg1KdiOUmRiAP0CwreSO8wKTp42K8nP10eWeLtBcixcM0cTP3i0KAhvXHotinHQAsVzU9lTmutvFS3tDpAjSMMGX2jzjgaTRoP/dbiruxZBZzSKF55f5OJRXqTXWe7ZEVEx1iWbXsD3p3fqsIAU93iCHASC9NDPG4vI+V4BwbtLuptNh6c8OVMLilxQrIhRc6kDg7vkCp9kkTaH3tK7x8rB46KhFHVNaU2fNNAN3hvDgpH0o4GqRLunMSkRKWq0zRhF8IsNbFDn4PcIUI3ujCUgqL8VX29eIjx3uhWCeS8Kq4De7VAWKXRM+HoB9oDt0zQ1W+LRsl23D7iZFQjHqMoSh7jXrgfoRewh9W9PGZfeYbHJEkMAa+1jbOLKyEbJ89inBnMlMIQSido8TEK+z3PHI9EOHVNI8WUo+ymeAOBHOQfhra7NTyh8qVRxtlSNCW66Jnv8QQNaUk/vHEnB7hVLw3TFl0/TqQnN5+9j0/QyTgX+XYoSjrn0xzwhVZgO09r6qWKtQOVpwQPzPLF4ZN+sVuswOal3omLN87n3bjHsN/l141xvLLi6ht694RBgKOMoc=
+before_install:
+- ssh-keyscan -t ssh-dss,rsa,ecdsa -p 4022 -H $DEPLOY_DEST 2>&1 | tee -a $HOME/.ssh/known_hosts
+- openssl aes-256-cbc -K $encrypted_0c5054dac5bc_key -iv $encrypted_0c5054dac5bc_iv
+  -in travisgit.enc -out /tmp/travis.key -d
+- chmod 600 /tmp/travis.key
+install:
+- wget -O arduino.tar.xz https://www.arduino.cc/download.php?f=/arduino-nightly-linux64.tar.xz
+- tar xf arduino.tar.xz
+- mv arduino-nightly $HOME/arduino_ide
+- cd $HOME/arduino_ide/hardware
+- mkdir esp8266com
+- cd esp8266com
+- git clone https://github.com/sticilface/arduino-esp8266 esp8266
+- cd esp8266/tools
+- python get.py
+- export PATH="$HOME/arduino_ide:$HOME/arduino_ide/hardware/esp8266com/esp8266/tools/xtensa-lx106-elf/bin:$PATH"
+- which arduino
+- which xtensa-lx106-elf-size
+- cd $TRAVIS_BUILD_DIR
+- source $HOME/arduino_ide/hardware/esp8266com/esp8266/tests/common.sh
+- git clone https://github.com/sticilface/mypythondeployscript $HOME/scripts
+- mkdir -p $HOME/Arduino/libraries
+- cp -r $TRAVIS_BUILD_DIR $HOME/Arduino/libraries/Melvanimate
+- git clone https://github.com/bblanchon/ArduinoJson          $HOME/Arduino/libraries/ArduinoJson
+- git clone https://github.com/me-no-dev/ESPAsyncTCP          $HOME/Arduino/libraries/ESPAsyncTCP
+- git clone https://github.com/me-no-dev/ESPAsyncWebServer    $HOME/Arduino/libraries/ESPAsyncWebServer
+- git clone https://github.com/Makuna/NeoPixelBus             $HOME/Arduino/libraries/NeoPixelBus
+- git clone https://github.com/knolleary/pubsubclient         $HOME/Arduino/libraries/pubsubclient
+- git clone https://github.com/adafruit/Adafruit-GFX-Library  $HOME/Arduino/libraries/Adafruit-GFX-Library
+- git clone -b upgrade-gui https://github.com/sticilface/ESPmanager          $HOME/Arduino/libraries/ESPmanager
+- git clone -b async https://github.com/sticilface/Melvanimate         $HOME/Arduino/libraries/Melvanimate
+- cd $TRAVIS_BUILD_DIR
+script:
+- echo -e "travis_fold:end:sketch_test_env_prepare"
+- echo -e "travis_fold:start:sketch_test"
+- build_sketches $HOME/arduino_ide $SKETCH_LOCATION $BUILD_FOLDER "$LIBRARIES_LOCATION
+  $OUTPUT_FILE $BOARD_TYPE $FLASH_SIZE $CPU_SPEED $DEBUG_PORT $DEBUG_LEVEL"
+- echo -e "travis_fold:end:sketch_test"
+after_success:
+- echo -e "travis_fold:start:size_report"
+- cat size.log
+- echo -e "travis_fold:end:size_report"
+- ls -la $TRAVIS_BUILD_DIR/*.bin
+- mkdir /tmp/package
+- cp $TRAVIS_BUILD_DIR/firmware.bin "/tmp/package/firmware.bin"
+- cp -r "$SKETCH_LOCATION/data" "/tmp/package/"
+- ls /tmp/package/
+deploy:
+- provider: script
+  skip_cleanup: true
+  on:
+    all_branches: true
+  script: /bin/sh $TRAVIS_BUILD_DIR/travis/deploy.sh latest

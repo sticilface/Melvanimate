@@ -13,13 +13,14 @@
 namespace helperfunc {
 
 
-	RgbColor dim( RgbColor input, const uint8_t brightness); 
+	RgbColor dim( RgbColor input, const uint8_t brightness);
 	bool convertcolor(JsonObject & root, const char * colorstring);
-	
+
 	bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonObject *& root, const char * file);
 	bool parsespiffs(char *& data, DynamicJsonBuffer& jsonBuffer, JsonArray *& root, const char * file);
 	void Adalight_Flash();
-    bool expandMatrixConfigToJson(JsonObject & root);
+  bool expandMatrixConfigToJson(JsonObject & root);
 
+	void cpuCycleTimer(bool = false);
 
 }
