@@ -36,13 +36,10 @@
 
 
 const uint16_t defaultpixelcount =  20;
-const char* devicename = "MyWS2812";
-
-
 
 AsyncWebServer HTTP(80);
 Melvanimate lights(HTTP, defaultpixelcount);  //  METHOD defaults to use RX pin, GPIO3, using DMA method... to change see mybus.h within Melvanimate
-ESPmanager manager(HTTP, SPIFFS, devicename);
+ESPmanager manager(HTTP, SPIFFS);
 
 using namespace helperfunc; // used for things like dim.
 
@@ -72,9 +69,7 @@ void setup()
   lights.Add("DMX",          new DMXEffect );                       // need to test - requires custom libs included
   lights.Add("White",        new White); //
 
-
-
-  lights.begin( manager.deviceName() );
+  lights.begin( manager.getHostname().c_str() );
 
   HTTP.serveStatic("/", SPIFFS , "/");
   HTTP.begin();

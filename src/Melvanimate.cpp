@@ -107,11 +107,6 @@ bool Melvanimate::begin(const char * name)
  */
 void Melvanimate::addJQueryhandlers() {
 
-  _HTTP.serveStatic("/", SPIFFS , "/"); 
-
-
-        _HTTP.serveStatic("/", SPIFFS , "/index.htm");
-
 
         _HTTP.on("/jquery/jqm1.4.5.css", HTTP_GET, [](AsyncWebServerRequest *request){
                 AsyncWebServerResponse * response = request->beginResponse(302);
