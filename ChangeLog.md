@@ -2,8 +2,8 @@
 
 #New Features:
 
-- compatability with ESP8266 arduino 2.3.0 [Arduindo-ESP8266](https://github.com/esp8266/Arduino/releases/tag/2.3.0)
-- Moved to async web server.  Provides much faster responses. Less pauses in lights.
+- compatability with ESP8266 arduino 2.3.0 [Arduindo-ESP8266](https://github.com/esp8266/Arduino/releases/tag/2.3.0)  
+- Moved to async web server.  Provides much faster responses. Less pauses in lights.  
 - If ESPManager is used, it now requires the async branch.
 - Moved to asyncMQTT: not perfect, need to refactor commands really. [asyncMQTT](https://github.com/marvinroger/async-mqtt-client)
 - Added locator, now all Melvanimates on the same network will find each other and display in the GUI.  Super easy to manage multiple instances.
@@ -20,6 +20,8 @@
 - Added serverEvent based notifications to index.htm.  OTA and Upgrade events from ESPmanager will appear on GUI.
 - App-cache support.  Apps will work offline, giving last list of online devices.  Add it to your homescreen...
   App-cache is automatically refreshed when a new binary with changed `__DATE__ __TIME__`
+- Current State saved to RTC memory.  On reboot it will resume last effect state, including if a preset was selected.  Toggle state is remembered but only for presets.  ie.. if    you change an effect and preset = none, then turn it off, reboot, then click enable it will resume the last effect, but not remember the settings.  it will launch default or last  selected preset.
+
 
 #Bugfix:
 

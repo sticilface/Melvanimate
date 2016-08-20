@@ -12,6 +12,8 @@
 
 */
 
+///#define WS2812_UART_METHOD
+
 /*****************************************************************
 
 
@@ -32,8 +34,10 @@
 
 #if defined(WS2812_UART_METHOD)
 		typedef NeoEsp8266Uart800KbpsMethod MyWS2812OutputMethod; //  UART  method GPIO 2
+		#pragma message("WS2812_UART_METHOD")
 #elif defined(WS2812_UART_ASYNC_METHOD)
 		typedef NeoEsp8266AsyncUart800KbpsMethod MyWS2812OutputMethod;
+		#pragma message("WS2812_UART_ASYNC_METHOD")
 #else
 		typedef Neo800KbpsMethod MyWS2812OutputMethod; //  Standard DMA method GPIO 3 / RX
 #endif

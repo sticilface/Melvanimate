@@ -21,7 +21,9 @@ extern NeoPixelAnimator * animator;
 #define PRESETS_FILE "/presets_"
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugEffectManager)
-#define DebugEffectManagerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+//#define DebugEffectManagerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+#define DebugEffectManagerf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+
 #else
 #define DebugEffectManagerf(...) {}
 #endif

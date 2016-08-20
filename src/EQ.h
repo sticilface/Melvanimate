@@ -28,13 +28,13 @@ MSGEQ7 chip RESET pulse is 0.1us min, strobe pulse 0.018us min.  And it works fi
 //#ifdef DEBUG_ESP_PORT && DebugEQ
 #if defined(DEBUG_ESP_PORT) && defined(DebugEQ)
 
-	#define DebugEQf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+#define DebugEQf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 #else
 	#define DebugEQf(...) {}
 #endif
 
 struct EQParam {
-	uint32_t seq_no; 
+	uint32_t seq_no;
 	uint8_t channel;
 	uint16_t level;
 	uint8_t bpm;
@@ -120,7 +120,7 @@ class EQ
 public:
 
 
-	EQ(uint32_t samples = 0, uint32_t totaltime = 0); 
+	EQ(uint32_t samples = 0, uint32_t totaltime = 0);
 	~EQ();
 
 	void SetBeatConfig(uint32_t samples, uint32_t totaltime);
@@ -172,7 +172,7 @@ private:
 	WiFiUDP * _udp{nullptr};
 	bool _send_udp{false};
 
-	uint32_t seq_no{0}; 
+	uint32_t seq_no{0};
 
 };
 
@@ -218,4 +218,3 @@ public:
 private:
 	EQ * _var{nullptr};
 };
-

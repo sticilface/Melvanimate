@@ -11,7 +11,9 @@
 //#define DebugPropertyManager
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugPropertyManager)
-#define PropertyManagerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+//#define PropertyManagerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+#define PropertyManagerf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+
 #else
 #define PropertyManagerf(...) {}
 #endif
@@ -27,16 +29,16 @@ public:
 		_addr = addr_counter;
 		size_t rounded = (size + 3) & (~3);
 		addr_counter += (rounded / 4);
-		//Serial.printf("RTC initialised _addr = %u\n", _addr);
+		////Serial.printf("RTC initialised _addr = %u\n", _addr);
 	}
 
 	bool write(uint32_t *data) {
-		//Serial.printf("RTC write [%u] uint32_t = %u\n", _addr, *data);
+		////Serial.printf("RTC write [%u] uint32_t = %u\n", _addr, *data);
 		ESP.rtcUserMemoryWrite( _addr, data, _size);
 	}
 
 	bool read(uint32_t *data){
-		//Serial.printf("RTC read [%u] uint32_t = %u\n", _addr ,*data);
+		////Serial.printf("RTC read [%u] uint32_t = %u\n", _addr ,*data);
 		ESP.rtcUserMemoryRead( _addr, data, _size);
 	}
 
@@ -107,8 +109,8 @@ public:
 		SaveRTC();
 
 		// ESP.rtcUserMemoryWrite(_rtcAddr, &val,  1);
-		 Serial.printf("Saving var %s :", _name);
-		 Serial.println(value);
+		 //Serial.printf("Saving var %s :", _name);
+		 //Serial.println(value);
 	}
 
 
@@ -146,8 +148,8 @@ public:
 
 		//ESP.rtcUserMemoryRead(_rtcAddr,  &data,  1);
 		T var = static_cast<T>(data);
-		 Serial.printf("Retrieved from RTC: %s ", _name);
-		 Serial.println(var);
+		 //Serial.printf("Retrieved from RTC: %s ", _name);
+		 //Serial.println(var);
 		_var = var;
 	}
 
@@ -201,10 +203,10 @@ public:
 		_var.G = Val >> 8 & 0xFF;
 		_var.B = Val & 0xFF;
 
-	Serial.printf("Retrieved from RTC: %s RGB(%u,%u,%u)\n",_name , _var.R, _var.G, _var.B);
+	////Serial.printf("Retrieved from RTC: %s RGB(%u,%u,%u)\n",_name , _var.R, _var.G, _var.B);
 
 		// ESP.rtcUserMemoryRead(_rtcAddr,  &Var.Data32,  1);
-		// Serial.printf("Retrieved from RTC: %s RGB(%u,%u,%u)\n",_name , Var.Bytes[0], Var.Bytes[1], Var.Bytes[2]);
+		// //Serial.printf("Retrieved from RTC: %s RGB(%u,%u,%u)\n",_name , Var.Bytes[0], Var.Bytes[1], Var.Bytes[2]);
 		// _var.R = Var.Bytes[0];
 		// _var.G = Var.Bytes[1];
 		// _var.B = Var.Bytes[2];
@@ -317,7 +319,7 @@ public:
 	{
 		_name = name;
 		_var = new MelvtrixMan;
-		Serial.printf("Melvtrix Size = %u\n", sizeof(MelvtrixMan));
+		//Serial.printf("Melvtrix Size = %u\n", sizeof(MelvtrixMan));
 	};
 	Variable(const char * name, MelvtrixMan* value): _var(value)
 	{
@@ -441,13 +443,13 @@ public:
 		_var[2] = data >> 8 & 0xFF;
 		_var[3] = data & 0xFF;
 
-		//Serial.printf("Retrieved from RTC: %s[%u]  %u -> (%s)\n", _name,_rtc.address() ,data, _var.toString().c_str() ) ;
+		////Serial.printf("Retrieved from RTC: %s[%u]  %u -> (%s)\n", _name,_rtc.address() ,data, _var.toString().c_str() ) ;
 	}
 
 	void SaveRTC() {
 		uint32_t Val = (uint32_t)( _var[0] << 24 | _var[1] << 16 | _var[2] << 8 | _var[3] );
 
-		//Serial.printf("Setting IP %s[%u] (%s) -> %u\n", _name,_rtc.address(), value.toString().c_str(), Val );
+		////Serial.printf("Setting IP %s[%u] (%s) -> %u\n", _name,_rtc.address(), value.toString().c_str(), Val );
 		//ESP.rtcUserMemoryWrite(_rtcAddr, &Val,  1);
 		_rtc.write(&Val);
 	}

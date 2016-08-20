@@ -21,7 +21,9 @@
 //#define DebugPalette
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugPalette)
-#define PaletteDebugf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+//#define PaletteDebugf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+#define PaletteDebugf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+
 #else
 #define PaletteDebugf(...) {}
 #endif
@@ -40,13 +42,13 @@ union storedColor {
 extern const char * random_mode_strings[];
 extern const char * palettes_strings[];
 
-class EffectHandler; 
+class EffectHandler;
 
 class Palette
 {
 
 private:
-	typedef std::function< void(void) > callback; 
+	typedef std::function< void(void) > callback;
 
 public:
 	enum palette_type { OFF = 0, COMPLEMENTARY, MONOCHROMATIC, ANALOGOUS, SPLITCOMPLEMENTS, TRIADIC, TETRADIC, MULTI, WHEEL};
@@ -60,23 +62,23 @@ public:
 	RgbColor previous();
 	RgbColor current();
 
-	void refresh() {}; 
+	void refresh() {};
 
 	void loop() {
 
-		if (_random && millis() - _randtimertick > (_delay * 1000) ) { 
+		if (_random && millis() - _randtimertick > (_delay * 1000) ) {
 
 			if (_eventCallback) {
-				_eventCallback(); 
+				_eventCallback();
 			}
 
 		}
 
-	}; 
+	};
 
 
 	void attachCallback( callback  ptr)  {
-		_eventCallback = ptr; 
+		_eventCallback = ptr;
 	}
 
 	void input(RgbColor inputcolour)
@@ -166,6 +168,6 @@ private:
 	uint32_t _delay{10};
 	uint32_t _randtimertick{0};
 	const char * _name;
-	callback  _eventCallback{nullptr}; 
+	callback  _eventCallback{nullptr};
 
 };

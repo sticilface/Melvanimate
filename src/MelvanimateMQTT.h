@@ -13,7 +13,9 @@
 //#define DebugMelvanimateMQTT
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimateMQTT)
-#define DebugMelvanimateMQTTf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+//#define DebugMelvanimateMQTTf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+#define DebugMelvanimateMQTTf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+
 #else
 #define DebugMelvanimateMQTTf(...) {}
 #endif
@@ -28,6 +30,10 @@ public:
 
         ~MelvanimateMQTT() {
           _mqttClient.disconnect();
+
+          // if(willtopic) {
+          //   free(willtopic);
+          // }
         }
 
         void loop();
