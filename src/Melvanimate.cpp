@@ -106,6 +106,13 @@ bool Melvanimate::begin(const char * name)
 
  */
 void Melvanimate::addJQueryhandlers() {
+
+  _HTTP.serveStatic("/", SPIFFS , "/"); 
+
+
+        _HTTP.serveStatic("/", SPIFFS , "/index.htm");
+
+
         _HTTP.on("/jquery/jqm1.4.5.css", HTTP_GET, [](AsyncWebServerRequest *request){
                 AsyncWebServerResponse * response = request->beginResponse(302);
                 response->addHeader("Location","http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css");
@@ -611,6 +618,22 @@ void Melvanimate::_initMQTT(JsonObject & root)
                         DebugMelvanimatef("[Melvanimate::_initMQTT] (%u,%u,%u,%u) : %u \n", addr[0], addr[1], addr[2], addr[3], port );
 
 
+                        if (MQTTjson.containsKey("topics")) {
+
+                          JsonArray& topics = MQTTjson["topics"];
+
+                            for (JsonArray::iterator it = topics.begin(); it != topics.end(); ++it) {
+
+                              if (_mqtt) {
+                                const char * currenttopic = *it;
+                                DebugMelvanimatef("[Melvanimate::_initMQTT] subscribing to : %s", currenttopic);
+                                  _mqtt->subscribe(currenttopic,2);
+                              }
+
+                            }
+
+
+                        }
 
                         // if (_mqtt && *_mqtt) {
                         //  DebugMelvanimatef("[Melvanimate::_initMQTT] Sending Full initial config\n");

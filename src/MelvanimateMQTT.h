@@ -30,10 +30,6 @@ public:
 
         ~MelvanimateMQTT() {
           _mqttClient.disconnect();
-
-          // if(willtopic) {
-          //   free(willtopic);
-          // }
         }
 
         void loop();
@@ -46,6 +42,10 @@ public:
         //bool publish(const char * topic, const char * payload);
         bool publish(const char * topic, const char * payload, size_t length, bool retained = false );
         bool publish(const char * topic, const char * payload, bool retained = false );
+
+        void subscribe ( const char * topic, uint8_t qos ) {
+          _mqttClient.subscribe( topic, qos);
+        }
 
         //void sendFullJson() { _send_flag = millis(); }
         void sendJson(bool onlychanged); //  { _send_changed_flag = millis();  _onlychanged = onlychanged; }

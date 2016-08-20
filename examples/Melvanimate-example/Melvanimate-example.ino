@@ -90,6 +90,7 @@ void setup()
 
   ArduinoOTA.begin();
 
+
 //  Add effects to the manager.
   lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off...
   lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));
@@ -102,9 +103,8 @@ void setup()
 
   lights.begin( devicename );
   lights.addJQueryhandlers(); // needed if you are not using ESPmanager to bind jquery handles.
-
-  lights.Start("Off");
-
+  
+  HTTP.serveStatic("/", SPIFFS , "/");
   HTTP.begin();
 
   Serial.print(F("Free Heap: "));

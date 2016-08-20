@@ -46,7 +46,7 @@ ESPmanager manager(HTTP, SPIFFS, devicename);
 
 using namespace helperfunc; // used for things like dim.
 
-// forward declarations sometimes needed! 
+// forward declarations sometimes needed!
 void offFn(effectState &state, EffectHandler* ptr);
 void SimpleColorFn(effectState &state, EffectHandler* ptr);
 
@@ -75,9 +75,8 @@ void setup()
 
 
   lights.begin( manager.deviceName() );
-  lights.Start("Off");
 
-
+  HTTP.serveStatic("/", SPIFFS , "/");
   HTTP.begin();
 
   Serial.print(F("Free Heap: "));
