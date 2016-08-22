@@ -10,7 +10,7 @@
 #include <functional>
 #include <ArduinoJson.h>
 
-//#define DebugMelvanimateMQTT
+#define DebugMelvanimateMQTT
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimateMQTT)
 //#define DebugMelvanimateMQTTf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
@@ -47,6 +47,10 @@ public:
           _mqttClient.subscribe( topic, qos);
         }
 
+        void onConnect(std::function <void(void)> func) {
+          _connectCB = func;
+        }
+
         //void sendFullJson() { _send_flag = millis(); }
         void sendJson(bool onlychanged); //  { _send_changed_flag = millis();  _onlychanged = onlychanged; }
         void sendPresets();
@@ -61,6 +65,10 @@ public:
 
         uint16_t getPort() {
           return _port;
+        }
+
+        void connect() {
+          _mqttClient.connect();
         }
         //PubSubClient * mqttclient() { return &_client; }
         // Melvanimate * pmelvanimate() {
@@ -91,5 +99,6 @@ private:
         //uint32_t _asyncTimeout{0};
         bool _onlychanged {nullptr};
         uint16_t _reconnecttries {0};
+        std::function <void(void)>  _connectCB;
 
 };

@@ -3,6 +3,7 @@
 #include <MD5Builder.h>
 #include <ArduinoJson.h>
 #include <ESP8266mDNS.h>
+#include "JsonPackage.h"
 
 NeoPixelAnimator * animator = nullptr;
 MyPixelBus * strip = nullptr;
@@ -22,7 +23,7 @@ bool Melvanimate::begin(const char * name)
 {
         using namespace std::placeholders;
         //using namespace RTC_manager;
-        _deviceName = name;
+        _deviceName = strdup(name);
 
         DebugMelvanimatef("[Melvanimate::begin] called\n");
 
@@ -30,7 +31,6 @@ bool Melvanimate::begin(const char * name)
         _HTTP.on("/site.appcache", HTTP_ANY, std::bind (&Melvanimate::_handleManifest, this, _1));
 
         //_HTTP.serveStatic("", SPIFFS, "/").setCacheControl("max-age=86400");
-
         _loadGeneral();
         _init_LEDs();
         fillPresetArray();
@@ -39,59 +39,59 @@ bool Melvanimate::begin(const char * name)
 
         if (_rtcman.load()) {
 
-          rtc_data_t data = _rtcman.get();
+                rtc_data_t data = _rtcman.get();
 
-          if (data.on) {
+                if (data.on) {
 
-          switch ( (RTC_manager::rtc_ani_state_t)data.state) {
+                        switch ( (RTC_manager::rtc_ani_state_t)data.state) {
 
-            case RTC_manager::UNKNOWN: {
-              DebugMelvanimatef("[Melvanimate::begin] RTC state unknown\n");
-              Start(_defaulteffecthandle);
-              break;
-            };
-            case RTC_manager::NONE: {
-              DebugMelvanimatef("[Melvanimate::begin] RTC state NONE: Start(%u)\n", data.effect);
-              Startblank(data.effect);
-              if (Current()) {
-                Current()->GetRTCdata();
-              }
-              break;
-            };
-            case RTC_manager::PRESET: {
-              DebugMelvanimatef("[Melvanimate::begin] RTC state PRESET: Start(%u), Load(%u)\n", data.effect, data.preset);
-              Start(data.effect);
-              Load(data.preset);
-              break;
-            };
+                        case RTC_manager::UNKNOWN: {
+                                DebugMelvanimatef("[Melvanimate::begin] RTC state unknown\n");
+                                Start(_defaulteffecthandle);
+                                break;
+                        };
+                        case RTC_manager::NONE: {
+                                DebugMelvanimatef("[Melvanimate::begin] RTC state NONE: Start(%u)\n", data.effect);
+                                Startblank(data.effect);
+                                if (Current()) {
+                                        Current()->GetRTCdata();
+                                }
+                                break;
+                        };
+                        case RTC_manager::PRESET: {
+                                DebugMelvanimatef("[Melvanimate::begin] RTC state PRESET: Start(%u), Load(%u)\n", data.effect, data.preset);
+                                Start(data.effect);
+                                Load(data.preset);
+                                break;
+                        };
 
-          }
+                        }
+
+                } else {
+
+                        _toggleHandle = _findhandle(data.effect);
+
+                        if (_toggleHandle) {
+                                DebugMelvanimatef("[Melvanimate::begin] Saved State = OFF: toggle = %u\n",data.effect );
+
+                                if (data.state == RTC_manager::PRESET) {
+                                        _toggleHandle->preset(data.preset);
+                                }
+
+                        } else {
+                                DebugMelvanimatef("[Melvanimate::begin] Unable to find handler: %u\n",data.effect );
+
+                        }
+
+                        Start(_defaulteffecthandle);
+
+                }
+
 
         } else {
-
-          _toggleHandle = _findhandle(data.effect);
-
-          if (_toggleHandle) {
-          DebugMelvanimatef("[Melvanimate::begin] Saved State = OFF: toggle = %u\n",data.effect );
-
-          if (data.state == RTC_manager::PRESET) {
-            _toggleHandle->preset(data.preset);
-          }
-
-        } else {
-          DebugMelvanimatef("[Melvanimate::begin] Unable to find handler: %u\n",data.effect );
-
+                DebugMelvanimatef("[Melvanimate::begin] CRC ERROR starting default\n" );
+                Start(_defaulteffecthandle);
         }
-
-          Start(_defaulteffecthandle);
-
-        }
-
-
-      } else {
-        DebugMelvanimatef("[Melvanimate::begin] CRC ERROR starting default\n" );
-        Start(_defaulteffecthandle);
-      }
 
 
 
@@ -237,13 +237,40 @@ void Melvanimate::_init_LEDs()
 
 void Melvanimate::setPixels(const int pixels)
 {
-        if (pixels == _pixels) { return; }
-        DebugMelvanimatef("NEW Pixels: %u\n", _pixels);
-        strip->ClearTo(0);
-        _pixels = pixels;
-        _settings_changed = true;
-        _init_LEDs();
-        DebugMelvanimatef("HEAP: %u\n", ESP.getFreeHeap());
+        bool changed = false;
+        JSONpackage json;
+
+        if (!json.parseSPIFS(MELVANA_SETTINGS) || !SPIFFS.exists(MELVANA_SETTINGS)) {
+
+                JsonObject & root = json.getRoot();
+
+                if (root.containsKey("globals")) {
+                        JsonObject & globals = root["globals"];
+
+                        uint16_t saved =  globals["pixels"];
+                        if (saved != pixels) {
+                                globals["pixels"] = _pixels;
+                                changed = true;
+                        }
+                } else {
+                        JsonObject& globals = root.createNestedObject("globals");
+                        globals["pixels"] = _pixels;
+                        changed = true;
+                }
+
+                if (changed) {
+                        File set;
+                        set = SPIFFS.open(MELVANA_SETTINGS, "w");
+                        if (set) {
+                                root.prettyPrintTo(set);
+                                set.close();
+                        }
+                        DebugMelvanimatef("NEW Pixels: %u\n", pixels);
+                        strip->ClearTo(0);
+                        _pixels = pixels;
+                        _init_LEDs();
+                }
+        }
 }
 
 //  This is a callback that when set, checks to see if current animation has ended.
@@ -311,110 +338,68 @@ void Melvanimate::setWaiting(bool wait)
 }
 
 
+
 bool Melvanimate::_saveGeneral(bool override)
 {
-        File _settings;
-
-        if (!_settings_changed && !override) { return false; }
-
-        DebugMelvanimatef("Saving Settings: ");
-        DynamicJsonBuffer jsonBuffer;
-        JsonObject& root = jsonBuffer.createObject();
-
-        JsonObject& globals = root.createNestedObject("globals");
-        {
-                globals["pixels"] = _pixels;
-        }
-
-        _settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
-
-        if (!_settings) { return false; }
-
-        if (_mqtt) {
-                _mqtt->addJson(globals);
-        } else {
-                JsonObject& MQTTjson = root["MQTT"];
-                MQTTjson["enabled"] = false;
-        }
-
-        _settings.seek(0, SeekSet);
-        root.prettyPrintTo(_settings);
-        _settings_changed = false;
-        _settings.close();
-        return true;
+        //
+        // JSONpackage json;
+        //
+        // if (!_settings_changed && !override) { return false; }
+        //
+        //
+        // if (json.parseSPIFS(MELVANA_SETTINGS) == 0) {
+        //
+        //         JsonObject& root = json.getRoot();
+        //
+        //         File _settings;
+        //
+        //         DebugMelvanimatef("Saving Settings: ");
+        //
+        //         JsonObject& globals = root.createNestedObject("globals");
+        //         {
+        //                 globals["pixels"] = _pixels;
+        //         }
+        //
+        //         _settings = SPIFFS.open(MELVANA_SETTINGS, "w+");
+        //
+        //         if (!_settings) { return false; }
+        //
+        //         if (_mqtt) {
+        //                 _mqtt->addJson(globals);
+        //         } else {
+        //                 JsonObject& MQTTjson = root["MQTT"];
+        //                 MQTTjson["enabled"] = false;
+        //         }
+        //
+        //         _settings.seek(0, SeekSet);
+        //         root.prettyPrintTo(_settings);
+        //         _settings_changed = false;
+        //         _settings.close();
+        //         return true;
+        //
+        // }
 }
 
 
 bool Melvanimate::_loadGeneral()
 {
-        File _settings;
 
-        DynamicJsonBuffer jsonBuffer;
-        if (!_settings) {
-                DebugMelvanimatef("[Melvanimate::load] ERROR File NOT open!\n");
-                _settings = SPIFFS.open(MELVANA_SETTINGS, "r");
-                if (!_settings) {
-                        DebugMelvanimatef("[Melvanimate::load] No Settings File Found\n");
-                        return false;
-                }
-        }
+        JSONpackage json;
+        if (json.parseSPIFS(MELVANA_SETTINGS) == 0) {
+                JsonObject& root = json.getRoot();
 
-        char * data = nullptr;
-
-        if (_settings.size()) {
-
-                data = new char[_settings.size()];
-
-        } else {
-                DebugMelvanimatef("[Melvanimate::load] Fail: buffer size 0\n");
-                return false;
-        }
-
-        // prevent nullptr exception if can't allocate
-        if (data) {
-                DebugMelvanimatef("[Melvanimate::load] buffer size %u\n", _settings.size());
-
-                //  This method give a massive improvement in file reading speed for SPIFFS files..
-
-                int bytesleft = _settings.size();
-                int position = 0;
-                while ((_settings.available() > -1) && (bytesleft > 0)) {
-
-                        // get available data size
-                        int sizeAvailable = _settings.available();
-                        if (sizeAvailable) {
-                                int readBytes = sizeAvailable;
-
-                                // read only the asked bytes
-                                if (readBytes > bytesleft) {
-                                        readBytes = bytesleft;
-                                }
-
-                                // get new position in buffer
-                                char * buf = &data[position];
-                                // read data
-                                int bytesread = _settings.readBytes(buf, readBytes);
-                                bytesleft -= bytesread;
-                                position += bytesread;
-
-                        }
-                        // time for network streams
-                        delay(0);
-                }
-
-
-                JsonObject& root = jsonBuffer.parseObject(data);
-
-                if (!root.success()) {
-                        DebugMelvanimatef("[Melvanimate::load] Parsing settings file Failed!\n");
-                        return false;
-                } else { DebugMelvanimatef("[Melvanimate::load] Parse successfull\n"); }
 // global variables
                 if (root.containsKey("globals")) {
 
                         JsonObject& globals = root["globals"];
 
-                        _pixels = globals["pixels"].as<long>();
+                        if (globals.containsKey("pixels")) {
+                                uint16_t pixels = globals["pixels"].as<long>();
+                                if (pixels) {
+                                  _pixels = pixels;
+                                }
+                        }
+
 
                         _initMQTT(globals);
 
@@ -429,17 +414,12 @@ bool Melvanimate::_loadGeneral()
 // effect settings
                 if (root.containsKey("effectsettings")) {
                         JsonObject& effectsettings = root["effectsettings"];
-
-
-
                 } else { DebugMelvanimatef("[Melvanimate::load] No effect settings\n"); }
-
-                _settings.close();
 
                 return true;
 
         } else {
-                DebugMelvanimatef("[Melvanimate::load] Unable to Malloc for settings\n");
+                return false;
         }
 
 };
@@ -510,7 +490,7 @@ bool Melvanimate::parse(JsonObject & root)
         if (Current()) {
                 if (Current()->parseJson(root)) {
                         code = true;
-              }
+                }
 
         }
 
@@ -527,38 +507,38 @@ bool Melvanimate::parse(JsonObject & root)
 
 //  save the data to RTC after user input has been parsed...
 
-      if (Current() ) {
+        if (Current() ) {
 
 
 
 
 
 
-      if (Current() != _defaulteffecthandle) {
-        DebugMelvanimatef("[Melvanimate::parse(JsonObject & root)] Saving RTC vars ON\n");
-        data.effect = Current()->index;
-        Current()->SaveRTCdata();
-        data.on = true;
+                if (Current() != _defaulteffecthandle) {
+                        DebugMelvanimatef("[Melvanimate::parse(JsonObject & root)] Saving RTC vars ON\n");
+                        data.effect = Current()->index;
+                        Current()->SaveRTCdata();
+                        data.on = true;
 
-        if (Current()->preset() != 255) {
-          data.state = RTC_manager::PRESET;
-          data.preset = Current()->preset();
-        } else {
-          data.state = RTC_manager::NONE;
-          data.preset = 255;
+                        if (Current()->preset() != 255) {
+                                data.state = RTC_manager::PRESET;
+                                data.preset = Current()->preset();
+                        } else {
+                                data.state = RTC_manager::NONE;
+                                data.preset = 255;
+                        }
+
+                } else {
+                        DebugMelvanimatef("[Melvanimate::parse(JsonObject & root)] Saving RTC vars OFF\n");
+
+                        data.effect = (_toggleHandle) ? _toggleHandle->index : 0;
+                        data.on = false;
+                }
+
+
+                _rtcman.save();
+
         }
-
-      } else {
-        DebugMelvanimatef("[Melvanimate::parse(JsonObject & root)] Saving RTC vars OFF\n");
-
-        data.effect = (_toggleHandle)? _toggleHandle->index: 0;
-        data.on = false;
-      }
-
-
-      _rtcman.save();
-
-    }
 
         return code;
 }
@@ -567,6 +547,7 @@ bool Melvanimate::parse(JsonObject & root)
 
 void Melvanimate::_initMQTT(JsonObject & root)
 {
+        //return;
 
         IPAddress addr;
         uint16_t port = 1883;
@@ -594,43 +575,61 @@ void Melvanimate::_initMQTT(JsonObject & root)
 
                         if (_mqtt && (_mqtt->getIP() != addr || _mqtt->getPort() != port   )) {
 
-                          delete _mqtt;
-                          _mqtt = nullptr;
-                          _mqtt = new MelvanimateMQTT(this, addr, port);
+                                delete _mqtt;
+                                _mqtt = nullptr;
+                                _mqtt = new MelvanimateMQTT(this, addr, port);
 
-                          if (!_mqtt) {
-                            DebugMelvanimatef("[Melvanimate::_initMQTT] FAILED\n");
-                          }
+                                if (!_mqtt) {
+                                        DebugMelvanimatef("[Melvanimate::_initMQTT] FAILED\n");
+                                }
 
-                        } else if (_mqtt){
-                          DebugMelvanimatef("[Melvanimate::_initMQTT] No changes Required\n");
-                          if (!*_mqtt) {
-                            DebugMelvanimatef("[Melvanimate::_initMQTT] But it is NOT connected\n");
-                          }
+                        } else if (_mqtt) {
+                                DebugMelvanimatef("[Melvanimate::_initMQTT] No changes Required\n");
+                                if (!*_mqtt) {
+                                        DebugMelvanimatef("[Melvanimate::_initMQTT] But it is NOT connected\n");
+                                }
                         } else if (!_mqtt) {
-                          _mqtt = new MelvanimateMQTT(this, addr, port);
+                                _mqtt = new MelvanimateMQTT(this, addr, port);
                         }
 
 
                         DebugMelvanimatef("[Melvanimate::_initMQTT] (%u,%u,%u,%u) : %u \n", addr[0], addr[1], addr[2], addr[3], port );
 
 
-                        if (MQTTjson.containsKey("topics")) {
+                        uint32_t timeout = millis();
 
-                          JsonArray& topics = MQTTjson["topics"];
+                        //  waits for connection to allow subscribe to work.
 
-                            for (JsonArray::iterator it = topics.begin(); it != topics.end(); ++it) {
 
-                              if (_mqtt) {
-                                const char * currenttopic = *it;
-                                DebugMelvanimatef("[Melvanimate::_initMQTT] subscribing to : %s", currenttopic);
-                                  _mqtt->subscribe(currenttopic,2);
-                              }
+                        if (_mqtt) {
+                                //  std::bind(&ESPmanager::_HandleSketchUpdate, this, _1 ))
 
-                            }
+
+                                _mqtt->onConnect( std::bind( &Melvanimate::_MQTTsubscribe, this) );
+
+                                _mqtt->connect();
 
 
                         }
+
+
+
+                        //if (MQTTjson.containsKey("topics")) {
+
+                        //   JsonArray& topics = MQTTjson["topics"];
+                        //
+                        //     for (JsonArray::iterator it = topics.begin(); it != topics.end(); ++it) {
+                        //
+                        //       if (_mqtt) {
+                        //         const char * currenttopic = *it;
+                        //         DebugMelvanimatef("[Melvanimate::_initMQTT] subscribing to : %s\n", currenttopic);
+                        //           _mqtt->subscribe(currenttopic,2);
+                        //       }
+                        //
+                        //     }
+                        //
+                        //
+                        // }
 
                         // if (_mqtt && *_mqtt) {
                         //  DebugMelvanimatef("[Melvanimate::_initMQTT] Sending Full initial config\n");
@@ -651,6 +650,36 @@ void Melvanimate::_initMQTT(JsonObject & root)
 
         }
         //}
+
+}
+
+void Melvanimate::_MQTTsubscribe() {
+
+        DebugMelvanimatef("[Melvanimate::_MQTTsubscribe] \n");
+
+        JSONpackage json;
+
+        if (json.parseSPIFS(MELVANA_SETTINGS) == 0) {
+
+                JsonObject& root = json.getRoot();
+
+                if (root.containsKey("globals") && root["globals"].asObject().containsKey("MQTT") && root["globals"]["MQTT"].asObject().containsKey("topics") ) {
+
+                        JsonArray & topics = root["globals"]["MQTT"]["topics"];
+
+                        for (JsonArray::iterator it = topics.begin(); it != topics.end(); ++it) {
+
+                                if (_mqtt) {
+                                        const char * currenttopic = *it;
+                                        DebugMelvanimatef("[Melvanimate::_MQTTsubscribe] subscribing to : %s\n", currenttopic);
+                                        _mqtt->subscribe( currenttopic,2);
+                                }
+
+                        }
+
+                }
+        }
+
 
 }
 
@@ -765,12 +794,13 @@ void Melvanimate::populateJson(JsonObject & root, bool onlychanged)
 
 void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *request)
 {
-
+        //JsonObject test;
         DynamicJsonBuffer jsonBuffer;
         JsonObject& root = jsonBuffer.createObject();
 
         root["code"] = code;
 
+        JSONpackage * jsonpackage = nullptr;
 /*
 
    (page == "homepage") might be a breaking change for the GUI...
@@ -787,9 +817,32 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
         if (page == "configpage" || page == "all") {
 
                 root["pixels"] = getPixels();
+                jsonpackage = new JSONpackage;
+                if (!jsonpackage) return;
+                JSONpackage & json = *jsonpackage;
+                bool mqtt_settings_ok = false;
+                JsonObject * settings = nullptr;
 
-                if (_mqtt) {
-                        _mqtt->addJson(root);
+                if (!json.parseSPIFS(MELVANA_SETTINGS)) {
+                        Serial.print("PARSE OK\n");
+                        settings =  &json.getRoot().asObject();
+                        if (settings && settings->containsKey("globals") && (*settings)["globals"].asObject().containsKey("MQTT")) {
+                                mqtt_settings_ok = true;
+                        } else {
+                                if (!settings) { Serial.println("settings = null"); }
+                                if (!settings->containsKey("MQTT")) { Serial.println("settings->containsKey(\"MQTT\") = null"); }
+                        }
+                }
+
+                if (mqtt_settings_ok) {
+                        //if (_mqtt && mqtt_settings_ok) {
+                        //_mqtt->addJson(root);
+                        //JsonObject & settings = json.getRoot();
+                        Serial.println("merging");
+                        JsonObject & destmqtt = root.createNestedObject("MQTT");
+                        JsonObject & mqtt = (*settings)["globals"]["MQTT"].asObject();
+                        JSONpackage::mergejson(destmqtt, mqtt);
+                        Serial.println("done");
                 } else {
                         JsonObject & mqtt = root.createNestedObject("MQTT");
                         mqtt["enabled"] = false;
@@ -847,6 +900,10 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
         // Serial.println();
 
         _sendJsontoHTTP(root, request);
+
+        if (jsonpackage) {
+                delete jsonpackage;
+        }
         DebugMelvanimatef("[Melvanimate::_sendData] jsonBuffer Size = %u\n", jsonBuffer.size() );
 
 }
@@ -868,8 +925,8 @@ template <class T> void Melvanimate::_sendJsontoHTTP( const T & root, AsyncWebSe
 void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
 {
   #ifdef DISABLE_MANIFEST
-          request->send(404);
-          return;
+        request->send(404);
+        return;
   #endif
 
         AsyncResponseStream *response = request->beginResponseStream(F("text/cache-manifest")); //Sends 404 File Not Found
@@ -921,10 +978,10 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
         }
 
         if (request->hasParam("rtc")) {
-          Serial.println("Getting RTC Data");
-          if (_currentHandle) {
-            _currentHandle->GetRTCdata();
-          }
+                Serial.println("Getting RTC Data");
+                if (_currentHandle) {
+                        _currentHandle->GetRTCdata();
+                }
         }
 
         // puts all the args into json...
@@ -1002,45 +1059,223 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
         }
 
 
-        if (p_root) {
-                JsonObject & root = *p_root;
 
-                if (request->hasParam("enablemqtt", true)) {
 
-                        JsonObject & settings = root.createNestedObject("globals");
-                        JsonObject & mqttjson = settings.createNestedObject("MQTT");
 
-//		if ( request->getParam("enablemqtt") == "on" ) {
 
-                        DebugMelvanimatef("[Melvanimate::_handleWebRequest] Enable MQTT..\n");
+        if (request->hasParam("enablemqtt", true) || request->hasParam("add_topic", true) || request->hasParam("remove_topic", true) ) {
 
-                        mqttjson["enabled"] = (  request->getParam("enablemqtt", true )->value() == "on") ? true : false;
+                DebugMelvanimatef("[Melvanimate::_handleWebRequest] MQTT\n");
 
-                        IPAddress ip;
+                bool mqtt_settings_changed = false;
 
-                        if (request->hasParam("mqtt_ip", true )) {
-                                if (ip.fromString( request->getParam("mqtt_ip", true )->value())) {
-                                        JsonArray & iparray = mqttjson.createNestedArray("ip");
-                                        iparray.add(ip[0]);
-                                        iparray.add(ip[1]);
-                                        iparray.add(ip[2]);
-                                        iparray.add(ip[3]);
+                JSONpackage * json = new JSONpackage;
+
+                if (json) {
+
+                        if (!json->parseSPIFS(MELVANA_SETTINGS) || !SPIFFS.exists(MELVANA_SETTINGS)) {
+
+                                DebugMelvanimatef("[Melvanimate::_handleWebRequest] Settings loaded\n");
+
+                                JsonObject & rootsettings = json->getRoot();
+
+                                bool mqttenabled = false;
+                                IPAddress mqttip;
+                                uint16_t mqttport;
+                                JsonObject * globals = nullptr;
+                                JsonObject * MQTT = nullptr;
+                                JsonArray * topics = nullptr;
+
+
+                                if (rootsettings.containsKey("globals") && rootsettings["globals"].asObject().containsKey("MQTT")) {
+                                        DebugMelvanimatef("[Melvanimate::_handleWebRequest] loaded settings contain globals & MQTT\n");
+                                        globals = &rootsettings["globals"].asObject();
+                                        MQTT = &rootsettings["globals"]["MQTT"].asObject();
+
+                                        mqttenabled = rootsettings["globals"]["MQTT"]["enabled"];
+                                        JsonArray & ip = rootsettings["globals"]["MQTT"]["ip"].asArray();
+                                        mqttip = IPAddress( ip[0], ip[1],ip[2],ip[3]);
+                                        if (rootsettings["globals"]["MQTT"].asObject().containsKey("topics")) {
+                                                topics = &rootsettings["globals"]["MQTT"]["topics"].asArray();
+                                        }
+
+
+                                }
+
+                                if (!rootsettings.containsKey("globals")) {
+                                        DebugMelvanimatef("[Melvanimate::_handleWebRequest] Creating Globals json object\n");
+                                        globals = &rootsettings.createNestedObject("globals");
+                                        mqtt_settings_changed = true;
+                                } else {
+                                        globals = &rootsettings["globals"].asObject();
+                                }
+
+                                if (globals && !globals->containsKey("MQTT")) {
+                                        DebugMelvanimatef("[Melvanimate::_handleWebRequest] Creating MQTT json object\n");
+                                        MQTT = &globals->createNestedObject("MQTT");
+                                        mqtt_settings_changed = true;
+                                }
+
+                                // JsonObject & settings = rootsettings.createNestedObject("globals");
+                                // JsonObject & mqttjson = settings.createNestedObject("MQTT");
+//  enabled
+                                if (request->hasParam("enablemqtt", true )) {
+                                        bool value = (  request->getParam("enablemqtt", true )->value() == "on") ? true : false;
+                                        DebugMelvanimatef("[Melvanimate::_handleWebRequest] Enable MQTT: %s \n", (value) ? "true" : "false");
+                                        if (MQTT && value != mqttenabled) {
+                                                (*MQTT)["enabled"] = value;
+                                                mqtt_settings_changed = true;
+                                        } else {
+                                                DebugMelvanimatef("    unchanged\n");
+                                        }
+
+                                }
+// MQTT IP
+
+                                if (request->hasParam("mqtt_ip", true )) {
+                                        IPAddress ip;
+                                        if (ip.fromString( request->getParam("mqtt_ip", true )->value())) {
+                                                DebugMelvanimatef("[Melvanimate::_handleWebRequest] MQTT IP: %u.%u.%u.%u \n", ip[0], ip[1], ip[2], ip[3] );
+
+                                                if (MQTT && ip != mqttip) {
+                                                        JsonArray & iparray = MQTT->createNestedArray("ip");
+                                                        iparray.add(ip[0]);
+                                                        iparray.add(ip[1]);
+                                                        iparray.add(ip[2]);
+                                                        iparray.add(ip[3]);
+                                                        mqtt_settings_changed = true;
+
+                                                } else {
+                                                        DebugMelvanimatef("    unchanged\n");
+                                                }
+
+                                        }
+                                }
+
+// port
+                                if (request->hasParam("mqtt_port", true)) {
+                                        uint16_t port = request->getParam("mqtt_port", true)->value().toInt();
+                                        DebugMelvanimatef("[Melvanimate::_handleWebRequest] MQTT port: %u \n", port );
+
+                                        if (MQTT && port != mqttport) {
+                                                (*MQTT)["port"] = port;
+                                                mqtt_settings_changed = true;
+                                        } else {
+                                                DebugMelvanimatef("    unchanged\n");
+                                        }
+
+                                }
+
+
+//  topics
+//  need to check if it is a topic already...
+
+                                if (request->hasParam("add_topic", true)) {
+
+                                        String topic = request->getParam("add_topic", true)->value();
+
+                                        DebugMelvanimatef("[Melvanimate::_handleWebRequest] add_topic %s \n", topic.c_str() );
+
+                                        if (MQTT && !topics) {
+                                                topics = &MQTT->createNestedArray("topics");
+                                        }
+
+                                        topics->add(topic);
+
+                                        mqtt_settings_changed = true;
+                                }
+
+
+                                if (request->hasParam("remove_topic", true)) {
+
+                                        String topic_to_remove = request->getParam("remove_topic", true)->value().c_str();
+
+                                        if (topics) {
+                                                uint16_t index = 0;
+                                                for (JsonArray::iterator it=topics->begin(); it!=topics->end(); ++it)
+                                                {
+                                                        String current_topic = *it;
+                                                        if (current_topic == topic_to_remove) {
+                                                                mqtt_settings_changed = true;
+                                                                topics->removeAt(index);
+                                                                DebugMelvanimatef("[Melvanimate::_handleWebRequest] remove_topic %s at index % u \n", current_topic.c_str(), index );
+                                                        }
+                                                        index++;
+                                                }
+
+
+
+                                        }
+
+
+                                }
+
+// save changes
+
+                                if (mqtt_settings_changed) {
+
+
+                                        File _settings;
+
+                                        DebugMelvanimatef("Saving Settings: ");
+
+                                        _settings = SPIFFS.open(MELVANA_SETTINGS, "w");
+
+                                        if (_settings) {
+
+                                                // if (_mqtt) {
+                                                //         _mqtt->addJson(globals);
+                                                // } else {
+                                                //         JsonObject& MQTTjson = root["MQTT"];
+                                                //         MQTTjson["enabled"] = false;
+                                                // }
+
+                                                //_settings.seek(0, SeekSet);
+                                                rootsettings.prettyPrintTo(_settings);
+                                                //_settings_changed = false;
+                                                _settings.close();
+                                                DebugMelvanimatef("Done\n");
+                                                rootsettings.prettyPrintTo(Serial);
+                                                Serial.println();
+                                                //return true;
+
+                                        }
+
                                 }
                         }
 
-                        if (request->hasParam("mqtt_port", true)) {
-                                mqttjson["port"] = request->getParam("mqtt_port", true)->value();
-                        }
-
-#ifdef DebugMelvanimate
-                        // Serial.println();
-                        // mqttjson.prettyPrintTo(Serial);
-                        // Serial.println();
-#endif
-
-                        _initMQTT(settings);
-
+                        delete json;
                 }
+
+
+
+//		if ( request->getParam("enablemqtt") == "on" ) {
+
+                //DebugMelvanimatef("[Melvanimate::_handleWebRequest] Enable MQTT..\n");
+
+
+
+
+
+
+
+                // if (request->hasParam("mqtt_port", true)) {
+                //         mqttjson["port"] = request->getParam("mqtt_port", true)->value();
+                // }
+
+// #ifdef DebugMelvanimate
+//                         // Serial.println();
+//                         // mqttjson.prettyPrintTo(Serial);
+//                         // Serial.println();
+// #endif
+
+                //_initMQTT(settings);
+
+        }
+
+        if (p_root) {
+
+                JsonObject & root = *p_root;
 
 
                 if (request->hasParam("palette", true)) {
@@ -1437,18 +1672,18 @@ void Melvanimate::deleteAnimator()
 void Melvanimate::_checkheap()
 {
 
-    uint32_t newTest = ESP.getFreeHeap();
-    if(newTest  != _heap){
-      _heap = newTest;
-    }
+        uint32_t newTest = ESP.getFreeHeap();
+        if(newTest  != _heap) {
+                _heap = newTest;
+        }
 
 }
 
 void Melvanimate::sendEvent(const char * msg, const char * topic)
 {
-  if (_events) {
-    _events->send(msg,topic);
-  }
+        if (_events) {
+                _events->send(msg,topic);
+        }
 }
 
 void Melvanimate::_saveState() {

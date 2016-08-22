@@ -44,7 +44,7 @@
 #include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
 #include "ObjectManager.h"
 
-//#define DebugMelvanimate
+#define DebugMelvanimate
 
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimate)
@@ -116,6 +116,7 @@ private:
 	bool _loadGeneral();
 	void _init_LEDs();
 	void _initMQTT(JsonObject & root);
+	void _MQTTsubscribe(); 
 
 	void _sendData(String page, int8_t code,AsyncWebServerRequest *request);
 	void _handleWebRequest(AsyncWebServerRequest *request);

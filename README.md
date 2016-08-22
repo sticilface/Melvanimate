@@ -52,7 +52,7 @@ This is a complete rework of my previous project [WS2812-WiFi](https://github.co
 + DMX (via [E131](https://github.com/forkineye/E131)) Not perfect yet.
 + UDP (Stream RGB packets straight to ESP, works from [PixelController](http://pixelinvaders.ch/?page_id=160)).
 + Snakes (to come).
-+ Linear Blends (to come).
++ Linear Blends.
 
 ## Palette (not totally finished)
 + Created to give different scenes of colours, similar to different.  

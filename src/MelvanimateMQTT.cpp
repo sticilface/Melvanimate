@@ -22,6 +22,10 @@ MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t 
 									free(willtopic);
 								}
 
+								if (_connectCB) {
+									_connectCB();
+								}
+
 
         });
 
@@ -45,7 +49,8 @@ MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t 
         _mqttClient.setWill( willtopic, 2, true, "Disconnected");
         //.setCredentials("username", "password")
         DebugMelvanimateMQTTf("[MelvanimateMQTT::MelvanimateMQTT] Connecting to MQTT...");
-        _mqttClient.connect();
+
+
 
 }
 
@@ -194,8 +199,12 @@ void MelvanimateMQTT::_handle(char* topic, byte* payload, unsigned int length)
                         //  not found.. so send to melvanimate...
                         JsonObject & root = jsonBuffer.createObject();
 
-                        String shorttopic = String(topic).substring( String(_melvanimate->deviceName()).length() + 1, strlen(topic) - 4 );
+												String topic_without_set = String(topic).substring( 0, strlen(topic) - 4 );
+                        String shorttopic = topic_without_set.substring( topic_without_set.lastIndexOf("/")+1);
+
                         root[shorttopic.c_str()] = data;
+
+												Serial.printf("command = %s, data = %s\n", shorttopic.c_str(), data);
                         _melvanimate->parse(root);
                         DynamicJsonBuffer jsonBufferReply;
                         JsonObject & reply = jsonBufferReply.createObject();
