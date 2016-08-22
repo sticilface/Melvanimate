@@ -183,16 +183,18 @@ void Melvanimate::_init_LEDs()
                 animator = nullptr;
         }
 
-        if (_pixels) {
+        if (!_pixels) {
                 //strip = new NeoPixelBus(_pixels, DEFAULT_WS2812_PIN);
-                strip = new MyPixelBus(_pixels, DEFAULT_WS2812_PIN);
-
+                _pixels = 1;
         }
 
+        strip = new MyPixelBus(_pixels, DEFAULT_WS2812_PIN);
 
         if (strip) {
                 strip->Begin();
                 strip->Show();
+        } else {
+                Serial.println("ERROR CREATING STRIP");
         }
 
 }
