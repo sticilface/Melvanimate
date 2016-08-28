@@ -33,11 +33,11 @@ int JSONpackage::parseSPIFS(const char * file, FS & fs) {
                 return -1;
         }
         if (totalBytes > MELVANA_MAX_BUFFER_SIZE) {
-                return -1;
+                return -2;
         }
         _data = std::unique_ptr<char[]>(new char[totalBytes]);
         if (!_data) {
-                return -1;
+                return -3;
         }
         int position = 0;
         int bytesleft = totalBytes;
@@ -73,7 +73,7 @@ int JSONpackage::parseSPIFS(const char * file, FS & fs) {
                 _root = _jsonBuffer.parseObject(_data.get(),totalBytes);
         }
         if (!_root.success()) {
-                return -1;
+                return -4;
         }
         return 0;
 

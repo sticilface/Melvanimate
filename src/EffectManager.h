@@ -45,7 +45,8 @@ public:
 	bool Add(const char * name, EffectHandler* Handler, bool defaulteffect = false);
 
 	bool Start(EffectHandler* handle);
-	bool Startblank(uint8_t index);
+	bool Startblank(EffectHandler* handler);
+	bool Startblank(uint8_t index) { Startblank(_findhandle(index)) ; }
 	inline bool Start()  { return Start(_toggleHandle); }
 	inline bool Start(const char * name)  { return Start(_findhandle(name)); }
 	inline bool Start(const String name)  { return Start(name.c_str()); }

@@ -1,7 +1,6 @@
 
 #pragma once
 
-//#include <PubSubClient.h>
 #include <AsyncMqttClient.h>
 
 #include <ESP8266WiFi.h>
@@ -10,7 +9,7 @@
 #include <functional>
 #include <ArduinoJson.h>
 
-#define DebugMelvanimateMQTT
+//#define DebugMelvanimateMQTT
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimateMQTT)
 //#define DebugMelvanimateMQTTf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)

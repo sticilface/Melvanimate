@@ -89,9 +89,8 @@ EffectHandler* EffectManager::_findhandle(const char * handle)
 }
 
 //  starts an effect without all the preset and default checking... used at boot to load data from RTC.
-bool EffectManager::Startblank(uint8_t index) {
-
-        EffectHandler* handler = _findhandle(index);
+bool EffectManager::Startblank(EffectHandler* handler) {
+      
 
 				if (handler != _defaulteffecthandle) {
 					_toggleHandle = handler;

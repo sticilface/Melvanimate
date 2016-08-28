@@ -26,6 +26,8 @@
 
   var _online = navigator.onLine;
 
+
+
   console.log( (_online)? "SITE is online" : "SITE is offline");
 // Update configuration to our liking
 //$( document ).on( "mobileinit", function() {
@@ -38,6 +40,24 @@ if (typeof(Storage) !== "undefined") {
     // Sorry! No Web Storage support..
     console.log("LOCAL STORAGE NOT SUPPORTED");
 }
+
+  function RemoveTopic(topic) {
+              console.log("Topic: " + topic);
+              $.post( _currentdevice + "data.esp"  , "remove_topic=" + topic  , function(data) {
+
+                    }).success(function(e) {
+                        processJSON(e);
+                        $("#status").empty().append("Success").css("color", "green");
+                    })
+                    .error(function() {
+
+                        $("#status").empty().append("Offline").css("color", "red");
+
+                        _connectedStatus = "offline";
+
+                    })
+                    .complete(function() {});
+  }
 
 </script>
 
@@ -412,14 +432,6 @@ if (typeof(Storage) !== "undefined") {
                     <input type="text" name="nopixels" id="nopixels" value="" class="noEnterSubmit">
                 </div>
 
-            <!--<div class="ui-field-contain">    -->
-            <!--  <label for="flip-enable-MQTT">MQTT:</label>-->
-            <!--      <select id="flip-enable-MQTT" name="enablemqtt" data-role="slider">-->
-            <!--        <option value="false">Off</option>-->
-            <!--        <option value="true">On</option>-->
-            <!--      </select>-->
-            <!--</div>    -->
-
                 <div class="ui-field-contain">
                     <label for="flip-enable-MQTT">MQTT:</label>
                     <select id="flip-enable-MQTT" name="enablemqtt" data-role="flipswitch">
@@ -436,6 +448,13 @@ if (typeof(Storage) !== "undefined") {
                     <label for="mqtt_port">Port:</label>
                     <input  type="text" name="mqtt_port" id="mqtt_port">
                 </div>
+                  <div class="ui-field-contain">
+                    <label for="input_add_topic">Add Topic:</label>
+                    <input  type="text" name="add_topic" id="input_add_topic">
+                </div>
+                <a id="button_add_topic" data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">Add Topic</a>
+                <p id="topics_text">Subscribed Topics:</p>
+                <ul data-role="listview" data-split-icon="delete" data-split-theme="a" data-inset="true" id="topic_list"></ul>
                 <a href="#homepage"  data-role="button" data-theme="a" data-icon="save" data-iconpos="notext" class="mysubmit ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-icon-left ui-icon-check">OK</a>
 
             </form>
@@ -1362,6 +1381,10 @@ $("#eqpage").on("pagebeforeshow", function() {
             //     GetData("all");
             // });
 
+
+
+
+
             $(document).on('click', '#device_list_button'  , function() {
 
               $("#status").empty().append("Waiting ").css("color", "blue");
@@ -1455,6 +1478,19 @@ $("#eqpage").on("pagebeforeshow", function() {
                     });
             });
 
+            $(document).on('click', '#button_add_topic', function(e) {
+              $.post(_currentdevice + "data.esp", "add_topic=" + encodeURIComponent($("#input_add_topic").val()), function(data) {
+              }).success(function(e) {
+                        $("#status").empty().append("Success").css("color", "green");;
+                        $("#input_add_topic").val("");
+                        processJSON(e);
+                    })
+                    .error(function() {
+                        $("#status").empty().append("Error").css("color", "red");;
+                    })
+                    .complete(function() {});
+            });
+
             $(document).on('change', '.mysubmittext', function(e) {
                 $("#status").empty().append("Waiting ").css("color", "blue");;
                 $.post(_currentdevice + "data.esp", $(this).find('input'), function(data) {
@@ -1509,13 +1545,22 @@ $("#eqpage").on("pagebeforeshow", function() {
             //$('#flip-enable-MQTT').change( function() {
 
               console.log("MQQT flip = " + $(this).val());
-
+              // input_add_topic
               if ($(this).val() == "on") {
                 $('#mqtt_ip').closest('div.ui-field-contain').show();
                 $('#mqtt_port').closest('div.ui-field-contain').show();
+                $('#input_add_topic').closest('div.ui-field-contain').show();
+                $('#topics_text').show();
+                $("#button_add_topic").show();
+                $('#topic_list').removeClass('ui-screen-hidden').trigger('change');
+
               } else if ($(this).val() == "off") {
                 $('#mqtt_ip').closest('div.ui-field-contain').hide();
                 $('#mqtt_port').closest('div.ui-field-contain').hide();
+                $('#input_add_topic').closest('div.ui-field-contain').hide();
+                $('#topics_text').hide();
+                $("#button_add_topic").hide();
+                $('#topic_list').addClass('ui-screen-hidden').trigger('change');
               }
             });
 
@@ -2073,6 +2118,7 @@ $("#eqpage").on("pagebeforeshow", function() {
 
 
                     if ($.mobile.activePage.attr('id') == 'configpage') {
+                      $("#input_add_topic").val("");
                       console.log("DATA fetched for configpage");
                       console.log(result);
                         if (result.hasOwnProperty('pixels')) {
@@ -2097,8 +2143,25 @@ $("#eqpage").on("pagebeforeshow", function() {
                             $("#mqtt_port").val(mqtt.port);
                         }
 
+                        if (mqtt.hasOwnProperty("topics")) {
+                          $("#topic_list").empty();
+
+                          $.each(mqtt.topics, function(key, value) {
+                                console.log(key + ":" + value);
+                                $("#topic_list").append("<li><a><h2>"+ value +"</h2></a><a onClick=\"RemoveTopic('"+ encodeURIComponent(value) +"'); return false;\" ></a></li>");
+                            });
+
+                    //<li><a><h2>Broken Bells</h2></a><a onClick="RemoveTopic('lalal/bc/abc'); return false;" ></a></li>
+
+                         $("#topic_list").listview("refresh");
+
+                        }
                       }
-                    }
+
+
+
+
+                    } // end of config page
 
 
 

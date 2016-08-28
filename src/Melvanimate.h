@@ -4,7 +4,7 @@
 
 1.  ?Integrate Events, event posting,
 2.  ?automatic refresh
-3. Use RTC memory to remember state after reboot.
+3.  Use RTC memory to retrieve toggled settings!  think if it = OFF or default handle then only toggle the on variable of rtc data...
 
 
 
@@ -44,11 +44,13 @@
 #include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
 #include "ObjectManager.h"
 
-#define DebugMelvanimate
+//#define DebugMelvanimate
 
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimate)
-#define DebugMelvanimatef(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+#define DebugMelvanimatef(...) DEBUG_ESP_PORT.printf(__VA_ARGS__) //  this saves around 5K RAM...
+
+//#define DebugMelvanimatef(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 #else
 #define DebugMelvanimatef(...) {}
 #endif
@@ -116,7 +118,7 @@ private:
 	bool _loadGeneral();
 	void _init_LEDs();
 	void _initMQTT(JsonObject & root);
-	void _MQTTsubscribe(); 
+	void _MQTTsubscribe();
 
 	void _sendData(String page, int8_t code,AsyncWebServerRequest *request);
 	void _handleWebRequest(AsyncWebServerRequest *request);
