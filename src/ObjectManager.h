@@ -8,11 +8,11 @@ Handler to add / create / run multiple Effect Objects at the same time...
 */
 
 #pragma once
-#include <functional>
 #include "Arduino.h"
 #include <NeoPixelAnimator.h>
 #include "Melvtrix.h"
 #include "EQ.h"
+#include <functional>
 
 //#define DebugObjectman
 
@@ -119,6 +119,7 @@ public:
 			if (_ObjUpdate) {
 				if (_ObjUpdate()) {
 					_lasttick = millis();
+					_timeout = 0;
 					return true;
 				} else {
 					_lasttick = millis();

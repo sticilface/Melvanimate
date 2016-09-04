@@ -30,12 +30,17 @@ bool Melvanimate::begin(const char * name)
         _HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
         _HTTP.on("/site.appcache", HTTP_ANY, std::bind (&Melvanimate::_handleManifest, this, _1));
 
-        //_HTTP.serveStatic("", SPIFFS, "/").setCacheControl("max-age=86400");
+        //_HTTP.rewrite("/", "/index.htm");
+
+        //_HTTP.serveStatic("/", SPIFFS, "/").setCacheControl("max-age=86400");
+
+        //_HTTP.serveStatic("/jqColorPicker.min.js", SPIFFS, "/jqColorPicker.min.js").setCacheControl("max-age=86400");
+
         _loadGeneral();
         _init_LEDs();
         fillPresetArray();
 
-        _locator.begin(_deviceName, 8827);
+        _locator.begin(_deviceName, UDP_BROADCAST_PORT);
 
         if (_rtcman.load()) {
 
@@ -97,34 +102,22 @@ bool Melvanimate::begin(const char * name)
 
 }
 
-
-/*
-
-
-      MUST CHANGE THIS.....
-
-
- */
 void Melvanimate::addJQueryhandlers() {
 
 
-        _HTTP.on("/jquery/jqm1.4.5.css", HTTP_GET, [](AsyncWebServerRequest *request){
-                AsyncWebServerResponse * response = request->beginResponse(302);
-                response->addHeader("Location","http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css");
-                request->send(response);
-        }).setFilter(ON_STA_FILTER);
+  _HTTP.on("/jquery/jqm1.4.5.css", HTTP_GET, [](AsyncWebServerRequest *request){
+          request->redirect("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css");
+  }).setFilter(ON_STA_FILTER);
 
-        _HTTP.on("/jquery/jq1.11.1.js", HTTP_GET, [](AsyncWebServerRequest *request){
-                AsyncWebServerResponse * response = request->beginResponse(302);
-                response->addHeader("Location","http://code.jquery.com/jquery-1.11.1.min.js");
-                request->send(response);
-        }).setFilter(ON_STA_FILTER);
+  _HTTP.on("/jquery/jq1.11.1.js", HTTP_GET, [](AsyncWebServerRequest *request){
+          request->redirect("http://code.jquery.com/jquery-1.11.1.min.js");
+  }).setFilter(ON_STA_FILTER);
 
-        _HTTP.on("/jquery/jqm1.4.5.js", HTTP_GET, [](AsyncWebServerRequest *request){
-                AsyncWebServerResponse * response = request->beginResponse(302);
-                response->addHeader("Location","http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js");
-                request->send(response);
-        }).setFilter(ON_STA_FILTER);
+  _HTTP.on("/jquery/jqm1.4.5.js", HTTP_GET, [](AsyncWebServerRequest *request){
+          request->redirect("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js");
+  }).setFilter(ON_STA_FILTER);
+
+  _HTTP.serveStatic("/jquery", SPIFFS, "/jquery/").setCacheControl("max-age:86400").setFilter(ON_AP_FILTER);
 }
 
 void Melvanimate::loop()
@@ -188,7 +181,8 @@ void Melvanimate::_init_LEDs()
                 _pixels = 1;
         }
 
-        strip = new MyPixelBus(_pixels, DEFAULT_WS2812_PIN);
+        //strip = new MyPixelBus(_pixels, DEFAULT_WS2812_PIN);
+        strip = new MyPixelBus(_pixels);
 
         if (strip) {
                 strip->Begin();
@@ -254,7 +248,7 @@ void Melvanimate::setPixels(const int pixels)
                         }
                 } else {
                         JsonObject& globals = root.createNestedObject("globals");
-                        globals["pixels"] = _pixels;
+                        globals["pixels"] = pixels;
                         changed = true;
                 }
 
@@ -266,7 +260,9 @@ void Melvanimate::setPixels(const int pixels)
                                 set.close();
                         }
                         DebugMelvanimatef("NEW Pixels: %u\n", pixels);
-                        strip->ClearTo(0);
+                        if (strip) {
+                          strip->ClearTo(0);
+                        }
                         _pixels = pixels;
                         _init_LEDs();
                 }
@@ -809,8 +805,9 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
         JsonObject& root = jsonBuffer.createObject();
 
         root["code"] = code;
+        JSONpackage json; // = *jsonpackage;
 
-        JSONpackage * jsonpackage = nullptr;
+        //JSONpackage * jsonpackage = nullptr;
 /*
 
    (page == "homepage") might be a breaking change for the GUI...
@@ -827,9 +824,8 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
         if (page == "configpage" || page == "all") {
 
                 root["pixels"] = getPixels();
-                jsonpackage = new JSONpackage;
-                if (!jsonpackage) return;
-                JSONpackage & json = *jsonpackage;
+                // jsonpackage = new JSONpackage;
+                // if (!jsonpackage) return;
                 bool mqtt_settings_ok = false;
                 JsonObject * settings = nullptr;
 
@@ -838,13 +834,22 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
                         if (settings && settings->containsKey("globals") && (*settings)["globals"].asObject().containsKey("MQTT")) {
                                 mqtt_settings_ok = true;
                         } else {
-                                if (!settings) { Serial.println("settings = null"); }
-                                if (!settings->containsKey("MQTT")) { Serial.println("settings->containsKey(\"MQTT\") = null"); }
+
+                                if (!settings) {
+                                  DebugMelvanimatef("settings = null\n");
+                                } else {
+                                  DebugMelvanimatef("settings = ");
+#ifdef DebugMelvanimate
+                                  settings->prettyPrintTo(Serial);
+#endif
+                                  DebugMelvanimatef("\n");
+                                }
+                                //if (!settings->containsKey("MQTT")) { Serial.println("settings->containsKey(\"MQTT\") = null"); }
                         }
                 }
 
                 if (mqtt_settings_ok) {
-                        //if (_mqtt && mqtt_settings_ok) {
+                        //if (_mqtt && mqtt_settings_ok)
                         //_mqtt->addJson(root);
                         //JsonObject & settings = json.getRoot();
                         JsonObject & destmqtt = root.createNestedObject("MQTT");
@@ -882,7 +887,7 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
                 }
         }
 
-        if (page == "presetspage") {
+        if (page == "presetspage" || page == "all" || page == "allpresetspage" ) {
 
                 JsonObject& settings = root.createNestedObject("settings");
                 // adds minimum current effect name, if there if addJson returns false.
@@ -908,10 +913,10 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
 
         _sendJsontoHTTP(root, request);
 
-        if (jsonpackage) {
-                delete jsonpackage;
-        }
-        DebugMelvanimatef("[Melvanimate::_sendData] jsonBuffer Size = %u\n", jsonBuffer.size() );
+        // if (jsonpackage) {
+        //         delete jsonpackage;
+        // }
+        DebugMelvanimatef("[Melvanimate::_sendData] jsonBuffer Size = %u, heap = %u\n", jsonBuffer.size(), ESP.getFreeHeap() );
 
 }
 
@@ -931,17 +936,18 @@ template <class T> void Melvanimate::_sendJsontoHTTP( const T & root, AsyncWebSe
 
 void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
 {
-  #ifdef DISABLE_MANIFEST
+#ifdef DISABLE_MANIFEST
         request->send(404);
         return;
-  #endif
+#endif
 
         AsyncResponseStream *response = request->beginResponseStream(F("text/cache-manifest")); //Sends 404 File Not Found
         response->addHeader(F("Cache-Control"),F( "must-revalidate"));
         response->print(F("CACHE MANIFEST\n"));
         response->printf( "# %s\n", __DATE__ " " __TIME__ );
-
-
+#ifdef RANDOM_MANIFEST
+        response->printf("# %u\n", random(10000));
+#endif
         response->print(F("CACHE:\n"));
         response->print(F("jquery/jqm1.4.5.css\n"));
         response->print(F("jquery/jq1.11.1.js\n"));
@@ -1048,9 +1054,15 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
                 int num = (request->getParam("nopixels", true )->value()).toInt();
 
                 //setTimeout(long d, timer_callback f);
-                _timer.setTimeout(30, [num, this]() {
-                        setPixels(num);
-                });
+
+                //if (num != _pixels) {
+                  //DebugMelvanimatef("[Melvanimate::_handleWebRequest] Pixels Count Changed... Changing Pixels\n");
+
+//  pixelstochange
+                  _timer.setTimeout(1000, [num, this]() {
+                          setPixels(num);
+                  });
+                //}
 
                 page = "layout";
 
@@ -1240,7 +1252,6 @@ void Melvanimate::_handleWebRequest(AsyncWebServerRequest *request)
 // save changes
 
                                 if (mqtt_settings_changed) {
-
 
                                         File _settings;
 

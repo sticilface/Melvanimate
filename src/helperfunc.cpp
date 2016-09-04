@@ -26,11 +26,27 @@ bool helperfunc::convertcolor(JsonObject & root, const char * node)
 	if (root.containsKey(node)) {
 
 		String colorstring = root[node];
+		colorstring.trim();
+		uint8_t R = 0;
+		uint8_t G = 0;
+		uint8_t B = 0;
+		
+		if (colorstring.indexOf(",") >= 0) {
+			R = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+			colorstring = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length());
+			G = colorstring.substring(0, colorstring.indexOf(",")).toInt();
+			B = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length()).toInt();
+		} else if (colorstring.length() == 6){
+			uint32_t color = strtol(colorstring.c_str(), NULL, 16);
+			RgbColor actual = RgbColor(HtmlColor(color));
+			R = actual.R;
+			G = actual.G;
+			B = actual.B;
+		} else {
+			return false;
+		}
+
 		JsonArray& colorroot = root.createNestedArray(node);
-		uint8_t R = colorstring.substring(0, colorstring.indexOf(",")).toInt();
-		colorstring = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length());
-		uint8_t G = colorstring.substring(0, colorstring.indexOf(",")).toInt();
-		uint8_t B = colorstring.substring( colorstring.indexOf(",") + 1, colorstring.length()).toInt();
 		colorroot.add(R);
 		colorroot.add(G);
 		colorroot.add(B);
@@ -298,7 +314,7 @@ void helperfunc::cpuCycleTimer(bool mark) {
 
   if (currentdif < oldmin || oldmin == 0) {
     oldmin = currentdif;
-  } 
+  }
 
   if (currentdif > oldmax)
   {

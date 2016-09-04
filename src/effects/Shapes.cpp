@@ -41,6 +41,10 @@ bool Shapes::InitVars()
 
 bool Shapes::Start()
 {
+	if (!strip) {
+		return false;
+	}
+
 	strip->ClearTo(0);
 
 	if (matrixMan()) {
@@ -71,8 +75,6 @@ bool Shapes::Start()
 	setshape( shapemode() );
 
 	for (uint8_t obj = 0; obj < effectnumber(); obj++) {
-
-
 
 		SimpleEffectObject * current =  static_cast<SimpleEffectObject*>(_vars->manager->Get(obj));  // cast handler to the Blobs class...
 

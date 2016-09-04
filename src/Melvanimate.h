@@ -15,9 +15,10 @@
 #pragma once
 
 #include <Arduino.h>
+
+#include <NeoPixelBus.h>
 #include <functional>
 #include <IPAddress.h>
-
 #include <ESP8266WiFi.h>
 
 #include <ESPAsyncTCP.h>
@@ -28,8 +29,8 @@
 
 #include "MelvanimateMQTT.h"
 #include "UDP_broadcast.h"
-#include <NeoPixelBus.h>
-#include <NeoPixelAnimator.h>
+
+//#include <NeoPixelAnimator.h>
 #include <FS.h>
 
 #define MELVANA_SETTINGS "/MelvanaSettings.txt"
@@ -44,13 +45,13 @@
 #include "SimpleTimer/_SimpleTimer.h" // modified version that can return time to event
 #include "ObjectManager.h"
 
-//#define DebugMelvanimate
+//#define DebugMelvanimate Serial
+//#define RANDOM_MANIFEST
+//#define DISABLE_MANIFEST   //  don't really want this.. as if manifest 404s then it is loaded from cache!  use random to force reload!
 
-
-#if defined(DEBUG_ESP_PORT) && defined(DebugMelvanimate)
-#define DebugMelvanimatef(...) DEBUG_ESP_PORT.printf(__VA_ARGS__) //  this saves around 5K RAM...
-
-//#define DebugMelvanimatef(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+#if defined(DebugMelvanimate)
+//#define DebugMelvanimatef(...) DebugMelvanimate.printf(__VA_ARGS__) //  this saves around 5K RAM...
+#define DebugMelvanimatef(_1, ...) DebugMelvanimate.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 #else
 #define DebugMelvanimatef(...) {}
 #endif

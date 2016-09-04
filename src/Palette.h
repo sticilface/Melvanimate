@@ -18,11 +18,11 @@
 
 #include <ArduinoJson.h>
 
-//#define DebugPalette
+//#define DebugPalette Serial
 
-#if defined(DEBUG_ESP_PORT) && defined(DebugPalette)
-//#define PaletteDebugf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
-#define PaletteDebugf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+#if defined(DebugPalette)
+//#define PaletteDebugf(...) DebugPalette.printf(__VA_ARGS__)
+#define PaletteDebugf(_1, ...) DebugPalette.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 
 #else
 #define PaletteDebugf(...) {}

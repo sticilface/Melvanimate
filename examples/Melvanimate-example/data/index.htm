@@ -147,7 +147,7 @@ if (typeof(Storage) !== "undefined") {
             <a href="#matrixpage" data-role="button" class="ui-btn" id ="matrixbutton">Matrix</a>
             <a href="#eqpage" data-role="button" class="ui-btn" id ="eqbutton">EQ</a>
             <a href="#configpage" data-role="button" class="ui-btn">Config</a>
-            <a href="/espman/" rel="external" data-role="button" class="ui-btn">ESPmanager</a>
+            <a href="/espman/" rel="external" data-role="button" class="ui-btn" id="ESPmanagerlink">ESPmanager</a>
             <a href="#messages"  data-role="button" class="ui-btn">Messages</a>
 
             <a href="#my-header" data-rel="close" class="ui-btn">Close</a>
@@ -1133,6 +1133,8 @@ function startEvents() {
   //    $('.noEnterSubmit').bind('keypress', false);
         function RUNDOCUMENT() {
 
+
+
                    $('.color').colorPicker({
                     preventFocus: true,
                     renderCallback: function($elm, toggled) {
@@ -1437,6 +1439,7 @@ $("#eqpage").on("pagebeforeshow", function() {
               // if ($(this).val() != 0 ) {
                  _currentdevice = "http://" + $(this).val() + "/";
                  _currentdeviceName = $(this).parent().text();
+                 $("#ESPmanagerlink").attr("href", "http://" + $(this).val() + "/espman/");
               // } else {
               //  _currentdevice = getBaseUrl();
               //  _currentdeviceName = _originalname;

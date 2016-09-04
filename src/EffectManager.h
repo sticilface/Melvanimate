@@ -1,4 +1,5 @@
 #pragma once
+#include <NeoPixelBus.h>
 
 #include <functional>
 #include <ArduinoJson.h>
@@ -8,7 +9,6 @@
 
 #include "EffectHandler.h"
 #include "helperfunc.h"
-#include <NeoPixelBus.h>
 #include <NeoPixelAnimator.h>
 #include "mybus.h"
 #include "RTC_manager.h"
@@ -20,9 +20,11 @@ extern NeoPixelAnimator * animator;
 
 #define PRESETS_FILE "/presets_"
 
-#if defined(DEBUG_ESP_PORT) && defined(DebugEffectManager)
-//#define DebugEffectManagerf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
-#define DebugEffectManagerf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+//#define DebugEffectManager Serial
+
+#if  defined(DebugEffectManager)
+//#define DebugEffectManagerf(...) DebugEffectManager.printf(__VA_ARGS__)
+#define DebugEffectManagerf(_1, ...) DebugEffectManager.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 
 #else
 #define DebugEffectManagerf(...) {}
