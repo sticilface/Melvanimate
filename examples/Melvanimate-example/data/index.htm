@@ -59,6 +59,25 @@ if (typeof(Storage) !== "undefined") {
                     .complete(function() {});
   }
 
+  function loadpreset(preset) {
+
+              $.post( _currentdevice + "data.esp"  , "presetcommand=load&selectedeffect=" + preset  , function(data) {
+
+                    }).success(function(e) {
+                        processJSON(e);
+                        $("#status").empty().append("Success").css("color", "green");
+                    })
+                    .error(function() {
+
+                        $("#status").empty().append("Offline").css("color", "red");
+
+                        _connectedStatus = "offline";
+
+                    })
+                    .complete(function() {});
+
+  }
+
 </script>
 
 
@@ -798,7 +817,19 @@ if (typeof(Storage) !== "undefined") {
 
 
 
+    <div data-role="page" id="allpresetspage" data-close-btn="right" data-dialog="true">
 
+        <div data-role="header">
+          <h1>Presets</h1>
+        </div>
+
+        <div data-role="content">
+
+        <ul id="allpresets_list" data-role="listview"></ul>
+
+        </div>
+
+    </div>
      <script>
 
 
@@ -1536,6 +1567,22 @@ $("#eqpage").on("pagebeforeshow", function() {
                     .complete(function() {});
             });
 
+
+$(document).on('swipeleft', '.ui-page', function(event){
+    if(event.handled !== true) // This will prevent event triggering more then once
+    {
+        var nextpage = $.mobile.activePage.next('[data-role="page"]');
+        // swipe using id of next page if exists
+        if (nextpage.length > 0) {
+          $( ":mobile-pagecontainer" ).pagecontainer( "change", "#allpresetspage", { transition: "slide" } );
+            //$.mobile.changePage(nextpage, {transition: "slide", reverse: false}, true, true);
+        }
+        event.handled = true;
+    }
+    return false;
+});
+
+
             // better way to get data for new page...
             // $(document).on("pagebeforechange", function(e, data) {
             //     var toPage = data.toPage[0].id;
@@ -2097,7 +2144,6 @@ $("#eqpage").on("pagebeforeshow", function() {
 
                     //presetspage
 
-
                     if ($.mobile.activePage.attr('id') == 'presetspage') {
                       presetspagedata = result;
                       $("#savepage_effects_list_select").find('option').remove();
@@ -2117,6 +2163,28 @@ $("#eqpage").on("pagebeforeshow", function() {
                       $('#presetpage_currentEffect').empty().append("Current Effect: " + result.settings.currentpresetname); // .css("color", "red");;
                     }
                     }
+
+                    // allpresetspage
+
+                    if ($.mobile.activePage.attr('id') == 'allpresetspage') {
+
+                      $("#allpresets_list").empty();
+
+                      if (result.hasOwnProperty('Presets')) {
+                            $.each(result.Presets, function(key, value) {
+                                $("#allpresets_list").append('<li><a href="#" data-rel="back" onclick=loadpreset(' + value.ID + ')>' + value.ID + '. ' + value.name + ' ['+ value.effect + '] </a></li>' );
+                                  //console.log("KEY = " + key + ", VALUE = " + value);
+                                //$("#savepage_effects_list_select").append('<option value=' + value.ID + " " + isconnected + '>' + value.name +"  (" + value.effect + ")" + '</option>');
+                            });
+
+
+                      }
+
+
+                      $("#allpresets_list").listview("refresh");
+
+                    }
+
 
 
 
