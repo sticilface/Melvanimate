@@ -4,12 +4,12 @@
 const char * palettes_strings[9] = { "off", "complementary", "monochromatic", "analogous", "splitcomplements", "triadic", "tetradic", "multi", "wheel"};
 const char * random_mode_strings[4] = {"off", "totalrandom", "timebased", "randomafterloop"} ;
 
-Palette::Palette(const char * name): _mode(OFF), _total(0), _available(0), _position(0), _random(TOTAL_RANDOM), _input(RgbColor(0)), _delay(0), _name(name)
+Palette::Palette(const char * name): _mode(OFF), _total(0), _available(0), _position(0), _random(TOTAL_RANDOM), _input(RgbColor(0)), _delay(10), _name(name)
 {
 	Palette(OFF, 10);
 }
 
-Palette::Palette(palette_type mode, uint16_t total, const char * name) : _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(0), _name(name)
+Palette::Palette(palette_type mode, uint16_t total, const char * name) : _mode(OFF), _total(0), _available(0), _position(0), _random(NOT_RANDOM), _input(RgbColor(0)), _delay(10), _name(name)
 {
 	_mode = mode;
 	_total = total;
@@ -173,7 +173,7 @@ RgbColor Palette::next()
 	_position += jump_size;
 
 	switch (_random) {
-		
+
 	case TIME_BASED_RANDOM: {
 		if (millis() - _randtimertick > (_delay * 1000) ) {
 			PaletteDebugf("[Palette::current] _input changed: TIME_BASED_RANDOM\n ");
@@ -201,7 +201,7 @@ RgbColor Palette::next()
 	}
 
 	_position %= _available;
-	
+
 	output = current();
 
 	if (changeinputflag) {
@@ -329,7 +329,7 @@ bool Palette::addJson(JsonObject& root)
 bool Palette::parseJson(JsonObject& root)
 {
 	PaletteDebugf("[Palette::parseJson] Func HIT\n");
-	
+
 	// root.prettyPrintTo(Serial);
 	// Serial.println();
 

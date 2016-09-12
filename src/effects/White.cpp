@@ -27,10 +27,10 @@ bool White::Start()
 
 		AnimEaseFunction easing = NeoEase::QuadraticInOut;
 
-		for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
+	//	for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
 
 			//RgbwColor originalColor = strip->GetPixelColor(pixel);
-			MyColorFeature::ColorObject originalColor = strip->GetPixelColor(pixel);
+			MyColorFeature::ColorObject originalColor = RgbColor(0); // strip->GetPixelColor(pixel);
 
 			AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
 				//float progress = easing(param.progress);
@@ -38,13 +38,17 @@ bool White::Start()
 				//MyColorFeature::ColorObject  updatedColor = RgbwColor::LinearBlend(originalColor, RgbwColor(0, 0, 0, brightness() ), progress);
 				 MyColorFeature::ColorObject  updatedColor = MyColorFeature::ColorObject::LinearBlend(originalColor, MyColorFeature::ColorObject(brightness()), progress);
 				//if (strip->PixelsSize() == 4) {
+				if (strip) {
+				for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
 					strip->SetPixelColor(pixel, updatedColor);
+				}
+			}
 				//}
 			};
 
-			animator->StartAnimation(pixel, 1000, animUpdate);
+			animator->StartAnimation(0, 1000, animUpdate);
 
-		}
+//		}
 	}
 }
 

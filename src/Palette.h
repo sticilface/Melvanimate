@@ -66,15 +66,18 @@ public:
 
 	void loop() {
 
-		if (_random && millis() - _randtimertick > (_delay * 1000) ) {
+//( _random == TIME_BASED_RANDOM || _random == RANDOM_AFTER_LOOP)
+
+		if ( _mode != OFF && millis() - _randtimertick > (_delay * 1000) ) {
 
 			if (_eventCallback) {
 				_eventCallback();
 			}
 
+			_randtimertick = millis();
 		}
 
-	};
+	}
 
 
 	void attachCallback( callback  ptr)  {
@@ -157,12 +160,12 @@ public:
 private:
 
 	RgbColor _last;
-	uint16_t _position;
-	uint16_t _total; 		// sets number of colours in palette.  not always used.
-	uint16_t _available;	// some palettes have fixed number of colours available
-	palette_type _mode;
+	uint16_t _position{0};
+	uint16_t _total{1}; 		// sets number of colours in palette.  not always used.
+	uint16_t _available{1};	// some palettes have fixed number of colours available
+	palette_type _mode{OFF};
 	//bool _random = false;
-	random_mode _random;
+	random_mode _random{NOT_RANDOM};
 	RgbColor _input;
 	float _range = 0.2f; // spread of palettes...
 	uint32_t _delay{10};

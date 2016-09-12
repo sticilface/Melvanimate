@@ -1,6 +1,7 @@
 #pragma once
 
-#include "effects/SwitchEffect.h"
+#include "Palette.h"
+#include "SwitchEffect.h"
 
 class SimpleEffect : public SwitchEffect
 {
@@ -12,11 +13,13 @@ public:
 	{
 		addVar(new Variable<uint8_t>("brightness", 50));
 		addVar(new Variable<RgbColor>("color1", RgbColor(0)));
-		return true; 
+		addVar(new Variable<Palette*>("Palette", Palette::OFF));
+		return true;
 	}
 
 	inline RgbColor color() { return getVar<RgbColor>("color1"); }
 	inline uint8_t brightness() { return getVar<uint8_t>("brightness"); }
+	inline Palette * palette() { return getVar<Palette*>("Palette"); }
 
 };
 
@@ -33,7 +36,7 @@ public:
 		addVar(new Variable<uint8_t>("brightness", 50));
 		addVar(new Variable<RgbColor>("color1", RgbColor(0) ) );
 		addVar(new Variable<uint8_t>("speed", 30 ) );
-		addVar(new Variable<Palette*>("Palette")); 
+		addVar(new Variable<Palette*>("Palette"));
 	}
 
 	inline  RgbColor color()  { return getVar<RgbColor>("color1"); }
