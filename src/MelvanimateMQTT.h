@@ -79,7 +79,7 @@ private:
 
 //        void _reconnect();
         void _handle(char* topic, byte* payload, unsigned int length);
-				void _onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total);
+				void _onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total);
 
         //WiFiClient _espClient;
         //PubSubClient _client;

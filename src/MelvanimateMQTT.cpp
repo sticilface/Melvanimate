@@ -164,7 +164,7 @@ void MelvanimateMQTT::sendJson(bool onlychanged)
 }
 
 
-void MelvanimateMQTT::_onMqttMessage(char* topic, char* payload, uint8_t qos, size_t len, size_t index, size_t total)
+void MelvanimateMQTT::_onMqttMessage(char* topic, char* payload, AsyncMqttClientMessageProperties properties, size_t len, size_t index, size_t total)
 {
         _handle(topic, (byte*)payload, total);
 }

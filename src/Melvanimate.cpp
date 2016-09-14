@@ -5,6 +5,8 @@
 #include <ESP8266mDNS.h>
 #include "JsonPackage.h"
 
+#define LAST_MODIFIED_DATE "Wed, 14 Sep 2016 17:00:00 GMT"
+
 NeoPixelAnimator * animator = nullptr;
 MyPixelBus * strip = nullptr;
 
@@ -29,6 +31,11 @@ bool Melvanimate::begin(const char * name)
 
         _HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
         _HTTP.on("/site.appcache", HTTP_ANY, std::bind (&Melvanimate::_handleManifest, this, _1));
+        _HTTP.rewrite("/", "/index.htm");
+        _HTTP.rewrite("/index.html", "/index.htm");
+        _HTTP.serveStatic("/index.htm", SPIFFS, "/index.htm").setLastModified(LAST_MODIFIED_DATE).setCacheControl("max-age=86400");
+        //.setCacheControl("max-age=86400")
+        _HTTP.serveStatic("/images/ajax-loader.gif", SPIFFS, "/jquery/images/ajax-loader.gif").setLastModified(LAST_MODIFIED_DATE).setCacheControl("max-age=86400");
 
         //_HTTP.rewrite("/", "/index.htm");
 
@@ -105,19 +112,24 @@ bool Melvanimate::begin(const char * name)
 void Melvanimate::addJQueryhandlers() {
 
 
-  _HTTP.on("/jquery/jqm1.4.5.css", HTTP_GET, [](AsyncWebServerRequest *request){
-          request->redirect("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css");
-  }).setFilter(ON_STA_FILTER);
+  // _HTTP.on("/jquery/jqm1.4.5.css", HTTP_GET, [](AsyncWebServerRequest *request){
+  //         request->redirect("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css");
+  // }).setFilter(ON_STA_FILTER);
+  //
+  // _HTTP.on("/jquery/jq1.11.1.js", HTTP_GET, [](AsyncWebServerRequest *request){
+  //         request->redirect("http://code.jquery.com/jquery-1.11.1.min.js");
+  // }).setFilter(ON_STA_FILTER);
+  //
+  // _HTTP.on("/jquery/jqm1.4.5.js", HTTP_GET, [](AsyncWebServerRequest *request){
+  //         request->redirect("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js");
+  // }).setFilter(ON_STA_FILTER);
+  //
+  // _HTTP.serveStatic("/jquery", SPIFFS, "/jquery/").setCacheControl("max-age:86400").setFilter(ON_AP_FILTER);
 
-  _HTTP.on("/jquery/jq1.11.1.js", HTTP_GET, [](AsyncWebServerRequest *request){
-          request->redirect("http://code.jquery.com/jquery-1.11.1.min.js");
-  }).setFilter(ON_STA_FILTER);
 
-  _HTTP.on("/jquery/jqm1.4.5.js", HTTP_GET, [](AsyncWebServerRequest *request){
-          request->redirect("http://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js");
-  }).setFilter(ON_STA_FILTER);
 
-  _HTTP.serveStatic("/jquery", SPIFFS, "/jquery/").setCacheControl("max-age:86400").setFilter(ON_AP_FILTER);
+
+
 }
 
 void Melvanimate::loop()
@@ -949,11 +961,11 @@ void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
         response->printf("# %u\n", random(10000));
 #endif
         response->print(F("CACHE:\n"));
-        response->print(F("jquery/jqm1.4.5.css\n"));
-        response->print(F("jquery/jq1.11.1.js\n"));
-        response->print(F("jquery/jqm1.4.5.js\n"));
-        response->print(F("jqColorPicker.min.js\n"));
-        response->print(F("jquery/images/ajax-loader.gif\n"));
+        // response->print(F("jquery/jqm1.4.5.css\n"));
+        // response->print(F("jquery/jq1.11.1.js\n"));
+        // response->print(F("jquery/jqm1.4.5.js\n"));
+        // response->print(F("jqColorPicker.min.js\n"));
+        response->print(F("images/ajax-loader.gif\n"));
         response->print(F("index.htm\n"));
         response->print(F("NETWORK:\n"));
         response->print("*\n");
