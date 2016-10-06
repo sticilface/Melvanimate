@@ -22,6 +22,7 @@
 #include <Melvanimate.h>
 #include <Hash.h> //  required for platformio build
 #include <ESP8266mDNS.h> // required for platformio build
+#include <SPIFFSEditor.h>
 
 AsyncWebServer HTTP(80);
 
@@ -103,7 +104,7 @@ void setup()
 
   lights.begin( devicename );
   lights.addJQueryhandlers(); // needed if you are not using ESPmanager to bind jquery handles.
-  
+
   HTTP.serveStatic("/", SPIFFS , "/");
   HTTP.begin();
 

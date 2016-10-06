@@ -6,7 +6,7 @@
 */
 
 
-#pragma once;
+#pragma once
 
 #include <ArduinoJson.h>
 #include <FS.h>

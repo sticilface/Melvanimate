@@ -14,6 +14,7 @@ MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t 
 								_disconnected = false;
                 _mqttClient.publish( ( "esp/" + String(_melvanimate->deviceName() ) ).c_str(), 2, false, WiFi.localIP().toString().c_str() );
                 publish( "status", "online", false);
+								publish( _melvanimate->deviceName(), "name", false );
                 publish( "IP", WiFi.localIP().toString().c_str(), false);
                 _mqttClient.subscribe( ( String(_melvanimate->deviceName()) + "/+/set").c_str(), 2);
 								DebugMelvanimateMQTTf("[MelvanimateMQTT::MelvanimateMQTT] MQTT Connected\n");
@@ -47,6 +48,7 @@ MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t 
 				 willtopic = strdup ((String( _melvanimate->deviceName()) + "/status").c_str());
 
         _mqttClient.setWill( willtopic, 2, true, "Disconnected");
+
         //.setCredentials("username", "password")
         DebugMelvanimateMQTTf("[MelvanimateMQTT::MelvanimateMQTT] Connecting to MQTT...");
 
