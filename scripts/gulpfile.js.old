@@ -27,13 +27,10 @@ const useref = require('gulp-useref');
 const gulpif = require('gulp-if');
 const inline = require('gulp-inline');
 var inlinesource = require('gulp-inline-source');
-var uncss = require('gulp-uncss');
-var concat = require('gulp-concat');
 var webserver = require('gulp-webserver');
-var browserSync = require('browser-sync').create();
 
 
-const datadir = './data/'
+const datadir = '../data/'
 const sourcedir = '../www/'
 //const examplesdir = ['../examples/Melvanimate-withESPManager/data', './examples/Melvanimate-example/data']
 
@@ -45,28 +42,10 @@ gulp.task('webserver', function() {
     }));
 });
 
-gulp.task('browserSync', function() {
-  browserSync.init({
-    server: {
-      baseDir: 'data',
-      index: "index.htm"
-    },
-  })
-})
-
-
 /* Clean destination folder */
 gulp.task('clean', function() {
     return del([datadir + '*'], { force : true } );
 });
-
-gulp.task('uncss', function() {
-    return gulp.src(sourcedir + 'css/*.css')
-        .pipe(concat(sourcedir + 'main.css'))
-        .pipe( uncss({ html: [sourcedir + '*.{html,htm}', 'http://localhost:8000/index.htm'] }) )
-        .pipe( gulp.dest(sourcedir))
-});
-
 
 /* Copy static files */
 gulp.task('files', function() {
@@ -139,7 +118,7 @@ module.exports = function customjs(source, context, next) {
     }
 };
 
-gulp.task('inlinesource' , function() {
+gulp.task('inlinesource', function() {
 
     var options = {
         compress: false
@@ -148,13 +127,12 @@ gulp.task('inlinesource' , function() {
 
     return gulp.src(sourcedir + '*.{html,htm}')
         .pipe(gulpif('*.{html,htm}', htmlmin({
-           collapseWhitespace: true,
-           removeComments: true,
-           minifyCSS: true,
-           minifyJS: true
+            collapseWhitespace: true,
+            removeComments: true,
+            minifyCSS: true,
+            minifyJS: true
         })))
         .pipe(inlinesource(options))
-        .pipe(gulp.dest(datadir))
         .pipe(gzip())
         .pipe(gulp.dest(datadir));
 });
@@ -164,56 +142,43 @@ gulp.task('inlinesource' , function() {
 // gulp.task('buildfs', ['clean', 'files', 'html']);
 // gulp.task('buildfs2', ['clean', 'files', 'inline']);
 // gulp.task('default', ['buildfs']);
-//gulp.task('build', ['clean', 'files', 'inlinesource']);
-gulp.task('build', ['clean', 'files', 'inlinesource']);
-
-
-
-gulp.task('default',['build'], function(){
-  gulp.watch(sourcedir +'/**/*.{html,htm,js}',  ['inlinesource']);
-  //gulp.watch(datadir + '/*.{html,htm,js', browserSync.reload);
-  //gulp.watch(datadir + '/**/*.js', browserSync.reload);
-})
-
-
-
-
+gulp.task('default', ['clean', 'files', 'inlinesource']);
 
 
 // ----------------------------------------------------------------------------- // PlatformIO support //-----------------------------------------------------------------------------
 
-// const spawn = require('child_process').spawn;
-// const argv = require('yargs').argv;
-//
-// var platformio = function(target) {
-//     var args = ['run'];
-//     if ("e" in argv) {
-//         args.push('-e');
-//         args.push(argv.e);
-//     }
-//     if ("p" in argv) {
-//         args.push('--upload-port');
-//         args.push(argv.p);
-//     }
-//     if (target) {
-//         args.push('-t');
-//         args.push(target);
-//     }
-//     const cmd = spawn('platformio', args);
-//     cmd.stdout.on('data', function(data) {
-//         console.log(data.toString().trim());
-//     });
-//     cmd.stderr.on('data', function(data) {
-//         console.log(data.toString().trim());
-//     });
-// }
-//
-// gulp.task('uploadfs', ['buildfs'], function() {
-//     platformio('uploadfs');
-// });
-// gulp.task('upload', function() {
-//     platformio('upload');
-// });
-// gulp.task('run', function() {
-//     platformio(false);
-// });
+const spawn = require('child_process').spawn;
+const argv = require('yargs').argv;
+
+var platformio = function(target) {
+    var args = ['run'];
+    if ("e" in argv) {
+        args.push('-e');
+        args.push(argv.e);
+    }
+    if ("p" in argv) {
+        args.push('--upload-port');
+        args.push(argv.p);
+    }
+    if (target) {
+        args.push('-t');
+        args.push(target);
+    }
+    const cmd = spawn('platformio', args);
+    cmd.stdout.on('data', function(data) {
+        console.log(data.toString().trim());
+    });
+    cmd.stderr.on('data', function(data) {
+        console.log(data.toString().trim());
+    });
+}
+
+gulp.task('uploadfs', ['buildfs'], function() {
+    platformio('uploadfs');
+});
+gulp.task('upload', function() {
+    platformio('upload');
+});
+gulp.task('run', function() {
+    platformio(false);
+});
