@@ -223,7 +223,6 @@ void Shapes::setshape(Shapetype shape)
 {
 	using namespace std::placeholders;
 
-
 	switch ( shape ) {
 
 	case RANDOM: {

@@ -42,7 +42,7 @@ MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t 
 				// _mqttClient.onPublish(onMqttPublish);
 
         _mqttClient.setServer(_addr, _port);
-        _mqttClient.setClientId(_melvanimate->deviceName());
+        //_mqttClient.setClientId(_melvanimate->deviceName()); //  disbale this so u end up with unique IDs... 
         _mqttClient.setKeepAlive(15);
 
 				 willtopic = strdup ((String( _melvanimate->deviceName()) + "/status").c_str());

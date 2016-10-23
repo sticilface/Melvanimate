@@ -20,39 +20,31 @@ bool White::Start()
 		animator = nullptr;
 	}
 
-	animator = new NeoPixelAnimator(  ( strip->PixelCount() < MAX_NUMBER_OF_ANIMATIONS) ? strip->PixelCount() : MAX_NUMBER_OF_ANIMATIONS  );
+	animator = new NeoPixelAnimator(1);
 
 
 	if (animator) {
 
 		AnimEaseFunction easing = NeoEase::QuadraticInOut;
 
-	//	for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
+		MyColorFeature::ColorObject originalColor = RgbColor(0); // strip->GetPixelColor(pixel);
 
-			//RgbwColor originalColor = strip->GetPixelColor(pixel);
-			MyColorFeature::ColorObject originalColor = RgbColor(0); // strip->GetPixelColor(pixel);
-
-			AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
-				//float progress = easing(param.progress);
-				float progress = param.progress;
-				//MyColorFeature::ColorObject  updatedColor = RgbwColor::LinearBlend(originalColor, RgbwColor(0, 0, 0, brightness() ), progress);
-				 MyColorFeature::ColorObject  updatedColor = MyColorFeature::ColorObject::LinearBlend(originalColor, MyColorFeature::ColorObject(brightness()), progress);
-				//if (strip->PixelsSize() == 4) {
-				if (strip) {
+		AnimUpdateCallback animUpdate = [ = ](const AnimationParam & param) {
+			float progress = param.progress;
+			MyColorFeature::ColorObject  updatedColor = MyColorFeature::ColorObject::LinearBlend(originalColor, MyColorFeature::ColorObject(brightness()), progress);
+			if (strip) {
 				for (uint16_t pixel = 0; pixel < strip->PixelCount(); pixel++) {
 					strip->SetPixelColor(pixel, updatedColor);
 				}
 			}
-				//}
-			};
+		};
 
-			animator->StartAnimation(0, 1000, animUpdate);
-
-//		}
+		animator->StartAnimation(0, 1000, animUpdate);
 	}
 }
 
-bool White::Run() {
+bool White::Run()
+{
 
 	if (animator && !animator->IsAnimating()) {
 		delete animator;
