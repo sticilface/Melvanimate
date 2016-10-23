@@ -1,3 +1,15 @@
+var _currentdevice = getBaseUrl();
+
+_currentdevice = "http://192.168.1.214/"
+
+
+var _currentdeviceName = "";
+var _originalname = "";
+console.log(_currentdevice);
+var _connectedStatus = "";
+
+var _offlineDeviceList = {};
+
 function loadcss(url, callback) {
  var link = document.createElement("link");
  link.setAttribute("rel", "stylesheet");
@@ -49,13 +61,7 @@ function getBaseUrl() {
  return re.exec(window.location.href);
 }
 
-var _currentdevice = getBaseUrl();
-var _currentdeviceName = "";
-var _originalname = "";
-console.log(_currentdevice);
-var _connectedStatus = "";
 
-var _offlineDeviceList = {};
 
 if (localStorage.devicelist) {
  console.log("deviceList @ init = ");
