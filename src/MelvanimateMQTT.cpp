@@ -10,7 +10,7 @@ MelvanimateMQTT::MelvanimateMQTT(Melvanimate * lights, IPAddress Addr, uint16_t 
 
 				 char * willtopic = nullptr;
 
-        _mqttClient.onConnect( [this, willtopic]() {
+        _mqttClient.onConnect( [this, willtopic](bool sessionPresent) {
 								_disconnected = false;
                 _mqttClient.publish( ( "esp/" + String(_melvanimate->deviceName() ) ).c_str(), 2, false, WiFi.localIP().toString().c_str() );
                 publish( "status", "online", false);

@@ -32,7 +32,9 @@
 #include "effects/UDPEffect.h"
 #include "effects/RainbowChase.h"
 #include "effects/Shapes.h"
-#include "effects/White.h"
+#include "effects/White.h" //  only adviced to use with 4 colour LEDS
+#include "effects/SunRise.h"
+#include "effects/Beats.h"
 
 
 const uint16_t defaultpixelcount =  20;
@@ -68,6 +70,8 @@ void setup()
   lights.Add("UDP",          new UDPEffect);
   lights.Add("DMX",          new DMXEffect );                       // need to test - requires custom libs included
   lights.Add("White",        new White); //
+  lights.Add("SunRise",      new SunRise); 
+  lights.Add("Beats",        new Beats); 
 
   lights.begin( manager.getHostname().c_str() );
 
