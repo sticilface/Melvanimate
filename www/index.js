@@ -1,6 +1,6 @@
 var _currentdevice = getBaseUrl();
 
-_currentdevice = "http://192.168.1.214/"
+//_currentdevice = "http://192.168.1.214/"
 
 
 var _currentdeviceName = "";
