@@ -152,4 +152,8 @@ private:
 	UDP_broadcast _locator;
 	AsyncEventSource * _events{nullptr};
 
+#ifdef RANDOM_MANIFEST_BOOT
+	uint32_t _random_number{0};
+#endif
+
 };

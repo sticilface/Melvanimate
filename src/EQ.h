@@ -17,7 +17,7 @@ MSGEQ7 chip RESET pulse is 0.1us min, strobe pulse 0.018us min.  And it works fi
 #include <ArduinoJson.h>
 
 #include <ESP8266WiFi.h>
-#include <WiFiUdp.h>
+#include <WiFiUdp.h> 
 
 #define EQ_DEFAULT_STROBE_PIN 13
 #define EQ_DEFAULT_RESET_PIN  12
@@ -27,8 +27,8 @@ MSGEQ7 chip RESET pulse is 0.1us min, strobe pulse 0.018us min.  And it works fi
 
 //#ifdef DEBUG_ESP_PORT && DebugEQ
 #if defined(DebugEQ)
-
-#define DebugEQf(_1, ...) DebugEQ.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+#define DebugEQf(...) DebugEQ.printf(__VA_ARGS__) //  this saves around 5K RAM...
+//#define DebugEQf(_1, ...) DebugEQ.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 #else
 	#define DebugEQf(...) {}
 #endif
@@ -163,7 +163,7 @@ private:
 	EQCallback _EQcallbackFN;
 
 	float _peakfactor{2.1};
-	uint8_t _beatskiptime{200};
+	uint32_t _beatskiptime{200};
 
 //  UDP stuff
 

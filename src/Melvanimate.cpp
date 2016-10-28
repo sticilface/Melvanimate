@@ -31,11 +31,20 @@ bool Melvanimate::begin(const char * name)
 
     _HTTP.on("/data.esp", HTTP_ANY, std::bind (&Melvanimate::_handleWebRequest, this, _1));
     _HTTP.on("/site.appcache", HTTP_ANY, std::bind (&Melvanimate::_handleManifest, this, _1));
-    _HTTP.rewrite("/", "/index.htm");
-    _HTTP.rewrite("/index.html", "/index.htm");
-    _HTTP.serveStatic("/index.htm", SPIFFS, "/index.htm").setLastModified(LAST_MODIFIED_DATE).setCacheControl("max-age=86400");
+ 
+
+     _HTTP.rewrite("/", "/index.htm");
+     _HTTP.rewrite("/index.html", "/index.htm");
+    _HTTP.serveStatic("/index.htm", SPIFFS, "/index.htm"); //.setLastModified(LAST_MODIFIED_DATE).setCacheControl("max-age=86400");
+
+
+
+
     //.setCacheControl("max-age=86400")
     _HTTP.serveStatic("/images/ajax-loader.gif", SPIFFS, "/espman/ajax-loader.gif").setLastModified(LAST_MODIFIED_DATE).setCacheControl("max-age=86400");
+
+    //_HTTP.serveStatic("/", SPIFFS, "/"); //.setLastModified(LAST_MODIFIED_DATE).setCacheControl("max-age=86400");
+
 
     //_HTTP.rewrite("/", "/index.htm");
 
@@ -105,6 +114,12 @@ bool Melvanimate::begin(const char * name)
         Start(_defaulteffecthandle);
     }
 
+
+#ifdef RANDOM_MANIFEST_BOOT
+    randomSeed(analogRead(A0));
+    _random_number = random(345999);
+    Serial.printf("Setting random seed to %u\n", _random_number); 
+#endif
 
 
 }
@@ -869,9 +884,14 @@ void Melvanimate::_sendData(String page, int8_t code, AsyncWebServerRequest *req
             JsonObject & destmqtt = root.createNestedObject("MQTT");
             JsonObject & mqtt = (*settings)["globals"]["MQTT"].asObject();
             JSONpackage::mergejson(destmqtt, mqtt);
+
+            if (!destmqtt.containsKey("enabled")) {
+                destmqtt["enabled"] = false; 
+            }
+            
         } else {
-            JsonObject & mqtt = root.createNestedObject("MQTT");
-            mqtt["enabled"] = false;
+            JsonObject & destmqtt = root.createNestedObject("MQTT");
+            destmqtt["enabled"] = false;
         }
 
     }
@@ -958,7 +978,7 @@ template <class T> void Melvanimate::_sendJsontoHTTP( const T & root, AsyncWebSe
 void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
 {
 #ifdef DISABLE_MANIFEST
-    request->send(404);
+    request->send(200);
     return;
 #endif
 
@@ -966,9 +986,16 @@ void Melvanimate::_handleManifest(AsyncWebServerRequest *request)
     response->addHeader(F("Cache-Control"), F( "must-revalidate"));
     response->print(F("CACHE MANIFEST\n"));
     response->printf( "# %s\n", __DATE__ " " __TIME__ );
+
 #ifdef RANDOM_MANIFEST
     response->printf("# %u\n", random(10000));
 #endif
+
+#ifdef RANDOM_MANIFEST_BOOT
+    response->printf("# %u\n", _random_number);
+    Serial.printf("manifest random boot number = %u\n", _random_number);
+#endif
+
     response->print(F("CACHE:\n"));
     // response->print(F("jquery/jqm1.4.5.css\n"));
     // response->print(F("jquery/jq1.11.1.js\n"));

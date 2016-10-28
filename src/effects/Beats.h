@@ -34,8 +34,11 @@ public:
 
 	void effect1(EQParam params);
 	void effect2(EQParam params);
+	void effect4(EQParam params);
 	void bassEffect(EQParam params); 
 	void snakeEffectCb(EQParam params); 
+
+	void stripEffect(EQParam params);
 
 	void snakeEffectRun();
 
@@ -52,7 +55,10 @@ private:
     int8_t _direction{1}; 
     uint8_t _speed{30}; 
     uint8_t _tail{5};
+    uint8_t _selectedchannel{1};
     //float _pixelfudgefactor{1}; 
     AnimUpdateCallback _animUpdate1; 
+    AnimUpdateCallback _animUpdate2; 
+
 
 };

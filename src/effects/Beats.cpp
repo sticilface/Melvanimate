@@ -73,8 +73,14 @@ bool Beats::Start()
 		case 3:
 			_EQ->SetBeatCallback(  std::bind(&Beats::snakeEffectCb, this, _1 ) );
 			break;
+		case 4:
+			_EQ->SetBeatCallback(  std::bind(&Beats::effect4, this, _1 ) );
+			break;
+		case 5:
+			_EQ->SetBeatCallback(  std::bind(&Beats::effect4, this, _1 ) );
+			break;
 		default :
-			_EQ->SetBeatCallback(  std::bind(&Beats::effect2, this, _1 ) );
+			_EQ->SetBeatCallback(  std::bind(&Beats::stripEffect, this, _1 ) );
 			break;
 		}
 
@@ -89,6 +95,13 @@ bool Beats::Start()
 
 			RgbColor updatedColor = RgbColor::LinearBlend(dim( _currentColor , brightness() ), 0,  progress) ;
 
+			strip->SetPixelColor(  aniparam.index  , updatedColor);
+		};
+
+		_animUpdate2 = [this](const AnimationParam & aniparam) {
+			float progress = NeoEase::ExponentialOut(aniparam.progress);
+			float test = sin(progress * 3.141);
+			RgbColor updatedColor = RgbColor::LinearBlend(0,  dim( _currentColor , brightness() ),  test) ;
 			strip->SetPixelColor(  aniparam.index  , updatedColor);
 		};
 
@@ -111,17 +124,41 @@ bool Beats::Run()
 	case 1:
 
 		break;
-	case 2:
+	case 2: { //  bass effect
+		if (millis() - _beattimeout > 2000) {
+			_selectedchannel = 2; 
+		}
 
-		break;
+	}
+
+	break;
 	case 3:
 		snakeEffectRun();
 		break;
+
+
 	default:
 
 		break;
 
 	}
+
+
+// static uint32_t test = 0;
+
+// 	if (millis() - test > 1000) {
+
+// 			for (uint16_t i = 0; i < _pixels; i++) {
+
+
+// 				animator->StartAnimation(i, 900 ,  _animUpdate2);
+
+// 			}
+
+// 			test = millis();
+
+
+// 	}
 
 	// if (millis() - _tick > 30) {
 
@@ -210,19 +247,28 @@ void Beats::effect1(EQParam params)
 void Beats::bassEffect(EQParam params)
 {
 
-	if (params.channel == 0 || params.channel == 1 ) {
+	if (params.channel == 1) {
+		_selectedchannel = 1; //  switches badk to bass if it comes. 
+	}
 
+	if (params.channel == _selectedchannel || params.channel == 0 ) {
+
+		if (millis() - _beattimeout > 300) {
+				_beattimeout = millis();
 		_currentColor =  palette()->next() ;
 
 		for (uint16_t i = 0; i < _pixels; i++) {
 
-			animator->StartAnimation(i, params.level * 3 ,  _animUpdate1);
+			animator->StartAnimation(i, params.level * 6 ,  _animUpdate2);
 
+		}	
 		}
 
 
-
 	}
+
+
+
 
 
 
@@ -263,9 +309,7 @@ void Beats::snakeEffectRun()
 
 void Beats::effect2(EQParam params)
 {
-	//  return if the channel is not the selected one
 
-	//if ()
 	if (params.channel == 5 ||  millis() - _colortimeout > 10000) {
 		_currentColor =  palette()->next() ;
 		_colortimeout = millis();
@@ -280,16 +324,7 @@ void Beats::effect2(EQParam params)
 
 		for (uint16_t i = 0; i < _pixels; i++) {
 
-			// AnimUpdateCallback animUpdate = [ = ](const AnimationParam & aniparam) {
-
-			// 	float progress = aniparam.progress;
-
-			// 	RgbColor updatedColor = RgbColor::LinearBlend(targetColor, 0,  progress) ;
-
-			// 	strip->SetPixelColor(  i  , updatedColor);
-			// };
-
-			animator->StartAnimation(i, params.level * 3 ,  _animUpdate1);
+			animator->StartAnimation(i, params.level * 3 ,  _animUpdate2);
 
 		}
 
@@ -308,16 +343,7 @@ void Beats::effect2(EQParam params)
 
 			for (uint16_t i = 0; i < _pixels; i++) {
 
-				// AnimUpdateCallback animUpdate = [ = ](const AnimationParam & aniparam) {
-
-				// 	float progress = aniparam.progress;
-
-				// 	RgbColor updatedColor = RgbColor::LinearBlend(targetColor, 0,  progress) ;
-
-				// 	strip->SetPixelColor(  i  , updatedColor);
-				// };
-
-				animator->StartAnimation(i, level * 3 ,  _animUpdate1);
+				animator->StartAnimation(i, level * 3 ,  _animUpdate2);
 
 			}
 
@@ -328,5 +354,67 @@ void Beats::effect2(EQParam params)
 
 }
 
+
+
+
+
+void Beats::effect4(EQParam params)
+{
+	//  return if the channel is not the selected one
+
+	//if ()
+	if (params.channel == 5 ||  millis() - _colortimeout > 10000) {
+		_currentColor =  palette()->next() ;
+		_colortimeout = millis();
+	}
+
+
+	if (params.channel == 0 || params.channel == 1 || params.channel == 2) {
+		_beattimeout = millis();
+
+		uint8_t level = params.level;
+		RgbColor targetColor = dim( _currentColor , brightness() );
+
+		for (uint16_t i = 0; i < _pixels; i++) {
+
+			animator->StartAnimation(i, params.level * 3 ,  _animUpdate2);
+
+		}
+
+	}
+
+	if (millis() - _beattimeout > 3000) {
+
+		_currentColor =  palette()->next() ;
+		_colortimeout = millis();
+
+		if (params.channel == 5 || params.channel == 6 || params.channel == 7) {
+			_beattimeout = millis();
+
+			uint8_t level = params.level;
+			RgbColor targetColor = dim( _currentColor , brightness() );
+
+			for (uint16_t i = 0; i < _pixels; i++) {
+
+
+				animator->StartAnimation(i, level * 3 ,  _animUpdate2);
+
+			}
+
+		}
+
+
+	}
+
+}
+
+
+void Beats::stripEffect(EQParam params)
+{
+
+
+
+
+}
 
 
