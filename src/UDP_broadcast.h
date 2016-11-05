@@ -35,8 +35,8 @@
 //#define UDP_TEST_SENDER //  this sends lots of pretend
 
 #if defined(DebugUDP)
-//#define DebugUDPf(...) DebugUDP.printf(__VA_ARGS__)
-#define DebugUDPf(_1, ...) DebugUDP.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+#define DebugUDPf(...) DebugUDP.printf(__VA_ARGS__)
+//#define DebugUDPf(_1, ...) DebugUDP.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 
 #else
 #define DebugUDPf(...) {}

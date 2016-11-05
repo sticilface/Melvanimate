@@ -21,8 +21,8 @@
 //#define DebugPalette Serial
 
 #if defined(DebugPalette)
-//#define PaletteDebugf(...) DebugPalette.printf(__VA_ARGS__)
-#define PaletteDebugf(_1, ...) DebugPalette.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+#define PaletteDebugf(...) DebugPalette.printf(__VA_ARGS__)
+//#define PaletteDebugf(_1, ...) DebugPalette.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 
 #else
 #define PaletteDebugf(...) {}

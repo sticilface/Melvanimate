@@ -11,8 +11,8 @@
 //#define DebugPropertyManager Serial
 
 #if defined(DebugPropertyManager)
-//#define PropertyManagerf(...) DebugPropertyManager.printf(__VA_ARGS__)
-#define PropertyManagerf(_1, ...) DebugPropertyManager.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+#define PropertyManagerf(...) DebugPropertyManager.printf(__VA_ARGS__)
+//#define PropertyManagerf(_1, ...) DebugPropertyManager.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 
 #else
 #define PropertyManagerf(...) {}

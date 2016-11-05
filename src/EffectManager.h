@@ -23,8 +23,8 @@ extern NeoPixelAnimator * animator;
 //#define DebugEffectManager Serial
 
 #if  defined(DebugEffectManager)
-//#define DebugEffectManagerf(...) DebugEffectManager.printf(__VA_ARGS__)
-#define DebugEffectManagerf(_1, ...) DebugEffectManager.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+#define DebugEffectManagerf(...) DebugEffectManager.printf(__VA_ARGS__)
+//#define DebugEffectManagerf(_1, ...) DebugEffectManager.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 
 #else
 #define DebugEffectManagerf(...) {}

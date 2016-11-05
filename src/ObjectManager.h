@@ -17,8 +17,8 @@ Handler to add / create / run multiple Effect Objects at the same time...
 //#define DebugObjectman
 
 #if defined(DEBUG_ESP_PORT) && defined(DebugObjectman)
-//#define Debugobjf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
-#define Debugobjf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
+#define Debugobjf(...) DEBUG_ESP_PORT.printf(__VA_ARGS__)
+//#define Debugobjf(_1, ...) DEBUG_ESP_PORT.printf_P( PSTR(_1), ##__VA_ARGS__) //  this saves around 5K RAM...
 
 
 #else
