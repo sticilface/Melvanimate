@@ -76,11 +76,19 @@ bool Beats::Start()
 		case 4:
 			_EQ->SetBeatCallback(  std::bind(&Beats::effect4, this, _1 ) );
 			break;
-		case 5:
-			_EQ->SetBeatCallback(  std::bind(&Beats::effect4, this, _1 ) );
+		case 5: {
+			_EQ->SetBeatCallback(  std::bind(&Beats::stripEffect, this, _1 ) );
+
+			if (palette()) {
+				palette()->attachCallback( [this] () {
+					_currentColor = palette()->next();
+				});
+			}
+
+		}
 			break;
 		default :
-			_EQ->SetBeatCallback(  std::bind(&Beats::stripEffect, this, _1 ) );
+			_EQ->SetBeatCallback(  std::bind(&Beats::effect1, this, _1 ) );
 			break;
 		}
 
@@ -119,6 +127,11 @@ bool Beats::Run()
 		_EQ->loop();
 	}
 
+	if (palette()) {
+		palette()->loop();
+	}
+
+
 
 	switch (mode()) {
 	case 1:
@@ -126,7 +139,7 @@ bool Beats::Run()
 		break;
 	case 2: { //  bass effect
 		if (millis() - _beattimeout > 2000) {
-			_selectedchannel = 2; 
+			_selectedchannel = 2;
 		}
 
 	}
@@ -248,20 +261,20 @@ void Beats::bassEffect(EQParam params)
 {
 
 	if (params.channel == 1) {
-		_selectedchannel = 1; //  switches badk to bass if it comes. 
+		_selectedchannel = 1; //  switches badk to bass if it comes.
 	}
 
 	if (params.channel == _selectedchannel || params.channel == 0 ) {
 
 		if (millis() - _beattimeout > 300) {
-				_beattimeout = millis();
-		_currentColor =  palette()->next() ;
+			_beattimeout = millis();
+			_currentColor =  palette()->next() ;
 
-		for (uint16_t i = 0; i < _pixels; i++) {
+			for (uint16_t i = 0; i < _pixels; i++) {
 
-			animator->StartAnimation(i, params.level * 6 ,  _animUpdate2);
+				animator->StartAnimation(i, params.level * 6 ,  _animUpdate2);
 
-		}	
+			}
 		}
 
 
@@ -412,8 +425,41 @@ void Beats::effect4(EQParam params)
 void Beats::stripEffect(EQParam params)
 {
 
+	uint16_t leds = strip->PixelCount() / 7;
+
+	uint8_t reminder = strip->PixelCount() % 7;
+	bool addone = false;
+
+	uint16_t start = (params.channel * leds);
+
+	if (reminder < params.channel) {
+		start = start + reminder;
+	}
+
+	uint16_t end = start + leds;
+
+	if (params.channel >= reminder) {
+		end = end + 1;
+	}
+
+	uint8_t level = params.level;
+
+	//RgbColor colour = palette()->current(); 
+	
+	for (uint16_t i = start; i < end; i++) {
 
 
+
+		AnimUpdateCallback _animUpdate = [this](const AnimationParam & aniparam) {
+			float progress = NeoEase::ExponentialOut(aniparam.progress);
+			float test = sin(progress * 3.141);
+			RgbColor updatedColor = RgbColor::LinearBlend(0,  dim( _currentColor , brightness() ),  test) ;
+			strip->SetPixelColor(  aniparam.index  , updatedColor);
+		};
+
+
+		animator->StartAnimation(i, level * 3 ,  _animUpdate);
+	}
 
 }
 
