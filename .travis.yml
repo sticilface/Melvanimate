@@ -50,7 +50,7 @@ install:
  #  - wget https://gist.githubusercontent.com/sticilface/441a64cb7d73799afab6fcaa4ad6bdee/raw/34d27106ae274fc866bdb332c89f43ed63e5c0c2/esp8266.flash.common.ld
  # # finsih sdk updates
   - cd $TRAVIS_BUILD_DIR
-  - echo "10606" > ~/.platformio/packages/framework-arduinoespressif/version.txt
+  #- echo "10606" > ~/.platformio/packages/framework-arduinoespressif/version.txt
   - mkdir /tmp/build
   - mkdir $TRAVIS_BUILD_DIR/libs
   #- git clone https://github.com/bblanchon/ArduinoJson          $TRAVIS_BUILD_DIR/libs/ArduinoJson
