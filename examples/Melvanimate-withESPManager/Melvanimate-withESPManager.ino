@@ -56,14 +56,13 @@ void setup()
   Serial.println("");
   Serial.println("Melvanimate - WS2812 control");
 
-
   SPIFFS.begin();
-
+  lights.Load("Default"); // Load a preset called "Default" at power up if it is there
   manager.begin();
 
 //  Add effects to the manager.
-  lights.Add("Off",          new SwitchEffect( offFn), true);        //  **  Last true indicates this is the default effect... ie... off...
-  lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn));
+  lights.Add("Off",          new SwitchEffect(offFn));
+  lights.Add("SimpleColor",  new SimpleEffect(SimpleColorFn), true); //  **  Last true indicates this is the default effect...
   lights.Add("RainbowChase", new RainbowChase);
   lights.Add("Shapes",       new Shapes);
   lights.Add("Adalight",     new AdalightEffect(Serial, 115200));   //  default serial device and baud.
