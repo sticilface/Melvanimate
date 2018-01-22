@@ -78,7 +78,7 @@ This is a complete rework of my previous project [WS2812-WiFi](https://github.co
 + Configured dynaimcally to save memory.  Turn on/off in config menu.
 + Might need some more testing....
 + Adapted manager that saves messages and sends them async, so loop doesn't stall if you send 10 messages.
-+ device subscribes to deviceid/+/set, the + can be any variable created with addVar().  Eg..  device/brightness/255 will set brightness to 255.
++ device subscribes to deviceid/+/set, the + can be any variable created with addVar().  Eg..  device/brightness/set/255 will set brightness to 255.
 + It should reply with the new value.
 + On boot, it will send presets, one at a time to topic deviceid/preset/ID with name [effect]; use the ID or name to load preset
 + General Commands
